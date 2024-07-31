@@ -60,7 +60,6 @@ pipeline
                     cd /data &&
                     . /opt/qeff-env/bin/activate
                     export TOKENIZERS_PARALLELISM=false &&
-                    // pytest -W ignore -s -v tests -o junit_logging=all --junitxml=tests/tests_log.xml &&
                     junit 'tests/tests_log.xml' &&
                     deactivate &&
                     exit"
