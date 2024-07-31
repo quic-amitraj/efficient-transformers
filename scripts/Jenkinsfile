@@ -87,7 +87,9 @@ pipeline
             }
             
             echo 'Cleaning Workspace'
+            sh '''
             sudo rm -rf ./*
+            '''
          }
     }
        
