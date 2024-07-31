@@ -73,17 +73,21 @@ pipeline
     {
          always 
          {
-            try 
+            script
             {
-                sh '''
-                docker ps
-                docker rm -f ${CONTAINER_NAME}
-                '''
-            } 
-            catch (err) 
-            {
-                echo "Caught: ${err}"
+                try 
+                {
+                    sh '''
+                    docker ps
+                    docker rm -f ${CONTAINER_NAME}
+                    '''
+                } 
+                catch (err) 
+                {
+                    echo "Caught: ${err}"
+                }
             }
+            
             echo 'Cleaning Workspace'
             deleteDir() 
          }
