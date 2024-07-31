@@ -60,10 +60,11 @@ pipeline
                     cd /data &&
                     . /opt/qeff-env/bin/activate
                     export TOKENIZERS_PARALLELISM=false &&
-                    sudo chown -R ubuntu ./*
                     deactivate &&
                     exit"
-                    '''     
+                    sudo chown -R ubuntu ./*
+                    '''
+                    
                 }
             }
         }
