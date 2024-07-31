@@ -39,7 +39,10 @@ pipeline
             steps
             {
                 sh '''
-                    docker run --privileged -dit --name ${CONTAINER_NAME} -v ./:/data -v  /home/ubuntu/.cache/huggingface/hub:/root/.cache/huggingface/hub docker-registry.qualcomm.com/qraniumtest/qranium:master_latest
+                    whoami
+                    echo ${huggingface_hub_path}
+                    echo ${docker_huggingface_hub_path}
+                    docker run --privileged -dit --name ${CONTAINER_NAME} -v ./:/data -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
                     docker exec ${CONTAINER_NAME} bash -c "
                     cd /data
                     . /opt/qeff-env/bin/activate
