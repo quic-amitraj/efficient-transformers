@@ -13,7 +13,20 @@ pipeline
     }
     stages 
     {
-        
+        stage('Check Changes') {
+            steps {
+                script {
+                    def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split('\n')
+                    if ('pyproject.toml' in changedFiles) 
+                    {
+                         echo "Change in pyproject.tomldetected"
+                    }
+                    else
+                    {
+                        echo " There is no chnage in pyproject.toml"
+                    }
+                }
+            }
         stage('Install QEfficient')
         {
             steps
