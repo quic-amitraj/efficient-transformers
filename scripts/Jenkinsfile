@@ -89,7 +89,7 @@ pipeline
             }
             
             echo 'Cleaning Workspace'
-            deleteDir() 
+            sudo deleteDir() 
          }
     }
        
