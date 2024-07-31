@@ -28,6 +28,8 @@ pipeline
                     else
                     {
                         echo " There is no chnage in pyproject.toml"
+                        echo "Change in pyproject.toml detected"
+                        build job: 'efficient_transformer_docker_build',  parameters: [string(name: 'BRANCH_NAME', value:  env.BRANCH_NAME.replace('PR-', ''), description: 'Branch name to checkout')]
                     }
                 }
             }
@@ -71,7 +73,8 @@ pipeline
          always 
          {
              sh '''
-                docker rm -f ${CONTAINER_NAME}
+                docker ps
+                // docker rm -f ${CONTAINER_NAME}
                 '''
             junit 'tests/tests_log.xml'
             echo 'Cleaning Workspace'
