@@ -87,7 +87,7 @@ pipeline
             }
             
             echo 'Cleaning Workspace'
-            sudo deleteDir() 
+            sudo rm -rf ./*
          }
     }
        
