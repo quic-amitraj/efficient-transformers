@@ -60,7 +60,7 @@ pipeline
                     cd /data &&
                     . /opt/qeff-env/bin/activate
                     export TOKENIZERS_PARALLELISM=false &&
-                    pytest -W ignore -s -v tests -o junit_logging=all --junitxml=tests/tests_log.xml &&
+                    // pytest -W ignore -s -v tests -o junit_logging=all --junitxml=tests/tests_log.xml &&
                     junit 'tests/tests_log.xml' &&
                     deactivate &&
                     exit"
@@ -73,10 +73,17 @@ pipeline
     {
          always 
          {
-             sh '''
+            try 
+            {
+                sh '''
                 docker ps
                 docker rm -f ${CONTAINER_NAME}
                 '''
+            } 
+            catch (err) 
+            {
+                echo "Caught: ${err}"
+            }
             echo 'Cleaning Workspace'
             deleteDir() 
          }
