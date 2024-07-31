@@ -22,7 +22,8 @@ pipeline
                     def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split('\n')
                     if ('pyproject.toml' in changedFiles) 
                     {
-                         echo "Change in pyproject.tomldetected"
+                         echo "Change in pyproject.toml detected"
+                         build job: 'efficient_transformer_docker_build',  parameters: [string(name: 'BRANCH_NAME', value: env.CHANGE_BRANCH, description: 'Branch name to checkout')]
                     }
                     else
                     {
