@@ -40,7 +40,6 @@ pipeline
             {
                 sh '''
                     whoami
-                    source ~/.bashrc
                     echo ${huggingface_hub_path}
                     echo ${docker_huggingface_hub_path}
                     docker run --privileged -dit --name ${CONTAINER_NAME} -v ./:/data -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
