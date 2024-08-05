@@ -42,7 +42,6 @@ pipeline
                 script
                 {
                     sh '''
-                    #!/bin/bash
                     . ~/.bashrc
                     docker run --privileged -dit --name ${CONTAINER_NAME} -v ./:/data -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
                     docker exec ${CONTAINER_NAME} bash -c "
@@ -89,9 +88,9 @@ pipeline
                     docker rm -f ${CONTAINER_NAME}
                     '''
                 } 
-                catch (err) 
+                catch (error) 
                 {
-                    echo "Failed to delete container ${CONTAINER_NAME}: ${err}"
+                    echo "Failed to delete container ${CONTAINER_NAME}: ${error}"
                 }
             }
             
