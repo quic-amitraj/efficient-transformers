@@ -1,7 +1,8 @@
 pipeline 
 {
 
-    agent{
+    agent
+    {
         node 
         {
             label 'qeff_node'
@@ -9,7 +10,7 @@ pipeline
     }
     environment 
     {
-        branch_name=env.BRANCH_NAME
+        branch_name=BRANCH_NAME
     }
     stages 
     {
