@@ -18,16 +18,15 @@ pipeline
                 script
                 {
 
-                    sh """
+                    sh '''
                     . ~/.bashrc
-                    echo 'Pulling...$BRANCH_NAME'
                     docker run --privileged -dit --name ${BRANCH_NAME} -v ./:/efficient-transformers -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
                     docker exec ${BRANCH_NAME} bash -c "
                     cd /efficient-transformers &&
                     . /opt/qeff-env/bin/activate &&
                     pip install --upgrade pip setuptools &&
                     pip install .[test]"
-                    """
+                    '''
                 }
             }
         }
@@ -38,7 +37,7 @@ pipeline
                     //todo(ochougul): Increase when MQ tests are enabled 
 		            timeout(time: 420, unit: 'MINUTES') 
                     {
-                    sh """
+                    sh '''
                     docker exec ${BRANCH_NAME} bash -c "
                     cd /data &&
                     . /opt/qeff-env/bin/activate &&
@@ -46,7 +45,7 @@ pipeline
                     pytest -W ignore -s -v tests -o junit_logging=all --junitxml=tests/tests_log.xml &&
                     deactivate &&
                     exit" 
-                    """
+                    '''
                     
                 }
             }
