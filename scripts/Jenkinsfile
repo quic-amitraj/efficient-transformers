@@ -8,6 +8,10 @@ pipeline
             label 'qeff_node'
         }
     }
+    environment 
+    {
+     branch_name = "${env.CHANGE_BRANCH ? env.CHANGE_BRANCH : env.BRANCH_NAME}"
+    }
     stages 
     {
         stage('Install QEfficient')
@@ -22,7 +26,7 @@ pipeline
                     echo 'Pulling...' + safeBranchName
                     sh '''
                     . ~/.bashrc
-                    echo 'Pulling...' + $safeBranchName
+                    echo 'Pulling...' + $branch_name
                     echo $safeBranchName
                     docker run --privileged -dit --name ${safeBranchName} -v ./:/efficient_transformers -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
                     docker exec ${safeBranchName} bash -c "
