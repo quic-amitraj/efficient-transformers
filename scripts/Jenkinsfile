@@ -17,9 +17,9 @@ pipeline
                 
                 script
                 {
-                    def branchName=env.CHANGE_BRANCH
+                    def branchName=env.BRANCH_NAME
                     def safeBranchName = branchName.replaceAll('[^a-zA-Z0-9]', '-')
-                    echo 'Pulling...' + env.BRANCH_NAME
+                    echo 'Pulling...' + $safeBranchName
                     // sh '''
                     // . ~/.bashrc
                     // echo 'Pulling...' + env.BRANCH_NAME
