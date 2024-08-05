@@ -38,6 +38,12 @@ pipeline
         {
             steps
             {
+
+                script
+                {
+                    echo ${huggingface_hub_path}
+                    echo ${docker_huggingface_hub_path}
+                }
                 sh '''
                     whoami
                     echo ${huggingface_hub_path}
