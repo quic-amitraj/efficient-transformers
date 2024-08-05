@@ -7,33 +7,8 @@ pipeline
             label 'qeff_node'
         }
     }
-    environment 
-    {
-        CONTAINER_NAME = "qeff_container"
-    }
     stages 
     {
-        stage('Check Changes') 
-        {
-            steps 
-            {
-                script 
-                {
-                    def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split('\n')
-                    if ('pyproject.toml' in changedFiles) 
-                    {
-                         echo "Change in pyproject.toml detected"
-                         //build job: 'efficient_transformer_docker_build',  parameters: [string(name: 'BRANCH_NAME', value:  env.BRANCH_NAME.replace('PR-', ''), description: 'Branch name to checkout')]
-                    }
-                    else
-                    {
-                        echo " There is no chnage in pyproject.toml"
-                       // echo "Change in pyproject.toml detected"
-                        //build job: 'efficient_transformer_docker_build',  parameters: [string(name: 'BRANCH_NAME', value:  env.BRANCH_NAME.replace('PR-', ''), description: 'Branch name to checkout')]
-                    }
-                }
-            }
-        }
         stage('Install QEfficient')
         {
             steps
@@ -43,8 +18,8 @@ pipeline
                 {
                     sh '''
                     . ~/.bashrc
-                    docker run --privileged -dit --name ${CONTAINER_NAME} -v ./:/data -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
-                    docker exec ${CONTAINER_NAME} bash -c "
+                    docker run --privileged -dit --name ${env.BRANCH_NAME} -v ./:/data -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
+                    docker exec ${env.BRANCH_NAME} bash -c "
                     cd /data &&
                     . /opt/qeff-env/bin/activate &&
                     pip install --upgrade pip setuptools &&
@@ -61,14 +36,13 @@ pipeline
 		            timeout(time: 420, unit: 'MINUTES') 
                     {
                     sh '''
-                    docker exec ${CONTAINER_NAME} bash -c "
+                    docker exec ${env.BRANCH_NAME} bash -c "
                     cd /data &&
                     . /opt/qeff-env/bin/activate &&
                     export TOKENIZERS_PARALLELISM=false &&
                     pytest -W ignore -s -v tests -o junit_logging=all --junitxml=tests/tests_log.xml &&
                     deactivate &&
                     exit" 
-                    sudo chown -R ubuntu ./*
                     '''
                     
                 }
@@ -84,16 +58,17 @@ pipeline
                 try 
                 {
                     sh '''
-                    docker ps
-                    docker rm -f ${CONTAINER_NAME}
+                    docker rm -f ${env.BRANCH_NAME}
+                    sudo chown -R ubuntu ./*
                     '''
                 } 
                 catch (error) 
                 {
-                    echo "Failed to delete container ${CONTAINER_NAME}: ${error}"
+                    echo "Failed to delete container ${env.BRANCH_NAME}: ${error}"
                 }
             }
             
+            junit 'tests/tests_log.xml'
             echo 'Cleaning Workspace'
             deleteDir()
          }
