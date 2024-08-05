@@ -20,7 +20,7 @@ pipeline
 
                     sh '''
                     . ~/.bashrc
-                    docker run --privileged -dit --name ${BRANCH_NAME} -v ./:/efficient-transformers -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
+                    docker run --privileged -dit --name ${BRANCH_NAME} -v ./:/efficient-transformers -v  ${HF_PATH}:${DOCKER_HF_PATH} ${DOCKER_LATEST}:master_latest
                     docker exec ${BRANCH_NAME} bash -c "
                     cd /efficient-transformers &&
                     . /opt/qeff-env/bin/activate &&
@@ -39,7 +39,7 @@ pipeline
                     {
                     sh '''
                     docker exec ${BRANCH_NAME} bash -c "
-                    cd /data &&
+                    cd /efficient-transformers &&
                     . /opt/qeff-env/bin/activate &&
                     export TOKENIZERS_PARALLELISM=false &&
                     pytest -W ignore -s -v tests -o junit_logging=all --junitxml=tests/tests_log.xml &&
@@ -61,12 +61,12 @@ pipeline
                 {
                     sh '''
                     sudo chown -R ubuntu ./*
-                    docker rm -f ${branch_name}
+                    docker rm -f ${BRANCH_NAME}
                     '''
                 } 
                 catch (error) 
                 {
-                    echo "Failed to delete container ${env.BRANCH_NAME}: ${error}"
+                    echo "Failed to delete container ${BRANCH_NAME}: ${error}"
                 }
             }
             
