@@ -41,8 +41,7 @@ pipeline
 
                 script
                 {
-                    echo ${huggingface_hub_path}
-                    echo ${docker_huggingface_hub_path}
+                    echo "${huggingface_hub_path}"
                 }
             }
         }
