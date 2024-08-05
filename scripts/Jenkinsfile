@@ -8,10 +8,6 @@ pipeline
             label 'qeff_node'
         }
     }
-    environment 
-    {
-     branch_name = "${env.CHANGE_BRANCH ? env.CHANGE_BRANCH : env.BRANCH_NAME}"
-    }
     stages 
     {
         stage('Install QEfficient')
@@ -24,17 +20,17 @@ pipeline
                     def branchName=env.BRANCH_NAME
                     def safeBranchName = branchName.replaceAll('[^a-zA-Z0-9]', '-')
                     echo 'Pulling...' + safeBranchName
-                    sh '''
+                    sh """
                     . ~/.bashrc
-                    echo 'Pulling...' + $branch_name
+                    echo 'Pulling...' + ${safeBranchName}
                     echo $safeBranchName
-                    docker run --privileged -dit --name ${safeBranchName} -v ./:/efficient_transformers -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
+                    docker run --privileged -dit --name ${safeBranchName} -v ./:/efficient-transformers -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
                     docker exec ${safeBranchName} bash -c "
-                    cd /efficient_transformers &&
+                    cd /efficient-transformers &&
                     . /opt/qeff-env/bin/activate &&
                     pip install --upgrade pip setuptools &&
                     pip install .[test]"
-                    '''
+                    """
                 }
             }
         }
@@ -45,7 +41,7 @@ pipeline
                     //todo(ochougul): Increase when MQ tests are enabled 
 		            timeout(time: 420, unit: 'MINUTES') 
                     {
-                    sh '''
+                    sh """
                     docker exec ${safeBranchName} bash -c "
                     cd /data &&
                     . /opt/qeff-env/bin/activate &&
@@ -53,7 +49,7 @@ pipeline
                     pytest -W ignore -s -v tests -o junit_logging=all --junitxml=tests/tests_log.xml &&
                     deactivate &&
                     exit" 
-                    '''
+                    """
                     
                 }
             }
