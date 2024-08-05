@@ -17,7 +17,7 @@ pipeline
 
                 script
                 {
-                    def branchName=env.BRANCH_NAME
+                    def branchName=env.GIT_BRANCH
                     def safeBranchName = branchName.replaceAll('[^a-zA-Z0-9]', '-')
                     sh '''
                     . ~/.bashrc
