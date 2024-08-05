@@ -42,7 +42,7 @@ pipeline
                 script
                 {
                     sh '''
-                    source ~/.bashrc
+                    #!/bin/bash
                     echo "My name is"
                     echo ${huggingface_hub_path}
                     '''
