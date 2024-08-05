@@ -44,17 +44,6 @@ pipeline
                     echo ${huggingface_hub_path}
                     echo ${docker_huggingface_hub_path}
                 }
-                sh '''
-                    whoami
-                    echo ${huggingface_hub_path}
-                    echo ${docker_huggingface_hub_path}
-                    docker run --privileged -dit --name ${CONTAINER_NAME} -v ./:/data -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
-                    docker exec ${CONTAINER_NAME} bash -c "
-                    cd /data
-                    . /opt/qeff-env/bin/activate
-                    pip install --upgrade pip setuptools &&
-                    pip install .[test]"
-                '''
             }
         }
         stage('Test')
