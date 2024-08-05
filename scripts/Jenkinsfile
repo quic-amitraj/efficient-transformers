@@ -41,6 +41,7 @@ pipeline
 
                 script
                 {
+                    echo "My name is"
                     echo "${huggingface_hub_path}"
                 }
             }
