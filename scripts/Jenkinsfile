@@ -44,8 +44,7 @@ pipeline
                     sh '''
                     #!/bin/bash
                     . ~/.bashrc
-                    echo "My name is"
-                    echo ${huggingface_hub_path}
+                    echo $huggingface_hub_path
                     '''
                 }
             }
