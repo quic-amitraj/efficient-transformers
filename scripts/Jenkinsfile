@@ -21,9 +21,10 @@ pipeline
                     def safeBranchName = branchName.replaceAll('[^a-zA-Z0-9]', '-')
                     sh '''
                     . ~/.bashrc
-                    docker run --privileged -dit --name ${safeBranchName} -v ./:/efficient-transformers -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
+                    echo $safeBranchName
+                    docker run --privileged -dit --name ${safeBranchName} -v ./:/efficient_transformers -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
                     docker exec ${safeBranchName} bash -c "
-                    cd /efficient-transformers &&
+                    cd /efficient_transformers &&
                     . /opt/qeff-env/bin/activate &&
                     pip install --upgrade pip setuptools &&
                     pip install .[test]"
