@@ -7,6 +7,10 @@ pipeline
             label 'qeff_node'
         }
     }
+    environment 
+    {
+        branch_name=env.BRANCH_NAME
+    }
     stages 
     {
         stage('Install QEfficient')
@@ -18,8 +22,8 @@ pipeline
                 {
                     sh '''
                     . ~/.bashrc
-                    docker run --privileged -dit --name env.BRANCH_NAME -v ./:/data -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
-                    docker exec env.BRANCH_NAME bash -c "
+                    docker run --privileged -dit --name ${branch_name} -v ./:/data -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
+                    docker exec ${branch_name} bash -c "
                     cd /data &&
                     . /opt/qeff-env/bin/activate &&
                     pip install --upgrade pip setuptools &&
@@ -36,7 +40,7 @@ pipeline
 		            timeout(time: 420, unit: 'MINUTES') 
                     {
                     sh '''
-                    docker exec env.BRANCH_NAME bash -c "
+                    docker exec ${branch_name} bash -c "
                     cd /data &&
                     . /opt/qeff-env/bin/activate &&
                     export TOKENIZERS_PARALLELISM=false &&
@@ -58,7 +62,7 @@ pipeline
                 try 
                 {
                     sh '''
-                    docker rm -f env.BRANCH_NAME
+                    docker rm -f ${branch_name}
                     sudo chown -R ubuntu ./*
                     '''
                 } 
