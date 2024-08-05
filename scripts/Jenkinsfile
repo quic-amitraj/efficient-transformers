@@ -19,10 +19,9 @@ pipeline
                 {
                     def branchName=env.BRANCH_NAME
                     def safeBranchName = branchName.replaceAll('[^a-zA-Z0-9]', '-')
-                    echo 'Pulling...' + safeBranchName
                     sh """
                     . ~/.bashrc
-                    echo 'Pulling...' + ${safeBranchName}
+                    echo 'Pulling...' ${safeBranchName}'
                     echo $safeBranchName
                     docker run --privileged -dit --name ${safeBranchName} -v ./:/efficient-transformers -v  ${huggingface_hub_path}:${docker_huggingface_hub_path} ${docker_latest}:master_latest
                     docker exec ${safeBranchName} bash -c "
