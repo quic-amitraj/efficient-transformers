@@ -17,6 +17,7 @@ import QEfficient
 from QEfficient.base.common import AUTO_MODEL_MAP_TO_MODEL_TYPE_MAP, QEFF_MODEL_TYPE, QEFFCommonLoader
 from QEfficient.base.modeling_qeff import QEFFBaseModel
 from QEfficient.exporter.export_utils import export_onnx, fix_onnx_fp16, generate_input_files, run_model_on_ort
+from QEfficient.transformers.modeling_utils import get_lists_of_cb_qeff_models
 from QEfficient.transformers.models.modeling_auto import QEFFAutoModelForCausalLM
 from QEfficient.utils import load_hf_tokenizer
 from QEfficient.utils.constants import QEFF_MODELS_DIR, Constants
@@ -32,18 +33,21 @@ def convert_to_cloud_bertstyle(
     seq_len: int,
 ) -> str:
     """
-    Function to convert the model to Bertstyle approach.
+    API to convert model to Bertstyle approach.
     Bertstyle Approach:
-        1. No Prefill/Decode separably compiled
-        2. No KV retention logic.
-        3. KV is every time computed for all the tokens until EOS/max_length
+            1. No Prefill/Decode separably compiled.
+            2. No KV retention logic.
+            3. KV is every time computed for all the tokens until EOS/max_length.
 
-    Args:
-        model_name (str): The name of the model to be used.
-        qeff_model (QEFFBaseModel): Transformed KV torch model to be used
-        tokenizer (HF AutoTokenizer): Tokenizer to prepare inputs.
-        onnx_dir_path (str, optional): The path where the model is stored. If None, the model is loaded from the default location.
-        seq_len (int, optional): The length of the sequence. Default is 128.
+    ``Mandatory`` Args:
+        :model_name (str): Hugging Face Model Card name, Example: `gpt2`.
+        :qeff_model (QEFFAutoModelForCausalLM): Transformed KV torch model to be used.
+        :tokenizer (Union[PreTrainedTokenizer, PreTrainedTokenizerFast]): Model tokenizer.
+        :onnx_dir_path (str): Path to save exported ONNX file.
+        :seq_len (int): The length of the sequence.
+
+    Returns:
+         :str: Path of exported ``ONNX`` file.
     """
     if os.path.exists(onnx_dir_path):
         logger.warning(f"Overriding {onnx_dir_path}")
@@ -147,19 +151,22 @@ def convert_to_cloud_kvstyle(
     seq_len: int,
 ) -> str:
     """
-    Function Modeling changes for kv retention and export to Onnx.
-    KV Style Approach:
-        1. This architecture is particularly suitable for autoregressive tasks
-        2. where sequence generation involves processing one token at a time
+    API to convert model with kv retention and export to ONNX.
+    KV Style Approach-
+        1. This architecture is particularly suitable for auto-regressive tasks.
+        2. where sequence generation involves processing one token at a time.
         3. And contextual information from earlier tokens is crucial for predicting the next token.
         4. The inclusion of a kV cache enhances the efficiency of the decoding process, making it more computationally efficient.
 
-    Args:
-        model_name (str): The name of the model to be used.
-        qeff_model (QEFFBaseModel): Transformed KV torch model to be used
-        tokenizer (HF AutoTokenizer): Tokenzier to prepare inputs.
-        onnx_dir_path (str, optional): The path where the model is stored. If None, the model is loaded from the default location.
-        seq_len (int, optional): The length of the sequence. Default is 128.
+    ``Mandatory`` Args:
+        :model_name (str): Hugging Face Model Card name, Example: `gpt2`.
+        :qeff_model (QEFFAutoModelForCausalLM): Transformed KV torch model to be used.
+        :tokenizer (Union[PreTrainedTokenizer, PreTrainedTokenizerFast]): Model tokenizer.
+        :onnx_dir_path (str): Path to save exported ONNX file.
+        :seq_len (int): The length of the sequence.
+
+    Returns:
+         :str: Path of exported ``ONNX`` file.
     """
     warnings.warn(
         "\033[93mThis function will be deprecated soon, use QEfficient.export instead\033[0m",
@@ -187,6 +194,7 @@ def export_kvstyle_transformed_model_to_onnx(
     tokenizer: Union[PreTrainedTokenizer, PreTrainedTokenizerFast],
     onnx_dir_path: str,
     seq_len: int,
+    full_batch_size: Optional[int] = None,
 ) -> str:
     # Disabling requires_grad on all parameters
     for _, p in enumerate(transformed_model.parameters()):
@@ -204,9 +212,10 @@ def export_kvstyle_transformed_model_to_onnx(
         prompt=Constants.INPUT_STR,
         prompt_len=Constants.PROMPT_LEN,
         ctx_len=seq_len,
+        full_batch_size=full_batch_size,
     )
-    inputs = input_handler.prepare_pytorch_inputs()
 
+    inputs = input_handler.prepare_pytorch_inputs()
     pt_outputs = transformed_model(**inputs)
     output_names = list(pt_outputs.keys())
 
@@ -217,9 +226,8 @@ def export_kvstyle_transformed_model_to_onnx(
     # Build inputs for next iteration from outputs
     # Build inputs for decode
     inputs = input_handler.update_pytorch_inputs(inputs, pt_outputs)
-
     # To avoid issues in onnx export
-    inputs["position_ids"] = torch.full((1, 1), seq_len - 1)
+    inputs["position_ids"] = torch.full((full_batch_size if full_batch_size else 1, 1), seq_len - 1)
 
     # Run PyTorch inference with past
     pt_outputs = transformed_model(**inputs)
@@ -309,7 +317,14 @@ def export_for_cloud(
     tokenizer: Union[PreTrainedTokenizer, PreTrainedTokenizerFast],
     onnx_dir_path: str,
     seq_length: int = Constants.SEQ_LEN,
+    full_batch_size: Optional[int] = None,
 ) -> str:
+    # Check if model architecture is supported for continuous batching.
+    if full_batch_size and qeff_model.model.config.architectures[0] not in get_lists_of_cb_qeff_models.architectures:
+        raise NotImplementedError(
+            f"Continuous batching is not supported for {qeff_model.model.config.architectures[0]}"
+        )
+
     # FIXME: move all this to class instead of here, and just call qeff_model.export here.
     if AUTO_MODEL_MAP_TO_MODEL_TYPE_MAP.get(qeff_model.__class__, None) == QEFF_MODEL_TYPE.CAUSALLM:  # type: ignore
         return export_lm_model_for_cloud(
@@ -318,6 +333,7 @@ def export_for_cloud(
             tokenizer=tokenizer,
             onnx_dir_path=onnx_dir_path,
             seq_length=seq_length,
+            full_batch_size=full_batch_size,
         )
     else:
         raise NotImplementedError(
@@ -331,6 +347,7 @@ def export_lm_model_for_cloud(
     tokenizer: Union[PreTrainedTokenizer, PreTrainedTokenizerFast],
     onnx_dir_path: str,
     seq_length: int,
+    full_batch_size: Optional[int] = None,
 ) -> str:
     if os.path.exists(onnx_dir_path):
         logger.warning(f"Overriding {onnx_dir_path}")
@@ -343,6 +360,7 @@ def export_lm_model_for_cloud(
             tokenizer=tokenizer,
             onnx_dir_path=onnx_dir_path,
             seq_len=seq_length,
+            full_batch_size=full_batch_size,
         )  # type: ignore
 
     else:
@@ -367,24 +385,38 @@ def qualcomm_efficient_converter(
     seq_length: int = Constants.SEQ_LEN,
     kv: bool = True,
     form_factor: str = "cloud",
+    full_batch_size: Optional[int] = None,
 ) -> Tuple[str, str]:
     """
-    Function to convert the input string using the specified model and returns the result.
+    This method is an alias for ``QEfficient.export``.
 
-    Args:
-        model_name (str): The name of the model to be used.
-        model_kv (torch.nn.Module): Transformed KV torch model to be used
-        local_model_dir(str): Path to custom model weights and config files
-        tokenizer (HF AutoTokenizer): Tokenzier to prepare inputs.
-        cache_dir (str): Path to cache dir if not specified, default HF cache_dir will be used.
-        onnx_dir_path (str, optional): The path where the model is stored. If None, the model is loaded from the default location.
-        hf_token (bool): If True, an authentication token will be used. Default is False.
-        seq_len (int, optional): The length of the sequence. Default is 128.
-        kv (bool): If True, key-value pairs will be used. Default is True.
-        form_factor (str): form_factor of the hardware, currently only accepts "cloud".
+    Usage 1: This method can be used by passing ``model_name`` and ``local_model_dir`` or ``cache_dir`` if required for loading from local dir.
+    This will download the model from ``HuggingFace`` and export it to ``ONNX`` graph and returns generated files path check below.
+
+    Usage 2: You can pass ``model_name`` and ``model_kv`` as an object of ``QEfficient.QEFFAutoModelForCausalLM``, In this case will directly export the ``model_kv.model`` to ``ONNX``
+
+    We will be deprecating this function and it will be replaced by ``QEffAutoModelForCausalLM.export``.
+
+    ``Mandatory`` Args:
+        :model_name (str): The name of the model to be used.
+    ``Optional`` Args:
+        :model_kv (torch.nn.Module): Transformed ``KV torch model`` to be used. ``Defaults to None``.
+        :local_model_dir (str): Path of local model. ``Defaults to None``.
+        :tokenizer (Union[PreTrainedTokenizer, PreTrainedTokenizerFast]): Model tokenizer. ``Defaults to None``.
+        :cache_dir (str): Path of the ``cache`` directory. ``Defaults to None``.
+        :onnx_dir_path (str): Path to store ``ONNX`` file. ``Defaults to None``.
+        :hf_token (str): HuggingFace token to access gated models. ``Defaults is None``.
+        :seq_len (int): The length of the sequence. ``Defaults is 128``.
+        :kv (bool): If false, it will export to Bert style. ``Defaults is True``.
+        :form_factor (str): Form factor of the hardware, currently only ``cloud`` is accepted. ``Defaults to cloud``.
 
     Returns:
-        None, if automation is False, else path to exported Onnx file
+        :Tuple[str, str]: Path to Base ``ONNX`` dir and path to generated ``ONNX`` model
+
+    .. code-block:: python
+
+        import QEfficient
+        base_path, onnx_model_path = QEfficient.export(model_name="gpt2")
 
     """
     warnings.warn(
@@ -392,6 +424,7 @@ def qualcomm_efficient_converter(
         DeprecationWarning,
         stacklevel=2,
     )
+
     # Get model_kv first
     model_kv = (
         model_kv
@@ -400,13 +433,13 @@ def qualcomm_efficient_converter(
             pretrained_model_name_or_path=(local_model_dir if local_model_dir else model_name),
             token=hf_token,
             cache_dir=cache_dir,
+            full_batch_size=full_batch_size,
         )
     )
 
     # Transform if required
     if model_kv.is_transformed and not kv:
-        raise AttributeError("Transformed model is passed while requsting to convert non-transformed model")
-
+        raise AttributeError("Transformed model is passed while requesting to convert non-transformed model")
     model_kv = model_kv if model_kv.is_transformed else QEfficient.transform(model_kv) if kv else model_kv
 
     if onnx_dir_path is None:
@@ -432,6 +465,7 @@ def qualcomm_efficient_converter(
             tokenizer=tokenizer,
             onnx_dir_path=onnx_dir_path,
             seq_length=seq_length,
+            full_batch_size=full_batch_size,
         )
         return onnx_dir_path, generated_onnx_model_path
     else:

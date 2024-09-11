@@ -19,8 +19,9 @@ classifiers = [
 ]
 requires-python = "==3.8.*"
 dependencies = [
-    "transformers==4.41.2",
-    "torch@https://download.pytorch.org/whl/cpu/torch-2.0.0%2Bcpu-cp38-cp38-linux_x86_64.whl#sha256=354f281351cddb590990089eced60f866726415f7b287db5105514aa3c5f71ca",
+    "transformers==4.44.2",
+    "torch==2.0.0+cpu",
+    "peft==0.12.0",
     "datasets==2.7.0",
     "fsspec==2023.6.0",
     "multidict==6.0.4",
@@ -36,6 +37,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest","pytest-mock"]
+docs = ["Sphinx==7.1.2","sphinx-rtd-theme==2.0.0","myst-parser==3.0.1"]
 quality = ["black", "ruff", "hf_doc_builder@git+https://github.com/huggingface/doc-builder.git"]
 
 [build-system]
@@ -55,4 +57,6 @@ line-length = 120
 lint.extend-select = ["I"]
 
 [tool.pytest.ini_options]
+addopts = "-W ignore -s -v"
+junit_logging = "all"
 doctest_optionflags = "NUMBER NORMALIZE_WHITESPACE ELLIPSIS"

@@ -4,8 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # ----------------------------------------------------------------------------
-
-from typing import Dict, Type
+from typing import Dict, Tuple, Type
 
 from torch import nn
 
@@ -19,17 +18,18 @@ class PytorchTransform:
         raise TypeError("Transform classes are not to be instantiated. Directly use the `apply` method.")
 
     @classmethod
-    def apply(cls, model: nn.Module) -> nn.Module:
+    def apply(cls, model: nn.Module) -> Tuple[nn.Module, bool]:
         """
         Override this class method to apply a transformation.
-        :param model: The torch module to transform, this module may be tranformed in-place
+        :param model: The torch module to transform, this module may be transformed in-place
 
-        :returns: Torch module after applying the tranform
+        :returns: Torch module after applying the transform
+        :returns: Boolean indicating whether transform was applied
         """
         raise NotImplementedError("Use subclasses for Pytorch transform")
 
 
-class ModuleMapping(PytorchTransform):
+class ModuleMappingTransform(PytorchTransform):
     """
     Replaces the PyTorch modules based on the _module_mapping class variable.
     """
@@ -37,14 +37,19 @@ class ModuleMapping(PytorchTransform):
     _module_mapping: Dict[Type[nn.Module], Type[nn.Module]]
 
     @classmethod
-    def apply(cls, model: nn.Module) -> nn.Module:
+    def apply(cls, model: nn.Module) -> Tuple[nn.Module, bool]:
+        transformed = False
         for module in model.modules():
             if repl_module := cls._module_mapping.get(type(module)):
                 module.__class__ = repl_module
-        return model
+                # Handling the __init__ calls in the models
+                if hasattr(module, "__qeff_init__"):
+                    module.__qeff_init__()
+                transformed = True
+        return model, transformed
 
     @classmethod
-    def register(cls, from_module: type, to_module: type):
+    def register(cls, from_module: Type[nn.Module], to_module: Type[nn.Module]):
         """
         Add a new module type in the module mapping for this transform. ::
             FlashAttention.register(LLamaAttention, LlamaFlashAttention)

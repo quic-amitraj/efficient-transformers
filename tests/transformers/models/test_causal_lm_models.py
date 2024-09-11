@@ -5,66 +5,97 @@
 #
 # -----------------------------------------------------------------------------
 
-import json
+import os
 
 import pytest
 
+from QEfficient.compile.compile_helper import compile_kv_model_on_cloud_ai_100
+from QEfficient.transformers.models.modeling_auto import QEFFAutoModelForCausalLM
+from QEfficient.utils._utils import load_hf_tokenizer
+from QEfficient.utils.constants import Constants
 from QEfficient.utils.device_utils import get_available_device_id
-from tests.utils import get_cloud_ai_100_tokens, set_up
+from QEfficient.utils.run_utils import ApiRunner
+from tests.utils import load_pytorch_model
 
-TEST_CONFIG_FILE_PATH = "tests/config.json"
+test_models = [
+    "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "gpt2",
+    "Salesforce/codegen-350M-mono",
+    "microsoft/phi-2",
+    "microsoft/Phi-3-mini-4k-instruct",
+    "tiiuae/falcon-7b",
+    "Qwen/Qwen2-0.5B",
+    "bigcode/starcoder2-3b",
+    "Felladrin/Minueza-32M-Base",
+    "wtang06/mpt-125m-c4",
+    "hakurei/gpt-j-random-tinier",
+    "mistralai/Mixtral-8x7B-Instruct-v0.1",
+]
 
 
-@pytest.mark.parametrize(
-    "model_name",
-    [conf["model_name"] for conf in json.load(open(TEST_CONFIG_FILE_PATH, "r"))["models"]],
-    ids=lambda x: "model_name=" + str(x),
-)
-class TestQEfficientModels:
-    def setup_class(cls):
-        """
-        Set up function to set up the test environment for TestQEfficientModels class
-        :param cls
-        """
-        cls.model_configs = []
-        with open(TEST_CONFIG_FILE_PATH, "r") as f:
-            configs = json.load(f)
-            for model_config in configs["models"]:
-                cls.model_configs.append(model_config)
+@pytest.mark.causal_lm
+@pytest.mark.parametrize("model_name", test_models)
+def test_causal_lm_pytorch_vs_kv_vs_ort_vs_ai100(model_name):
+    """
+    Test function to validate the model before and after KV changes on Pytorch
+    :param model_name: Name of model.
+    """
+    if model_name == "microsoft/Phi-3-mini-4k-instruct":
+        n_layer = 2  # test only 2 layer models
+    else:
+        n_layer = 1
 
-        cls.setup_infos = {model_config["model_name"]: set_up(model_config) for model_config in cls.model_configs}
+    model_config = {"model_name": model_name}
+    model_config["n_layer"] = n_layer
 
-    def test_qefficient_model_torch(self, model_name):
-        """
-        Test function to validate the model before and after KV changes on Pytorch
-        :param model_name: Name of model.
-        """
-        (
-            (
-                self.setup_infos[model_name]["pytorch_hf_tokens"] == self.setup_infos[model_name]["pytorch_kv_tokens"]
-            ).all(),
-            "Tokens don't match for HF PyTorch model output and KV PyTorch model output",
-        )
+    model_hf, _ = load_pytorch_model(model_config)
 
-    def test_qefficient_model_onnx(self, model_name):
-        """
-        Test function to validate the model before and after KV changes on ONNXRT
-        :param model_name: Name of model.
-        """
-        (
-            (self.setup_infos[model_name]["pytorch_kv_tokens"] == self.setup_infos[model_name]["ort_tokens"]).all(),
-            "Tokens don't match for ONNXRT output and PyTorch output.",
-        )
+    tokenizer = load_hf_tokenizer(pretrained_model_name_or_path=model_name)
+    config = model_hf.config
+    batch_size = len(Constants.INPUT_STR)
+    api_runner = ApiRunner(
+        batch_size,
+        tokenizer,
+        config,
+        Constants.INPUT_STR,
+        Constants.PROMPT_LEN,
+        Constants.CTX_LEN,
+    )
 
-    @pytest.mark.skipif(not get_available_device_id, reason="No available devices to run model on Cloud AI 100")
-    def test_qefficient_model_cloud_ai_100(self, model_name):
-        """
-        Test function to validate the model before and after KV changes on Cloud AI 100
-        :param model_name: Name of model.
-        """
+    pytorch_hf_tokens = api_runner.run_hf_model_on_pytorch(model_hf)
 
-        cloud_ai_100_tokens = get_cloud_ai_100_tokens(self.setup_infos[model_name])
-        (
-            (self.setup_infos[model_name]["ort_tokens"] == cloud_ai_100_tokens).all(),
-            "Tokens don't match for ONNXRT output and Cloud AI 100 output.",
-        )
+    qeff_model = QEFFAutoModelForCausalLM(model_hf, f"{model_name}")
+
+    pytorch_kv_tokens = api_runner.run_kv_model_on_pytorch(qeff_model.model)
+
+    assert (
+        pytorch_hf_tokens == pytorch_kv_tokens
+    ).all(), "Tokens don't match for HF PyTorch model output and KV PyTorch model output"
+
+    onnx_model_path = qeff_model.export()
+    ort_tokens = api_runner.run_kv_model_on_ort(onnx_model_path)
+
+    assert (pytorch_kv_tokens == ort_tokens).all(), "Tokens don't match for ONNXRT output and PyTorch output."
+
+    if not get_available_device_id():
+        pytest.skip("No available devices to run model on Cloud AI 100")
+
+    base_path = os.path.dirname(onnx_model_path)
+    tests_qpc_dir = os.path.join(base_path, "tests_qpc")
+    os.makedirs(tests_qpc_dir, exist_ok=True)
+
+    _, test_qpcs_path = compile_kv_model_on_cloud_ai_100(
+        onnx_path=onnx_model_path,
+        specializations_json="scripts/specializations.json",
+        num_cores=14,
+        base_path=tests_qpc_dir,
+        mxfp6=False,
+        custom_io_path=os.path.join(base_path, "custom_io_fp16.yaml"),
+        aic_enable_depth_first=False,
+    )
+
+    cloud_ai_100_tokens = api_runner.run_kv_model_on_cloud_ai_100(test_qpcs_path)
+    gen_len = ort_tokens.shape[-1]
+    assert (
+        ort_tokens == cloud_ai_100_tokens[:, :gen_len]
+    ).all(), "Tokens don't match for ONNXRT output and Cloud AI 100 output."

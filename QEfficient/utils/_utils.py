@@ -13,7 +13,7 @@ from huggingface_hub import login, snapshot_download
 from requests.exceptions import HTTPError
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from QEfficient.utils.constants import QEFF_MODELS_DIR, Constants
+from QEfficient.utils.constants import QEFF_MODELS_DIR
 from QEfficient.utils.logging_utils import logger
 
 
@@ -38,13 +38,10 @@ def hf_download(
     allow_patterns: Optional[List[str]] = None,
     ignore_patterns: Optional[List[str]] = None,
 ):
-    # Setup cache and local dir
-    local_dir = None
+    # Setup cache_dir
     if cache_dir is not None:
-        cache_dir = f"{cache_dir}"
-        local_dir = f"{cache_dir}/{repo_id}"
+        os.makedirs(cache_dir, exist_ok=True)
 
-    os.makedirs(f"{cache_dir}/{repo_id}", exist_ok=True)
     max_retries = 5
     retry_count = 0
     while retry_count < max_retries:
@@ -52,8 +49,6 @@ def hf_download(
             model_path = snapshot_download(
                 repo_id,
                 cache_dir=cache_dir,
-                local_dir=local_dir,
-                local_dir_use_symlinks=True,
                 revision="main",
                 resume_download=True,
                 token=hf_token,
@@ -82,9 +77,12 @@ def qpc_exists(qpc_dir_path: str) -> bool:
     1. Boolean variable indicating if qpc files exist
     2. Path of the qpc dir if found.
     ---------
-    :param model_name: str. HF Model card name.
-    :param dir_path: str. Path of qpc directory.
-    :return: Union[Tuple[bool, str]]: qpc_exists and path to qpc directory
+
+    :model_name: `str` - HF Model card name.
+    :dir_path: `str` - Path of qpc directory.
+
+    Return:
+        qpc_exists and path to qpc directory
     """
 
     # Compute the boolean indicating if the QPC exists
@@ -93,23 +91,50 @@ def qpc_exists(qpc_dir_path: str) -> bool:
     return qpc_exists_bool
 
 
-def onnx_exists(model_name: str) -> Tuple[bool, str, str]:
+def get_onnx_dir_name(model_name, has_fbs):
+    # Create a unique directory name for the ONNX model
+    # Clearly indicate whether it's with or without FBS
+    # Replace all hyphens with underscores
+    model_name_safe = model_name.replace("/", "_").replace("-", "_")
+    if has_fbs:
+        return f"onnx_{model_name_safe}_with_fbs"
+    else:
+        return f"onnx_{model_name_safe}_without_fbs"
+
+
+def onnx_exists(model_name: str, full_batch_size: int) -> Tuple[bool, str, str]:
     """
     Checks if qpc files already exists, removes the directory if files have been manipulated.
     ---------
-    :param model_name: str. HF Model card name.
-    :return: Union[Tuple[bool, str, str]]: onnx_exists and path to onnx file and directory
+
+    :model_name: `str`- HF Model card name.
+
+    Return:
+        onnx_exists and path to onnx file and directory
     """
     model_card_dir = os.path.join(QEFF_MODELS_DIR, str(model_name))
     os.makedirs(model_card_dir, exist_ok=True)
 
-    onnx_dir_path = os.path.join(model_card_dir, "onnx")
-    onnx_model_path = os.path.join(onnx_dir_path, model_name.replace("/", "_") + "_kv_clipped_fp16.onnx")
+    # Determine if we're using full_batch_size
+    has_fbs = full_batch_size is not None
+
+    # ONNX handling
+    onnx_dir_name = get_onnx_dir_name(model_name, has_fbs)
+    onnx_dir_path = os.path.join(model_card_dir, onnx_dir_name)
+    os.makedirs(onnx_dir_path, exist_ok=True)
+    clipped_onnx_model_path = os.path.join(onnx_dir_path, model_name.replace("/", "_") + "_kv_clipped_fp16.onnx")
+    unclipped_onnx_model_path = clipped_onnx_model_path.replace("_clipped_fp16.onnx", ".onnx")
 
     # Compute the boolean indicating if the ONNX model exists
-    onnx_exists_bool = os.path.isfile(onnx_model_path) and os.path.isfile(
-        os.path.join(os.path.dirname(onnx_model_path), "custom_io_fp16.yaml")
-    )
+    onnx_exists_bool = False
+    onnx_model_path = None
+    if os.path.isfile(os.path.join(onnx_dir_path, "custom_io_fp16.yaml")):
+        if os.path.isfile(clipped_onnx_model_path):
+            onnx_exists_bool = True
+            onnx_model_path = clipped_onnx_model_path
+        elif os.path.isfile(unclipped_onnx_model_path):
+            onnx_exists_bool = True
+            onnx_model_path = unclipped_onnx_model_path
 
     # Return the boolean, onnx_dir_path, and onnx_model_path
     return onnx_exists_bool, onnx_dir_path, onnx_model_path
@@ -145,11 +170,13 @@ def load_hf_tokenizer(
 
 
 def get_qpc_dir_path(
-    model_card_name, num_cores, mos, batch_size, prompt_len, ctx_len, mxfp6, mxint8, device_group
-) -> str:
+    model_card_name, num_cores, mos, batch_size, prompt_len, ctx_len, mxfp6, mxint8, device_group, full_batch_size
+):
+    # Create a unique directory name for the QPC model based on all parameters
     qpc_base_dir_name = (
-        f"qpc_{num_cores}cores_{batch_size}BS_{prompt_len}PL_{ctx_len}CL_{mos}MOS_"
-        + f"{len(device_group)}"
+        f"qpc_{num_cores}cores_{batch_size}bs_{prompt_len}pl_{ctx_len}cl_{mos}mos"
+        + f"{f'_{full_batch_size}fbs_' if full_batch_size is not None else '_'}"
+        + f"{len(device_group) if device_group is not None else 1}"
         + "devices"
         + ("_mxfp6_mxint8" if (mxfp6 and mxint8) else "_mxfp6" if mxfp6 else "_fp16_mxint8" if mxint8 else "_fp16")
     )
@@ -167,7 +194,7 @@ def check_and_assign_cache_dir(local_model_dir, cache_dir):
                 f"Both local_model_dir ({local_model_dir}) and cache_dir ({cache_dir}) given. Using local_model_dir."
             )
         return None
-    return cache_dir if cache_dir else Constants.CACHE_DIR
+    return cache_dir if cache_dir else None
 
 
 def padding_check_and_fix(tokenizer: Union[PreTrainedTokenizer, PreTrainedTokenizerFast]) -> None:
@@ -175,7 +202,7 @@ def padding_check_and_fix(tokenizer: Union[PreTrainedTokenizer, PreTrainedTokeni
     Checks and fixes tokenizer paddding side and pad_token_id viability.
     --------
 
-    tokenizer: Union[PreTrainedTokenizer, PreTrainedTokenizerFast]. Pass model tokenizer to check and fix.
+    tokenizer: `Union[PreTrainedTokenizer, PreTrainedTokenizerFast]` - Pass model tokenizer to check and fix.
     """
     if tokenizer.padding_side != "right":
         logger.warning(f"Setting tokenizer padding_side to 'right', got {tokenizer.padding_side}")
@@ -201,7 +228,8 @@ def get_padding_shape_from_config(config, batch_size, seq_len):
     :batch_size: int. number of input prompts used to create inputs
     :seq_len: int. sequence length to run the model for.
 
-    :return: List[int, int, int, int]
+    Return:
+        List[int, int, int, int]
     """
 
     if hasattr(config, "n_head"):  # Assuming n_head is a key in the config (GPTs/CodeGen)
@@ -235,7 +263,8 @@ def get_num_layers_from_config(config):
 
     :config: AutoConfig from pretrained model.
 
-    :return: int: number of layers
+    Return:
+        number of layers
     """
 
     if hasattr(config, "n_layer"):  # Assuming n_layer is a key in the config (GPTs/CodeGen)

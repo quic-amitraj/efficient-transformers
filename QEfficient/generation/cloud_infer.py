@@ -1,11 +1,11 @@
 # -----------------------------------------------------------------------------
 #
-# Copyright (c)  2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # -----------------------------------------------------------------------------
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 from warnings import warn
 
 import numpy as np
@@ -44,14 +44,27 @@ class QAICInferenceSession:
     def __init__(
         self,
         qpc_path: str,
-        device_ids: List[int] = [0],
+        device_ids: Optional[List[int]] = None,
         activate: bool = True,
         enable_debug_logs: bool = False,
     ):
+        """
+        Initialise for QAIC inference Session
+        ---------
+
+        :qpc_path: str. Path to the save generated binary file after compilation.
+        :device_ids: List[int]. Device Ids to be used for compilation. if devices > 1, it enables multiple card setup.
+        :activate: bool. If false, activation will be disabled. Default=True.
+        :enable_debug_logs: bool. If True, It will enable debug logs. Default=False.
+        """
         # Load QPC
-        devices = qaicrt.QIDList(device_ids)
-        self.context = qaicrt.Context(devices)
-        self.queue = qaicrt.Queue(self.context, device_ids[0])  # Async API
+        if device_ids is not None:
+            devices = qaicrt.QIDList(device_ids)
+            self.context = qaicrt.Context(devices)
+            self.queue = qaicrt.Queue(self.context, device_ids[0])
+        else:
+            self.context = qaicrt.Context()
+            self.queue = qaicrt.Queue(self.context, 0)  # Async API
         if enable_debug_logs:
             assert (
                 self.context.setLogLevel(qaicrt.QLogLevel.QL_DEBUG) == qaicrt.QStatus.QS_SUCCESS
@@ -71,7 +84,7 @@ class QAICInferenceSession:
         # Create and load Program
         prog_properties = qaicrt.QAicProgramProperties()
         prog_properties.SubmitRetryTimeoutMs = 60_000
-        if len(device_ids) > 1:
+        if device_ids and len(device_ids) > 1:
             prog_properties.devMapping = ":".join(map(str, device_ids))
         self.program = qaicrt.Program(self.context, None, qpc, prog_properties)
         assert self.program.load() == qaicrt.QStatus.QS_SUCCESS, "Failed to load program"
@@ -92,14 +105,25 @@ class QAICInferenceSession:
         return [binding.name for binding in self.bindings if binding.dir == aicapi.BUFFER_IO_TYPE_OUTPUT]
 
     def activate(self):
+        """Activate qpc"""
+
         self.program.activate()
         self.execObj = qaicrt.ExecObj(self.context, self.program)
 
     def deactivate(self):
+        """Deactivate qpc"""
+
         del self.execObj
         self.program.deactivate()
 
     def set_buffers(self, buffers: Dict[str, np.ndarray]):
+        """
+        Provide buffer mapping for input and output
+
+        Args:
+            :buffer (Dict[str, np.ndarray]): Parameter for buffer mapping.
+        """
+
         for buffer_name, buffer in buffers.items():
             if buffer_name not in self.binding_index_map:
                 warn(f'Buffer: "{buffer_name}" not found')
@@ -112,9 +136,25 @@ class QAICInferenceSession:
             )
 
     def skip_buffers(self, skipped_buffer_names: List[str]):
+        """
+        skip buffer mapping for given list of buffer names
+
+        Args:
+            :skipped_buffer_name: List[str]. List of buffer name to be skipped.
+        """
+
         self.set_buffers({k: np.array([]) for k in skipped_buffer_names})
 
     def run(self, inputs: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+        """
+        Execute on cloud AI 100
+
+        Args:
+            :inputs (Dict[str, np.ndarray]): Processed numpy inputs for the model.
+
+        Return:
+            :Dict[str, np.ndarray]:
+        """
         # Set inputs
         self.set_buffers(inputs)
         assert self.execObj.setData(self.qbuffers, self.buf_dims) == qaicrt.QStatus.QS_SUCCESS, "Failed to setData"
@@ -134,14 +174,14 @@ class QAICInferenceSession:
                     for binding, (elemsize, shape), (_, passed_shape) in zip(
                         self.bindings, allowed_shape, self.buf_dims
                     ):
-                        if passed_shape[0] == 0:
+                        if passed_shape == [0]:
                             if not binding.is_partial_buf_allowed:
                                 warn(f"Partial buffer not allowed for: {binding.name}")
                             continue
                         error_message += f"{binding.name}:\t{elemsize}\t{shape}\n"
                 error_message += "\n\nPassed shapes:\n"
                 for binding, (elemsize, shape) in zip(self.bindings, self.buf_dims):
-                    if shape[0] == 0:
+                    if shape == [0]:
                         continue
                     error_message += f"{binding.name}:\t{elemsize}\t{shape}\n"
             raise ValueError(error_message)
@@ -152,7 +192,7 @@ class QAICInferenceSession:
         outputs = {}
         for output_name in self.output_names:
             buffer_index = self.binding_index_map[output_name]
-            if self.buf_dims[buffer_index][1][0] == 0:
+            if self.qbuffers[buffer_index].size == 0:
                 continue
             outputs[output_name] = np.frombuffer(
                 bytes(output_qbuffers[buffer_index]),

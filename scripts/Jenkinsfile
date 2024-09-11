@@ -13,8 +13,7 @@ pipeline
         stage('Install QEfficient')
         {
             steps
-            {
-                
+            {                
                 script
                 {
 
@@ -45,7 +44,7 @@ pipeline
                     deactivate &&
                     exit" 
                     '''
-                    
+
                 }
             }
         }

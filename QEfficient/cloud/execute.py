@@ -10,33 +10,39 @@ from typing import List, Optional
 
 from QEfficient.generation.text_generation_inference import cloud_ai_100_exec_kv
 from QEfficient.utils import load_hf_tokenizer
-from QEfficient.utils.constants import Constants
 
 
 def main(
     model_name: str,
     qpc_path: str,
-    device_group: List[int],
+    device_group: List[int] = None,
     local_model_dir: Optional[str] = None,
     prompt: Optional[str] = None,  # type: ignore
     prompts_txt_file_path: Optional[str] = None,
     generation_len: Optional[int] = None,
-    cache_dir: Optional[str] = Constants.CACHE_DIR,
+    cache_dir: Optional[str] = None,
     hf_token: Optional[str] = None,
-) -> None:
+    full_batch_size: Optional[int] = None,
+):
     """
-    Helper function used by execute CLI app to run the Model on Cloud AI 100 Platform.
-    ---------
+    Helper function used by execute CLI app to run the Model on ``Cloud AI 100`` Platform.
 
-    :model_name: str. Hugging Face Model Card name, Example: "gpt2"
-    :qpc_path: str.  Path to the generated binary after compilation.
-    :device_group: List[int]. Device Ids to be used for compilation. if len(device_group) > 1. Multiple Card setup is enabled.
-    :local_model_dir: str. Path to custom model weights and config files.
-    :prompt: str. Sample prompt for the model text generation
-    :prompts_txt_file_path: str. Path to txt file for multiple input prompts
-    :generation_len: int. Number of tokens to be generated.
-    :cache_dir: str. Cache dir where downloaded HuggingFace files are stored.
-    :hf_token: str. HuggingFace login token to access private repos.
+    ``Mandatory`` Args:
+        :model_name (str): Hugging Face Model Card name, Example: ``gpt2``.
+        :qpc_path (str): Path to the generated binary after compilation.
+    ``Optional`` Args:
+        :device_group (List[int]): Device Ids to be used for compilation. if len(device_group) > 1. Multiple Card setup is enabled.``Defaults to None.``
+        :local_model_dir (str): Path to custom model weights and config files. ``Defaults to None.``
+        :prompt (str): Sample prompt for the model text generation. ``Defaults to None.``
+        :prompts_txt_file_path (str): Path to txt file for multiple input prompts. ``Defaults to None.``
+        :generation_len (int): Number of tokens to be generated. ``Defaults to None.``
+        :cache_dir (str): Cache dir where downloaded HuggingFace files are stored. ``Defaults to Constants.CACHE_DIR.``
+        :hf_token (str): HuggingFace login token to access private repos. ``Defaults to None.``
+        :full_batch_size (int): Set full batch size to enable continuous batching mode. ``Defaults to None.``
+
+    .. code-block:: bash
+
+        python -m QEfficient.cloud.execute OPTIONS
     """
     tokenizer = load_hf_tokenizer(
         pretrained_model_name_or_path=(local_model_dir if local_model_dir else model_name),
@@ -52,6 +58,7 @@ def main(
         prompt=prompt,
         prompts_txt_file_path=prompts_txt_file_path,
         generation_len=generation_len,
+        full_batch_size=full_batch_size,
     )
 
 
@@ -64,7 +71,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--device_group",
         "--device-group",
-        required=True,
         type=lambda device_ids: [int(x) for x in device_ids.strip("[]").split(",")],
         help="Cloud AI 100 device ids (comma-separated) e.g. [0]",
     )
@@ -86,9 +92,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--cache-dir",
         "--cache_dir",
-        default=Constants.CACHE_DIR,
+        default=None,
         required=False,
         help="Cache dir to store HF Downloads",
+    )
+    parser.add_argument(
+        "--full_batch_size",
+        "--full-batch-size",
+        type=int,
+        default=None,
+        help="Set full batch size to enable continuous batching mode, default is None",
     )
     parser.add_argument(
         "--hf-token", "--hf_token", default=None, type=str, required=False, help="HF token id for private HF models"

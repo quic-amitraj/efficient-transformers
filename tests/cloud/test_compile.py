@@ -7,10 +7,13 @@
 
 import os
 
+import pytest
+
 import QEfficient
 import QEfficient.cloud.compile
 
 
+@pytest.mark.cli
 def test_compile(setup, mocker):
     """
     test_compile is a HL compile api testing function,
@@ -21,8 +24,13 @@ def test_compile(setup, mocker):
     mocker: mocker is itself a pytest fixture, uses to mock or spy internal functions.
     """
     ms = setup
+    for onnx_model_path in ms.onnx_model_path():
+        if os.path.isfile(onnx_model_path):
+            break
+    else:
+        raise RuntimeError(f"onnx file not found: {ms.onnx_model_path()}")
     QEfficient.compile(
-        onnx_path=ms.onnx_model_path(),
+        onnx_path=onnx_model_path,
         qpc_path=os.path.dirname(ms.qpc_dir_path()),
         num_cores=ms.num_cores,
         device_group=ms.device_group,
@@ -33,9 +41,9 @@ def test_compile(setup, mocker):
         ctx_len=ms.ctx_len,
         mxfp6=ms.mxfp6,
         mxint8=ms.mxint8,
+        full_batch_size=ms.full_batch_size,
     )
 
     assert os.path.isdir(ms.qpc_dir_path())
     assert os.path.isfile(ms.specialization_json_path())
     assert os.path.isfile(ms.custom_io_file_path())
-    assert os.path.isdir(ms.qpc_dir_path())
