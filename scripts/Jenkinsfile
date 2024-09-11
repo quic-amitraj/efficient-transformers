@@ -60,7 +60,8 @@ pipeline
                 try 
                 {
                     sh '''
-                    sudo chown -R ubuntu ./*
+                    docker rm -f ${BRANCH_NAME}
+                    sudo chown -R ubuntu .
                     '''
                 } 
                 catch (error) 
