@@ -18,8 +18,7 @@ pipeline
                 script
                 {
 
-                    def timestamp = sh(script: "date +%s", returnStdout: true).trim()
-                    def container_name = ${BRANCH_NAME}_${timestamp}
+                    def container_name = ${BRANCH_NAME}_${BUILD_NUMBER}
 
                     sh '''
                     . ~/.bashrc
