@@ -18,11 +18,10 @@ pipeline
                 script
                 {
 
-                    def container_name = ${BRANCH_NAME}_${BUILD_NUMBER}
 
                     sh '''
                     . ~/.bashrc
-                    docker run --privileged -dit --name ${container_name} -v ./:/efficient-transformers -v  ${HF_PATH}:${DOCKER_HF_PATH} ${DOCKER_LATEST}:master_latest
+                    docker run --privileged -dit --name ${BUILD_TAG} -v ./:/efficient-transformers -v  ${HF_PATH}:${DOCKER_HF_PATH} ${DOCKER_LATEST}:master_latest
                     docker exec ${container_name} bash -c "
                     cd /efficient-transformers &&
                     export QEFF_HOME=$(pwd)
