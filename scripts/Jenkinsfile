@@ -13,14 +13,18 @@ pipeline
         stage('Install QEfficient')
         {
             steps
-            {                
+            {
+
                 script
                 {
 
+                    def timestamp = sh(script: "date +%s", returnStdout: true).trim()
+                    def container_name = ${BRANCH_NAME}_$timestamp
+
                     sh '''
                     . ~/.bashrc
-                    docker run --privileged -dit --name ${BRANCH_NAME} -v ./:/efficient-transformers -v  ${HF_PATH}:${DOCKER_HF_PATH} ${DOCKER_LATEST}:master_latest
-                    docker exec ${BRANCH_NAME} bash -c "
+                    docker run --privileged -dit --name ${container_name} -v ./:/efficient-transformers -v  ${HF_PATH}:${DOCKER_HF_PATH} ${DOCKER_LATEST}:master_latest
+                    docker exec ${container_name} bash -c "
                     cd /efficient-transformers &&
                     export QEFF_HOME=$(pwd)
                     . /opt/qeff-env/bin/activate &&
@@ -40,7 +44,7 @@ pipeline
 		            timeout(time: 420, unit: 'MINUTES') 
                     {
                     sh '''
-                    docker exec ${BRANCH_NAME} bash -c "
+                    docker exec ${container_name} bash -c "
                     cd /efficient-transformers &&
                     . /opt/qeff-env/bin/activate &&
                     export TOKENIZERS_PARALLELISM=false &&
@@ -64,13 +68,13 @@ pipeline
                 try 
                 {
                     sh '''
-                    docker rm -f ${BRANCH_NAME}
+                    docker rm -f ${container_name}
                     sudo chown -R ubuntu .
                     '''
                 } 
                 catch (error) 
                 {
-                    echo "Failed to delete container ${BRANCH_NAME}: ${error}"
+                    echo "Failed to delete container ${container_name}: ${error}"
                 }
             }
             
