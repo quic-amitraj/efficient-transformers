@@ -23,7 +23,7 @@ pipeline
                     pip install --upgrade pip setuptools &&
                     pip install .[test] --extra-index-url https://download.pytorch.org/whl/cpu &&
                     pip install junitparser pytest-xdist &&
-                    rm -rf QEfficient
+                    rm -rf QEfficient "
                 '''
             }
         }
