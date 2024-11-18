@@ -19,6 +19,7 @@ pipeline
                     docker run --privileged -dit --name ${BUILD_TAG} -v ./:/efficient-transformers -v  ${HF_PATH}:${DOCKER_HF_PATH} ${DOCKER_LATEST}:master_latest
                     docker exec ${BUILD_TAG} bash -c "
                     cd /efficient-transformers &&
+                    apt install python3.10-venv &&
                     python3.10 -m venv preflight_qeff &&
                     . preflight_qeff/bin/activate
                     pip install --upgrade pip setuptools &&
