@@ -40,9 +40,9 @@ pipeline
                     . /opt/qeff-env/bin/activate &&
                     export TOKENIZERS_PARALLELISM=false &&
                     export QEFF_HOME=$PWD &&
-                    pytest tests -m '(not cli) and (not on_qaic)' -n auto --junitxml=tests/tests_log1.xml &" 
+                    pytest tests -m '(not cli) and (not on_qaic)' -n auto --junitxml=tests/tests_log1.xml & " 
                     docker exec ${BUILD_TAG} bash -c "
-                    pytest tests -m '(not cli) and (on_qaic)' -n 4 --junitxml=tests/tests_log2.xml &"
+                    pytest tests -m '(not cli) and (on_qaic)' -n 4 --junitxml=tests/tests_log2.xml & "
                     docker exec ${BUILD_TAG} bash -c "
                     wait &&
                     pytest tests -m cli --junitxml=tests/tests_log3.xml &&
