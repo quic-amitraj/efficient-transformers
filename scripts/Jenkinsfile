@@ -43,6 +43,9 @@ pipeline
                     . preflight_qeff/bin/activate &&
                     export TOKENIZERS_PARALLELISM=false &&
                     export QEFF_HOME=$PWD &&
+                    pip list
+                    pwd
+                    python --version
                     exit "
                     '''
                 }
