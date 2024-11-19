@@ -34,8 +34,9 @@ pipeline {
                            docker exec ${BUILD_TAG} bash -c "
                            cd /efficient-transformers &&
                            . preflight_qeff/bin/activate &&
+                           mkdir -p $PWD/Non_cli_qaic &&
                            export TOKENIZERS_PARALLELISM=false &&
-                           export QEFF_HOME=$PWD &&
+                           export QEFF_HOME=$PWD/Non_cli_qaic &&
                            pytest tests -m '(not cli) and (not on_qaic)' -n auto --junitxml=tests/tests_log1.xml &&
                            deactivate"
                            '''
@@ -49,8 +50,9 @@ pipeline {
                            docker exec ${BUILD_TAG} bash -c "
                            cd /efficient-transformers &&
                            . preflight_qeff/bin/activate &&
+                           mkdir -p $PWD/Non_qaic &&
                            export TOKENIZERS_PARALLELISM=false &&
-                           export QEFF_HOME=$PWD &&
+                           export QEFF_HOME=$PWD/Non_qaic &&
                            pytest tests -m '(not cli) and (on_qaic)' -n 4 --junitxml=tests/tests_log2.xml &&
                            deactivate"
                            '''
@@ -64,8 +66,9 @@ pipeline {
                            docker exec ${BUILD_TAG} bash -c "
                            cd /efficient-transformers &&
                            . preflight_qeff/bin/activate &&
+                           mkdir -p $PWD/cli &&
                            export TOKENIZERS_PARALLELISM=false &&
-                           export QEFF_HOME=$PWD &&
+                           export QEFF_HOME=$PWD/cli &&
                            pytest tests -m cli -n 4 --junitxml=tests/tests_log3.xml &&
                            deactivate"
                            '''
