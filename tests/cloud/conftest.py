@@ -302,16 +302,16 @@ def qeff_models_clean_up():
 @pytest.fixture
 def clean_up_after_test():
     yield
-    qeff_models_clean_up()
+    # qeff_models_clean_up()
 
 
 def pytest_sessionstart(session):
     logger.info("PYTEST Session Starting ...")
-    qeff_models_clean_up()
+    # qeff_models_clean_up()
 
 
 def pytest_sessionfinish(session, exitstatus):
     inside_worker = getattr(session.config, "workerinput", None)
     if inside_worker is None:
-        qeff_models_clean_up()
+        # qeff_models_clean_up()
         logger.info("...PYTEST Session Ended.")
