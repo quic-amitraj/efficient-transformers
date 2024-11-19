@@ -43,10 +43,10 @@ pipeline
                     . preflight_qeff/bin/activate &&
                     export TOKENIZERS_PARALLELISM=false &&
                     export QEFF_HOME=$PWD &&
-                    pip list
-                    pwd
-                    python --version
-                    pytest tests -m "(not cli) and (not on_qaic)" -n auto --junitxml=tests/tests_log1.xml &
+                    pip list &&
+                    pwd &&
+                    python --version &&
+                    pytest tests -m "(not cli) and (not on_qaic)" -n auto --junitxml=tests/tests_log1.xml &&
                     exit "
                     '''
                 }
