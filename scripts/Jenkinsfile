@@ -46,7 +46,7 @@ pipeline
                     pip list &&
                     pwd &&
                     python --version &&
-                    pytest tests -m "(not cli) and (not on_qaic)" -n auto --junitxml=tests/tests_log1.xml &&
+                    pytest tests -m '(not cli) and (not on_qaic)' -n auto --junitxml=tests/tests_log1.xml &&
                     exit "
                     '''
                 }
