@@ -25,7 +25,7 @@ pipeline {
            }
        }
 
-       stage('Test') {
+       stage('Non ClI Test') {
            parallel {
                stage('Run Non-CLI Non-QAIC Tests') {
                    steps {
@@ -59,7 +59,9 @@ pipeline {
                        }
                    }
                }
-               stage('Run CLI Tests') {
+           }
+       }
+       stage('CLI Tests') {
                    steps {
                        timeout(time: 140, unit: 'MINUTES') {
                            sh '''
@@ -74,9 +76,7 @@ pipeline {
                            '''
                        }
                    }
-               }
-           }
-       }
+        }
    }
 
    post {
