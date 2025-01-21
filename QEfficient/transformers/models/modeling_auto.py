@@ -466,13 +466,13 @@ class QEFFAutoModel(QEFFTransformersBase):
         if kwargs.get("low_cpu_mem_usage", None):
             logger.warning("Updating low_cpu_mem_usage=False")
 
-        kwargs.update({"attn_implementation": "eager", "low_cpu_mem_usage": False, "add_pooling_layer": False})
-        try:
-            model = cls._hf_auto_class.from_pretrained(pretrained_model_name_or_path, *args, **kwargs)
-            warnings.warn("Removing pooling layer from the model if exist")
-        except TypeError:
-            kwargs.pop("add_pooling_layer", None)
-            model = cls._hf_auto_class.from_pretrained(pretrained_model_name_or_path, *args, **kwargs)
+        kwargs.update({"attn_implementation": "eager", "low_cpu_mem_usage": False})
+        # try:
+        model = cls._hf_auto_class.from_pretrained(pretrained_model_name_or_path, *args, **kwargs)
+        #     warnings.warn("Removing pooling layer from the model if exist")
+        # except TypeError:
+        #     kwargs.pop("add_pooling_layer", None)
+        #     model = cls._hf_auto_class.from_pretrained(pretrained_model_name_or_path, *args, **kwargs)
         return cls(model)
 
     @property
