@@ -32,7 +32,7 @@ class Qeff_transformers(Transformer):
         """Loads the transformer model"""
         self.qeff_auto_model = QEFFAutoModel.from_pretrained(model_name_or_path, **model_args)
         self.auto_model = self.qeff_auto_model.model
-        self.qeff_auto_model.compile()
+        self.qeff_auto_model.compile(batch_size=32)
 
     def forward(self, features: dict[str, torch.Tensor], **kwargs) -> dict[str, torch.Tensor]:
         """Returns token_embeddings, cls_token"""
