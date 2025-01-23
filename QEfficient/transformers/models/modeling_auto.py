@@ -552,6 +552,7 @@ class QEFFAutoModel(QEFFTransformersBase):
 
         specializations = [
             {"batch_size": batch_size, "seq_len": seq_len},
+            {"batch_size": 32, seq_len: seq_len}
         ]
 
         return self._compile(

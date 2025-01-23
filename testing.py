@@ -31,7 +31,7 @@ docs = text_splitter.split_documents(data)
 print(docs[0])
 
 # Define the path to the pre-trained model you want to use
-modelPath = "sentence-transformers/all-MiniLM-l6-v2"
+modelPath = "sentence-transformers/all-MiniLM-L6-v2"
 
 # Create a dictionary with model configuration options, specifying to use the CPU for computations
 model_kwargs = {'device':'cpu'}
@@ -42,12 +42,6 @@ encode_kwargs = {'normalize_embeddings': False}
 
 text = "This is a test document."
 
-# Initialize an instance of HuggingFaceEmbeddings with the specified parameters
-# embeddings_1 = HuggingFaceEmbeddings(
-#     model_name=modelPath,     # Provide the pre-trained model's path
-#     model_kwargs=model_kwargs, # Pass the model configuration options
-#     encode_kwargs=encode_kwargs # Pass the encoding options
-# )
 
 embeddings_2 = QEffEmbedding(
     model_name=modelPath,     # Provide the pre-trained model's path

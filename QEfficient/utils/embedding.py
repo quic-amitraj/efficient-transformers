@@ -24,7 +24,6 @@ class QEffEmbedding(HuggingFaceEmbeddings):
 
         self._client = QEff_sentence_transformers(self.model_name, cache_folder=self.cache_folder, **self.model_kwargs)
 
-
 from sentence_transformers.models.Transformer import Transformer
 
 
@@ -34,8 +33,6 @@ class Qeff_transformers(Transformer):
         self.qeff_auto_model = QEFFAutoModel.from_pretrained(model_name_or_path, **model_args)
         self.auto_model = self.qeff_auto_model.model
         self.qeff_auto_model.compile()
-        print("hello")
-        print("testing")
 
     def forward(self, features: dict[str, torch.Tensor], **kwargs) -> dict[str, torch.Tensor]:
         """Returns token_embeddings, cls_token"""
