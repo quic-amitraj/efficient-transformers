@@ -36,9 +36,9 @@ from QEfficient.generation.text_generation_inference import (
 )
 from QEfficient.transformers.models.pytorch_transforms import (
     CustomOpsTransform,
-    EmbeddingTransform,
     KVCacheModuleMethodMapperTransform,
     KVCacheTransform,
+    PoolingTransform,
     SpDTransform,
     VlmKVOffloadTransform,
     VlmNoKVOffloadTransform,
@@ -161,7 +161,7 @@ class QEFFAutoModel(QEFFTransformersBase):
         super().__init__(model)
 
         # Make Embedding specific transforms like pooling
-        self.model, _ = EmbeddingTransform.apply(self.model, **kwargs)
+        self.model, _ = PoolingTransform.apply(self.model, **kwargs)
 
         self.model.base_model.config.use_cache = True
 
@@ -377,7 +377,7 @@ class QEFFAutoModel(QEFFTransformersBase):
         for allowed_shape in self.qpc_session.allowed_shapes:
             seq_len_allowed = allowed_shape[1][1][1]
 
-            if seq_len_allowed > input_ids_len:
+            if seq_len_allowed >= input_ids_len:
                 self.seq_len = seq_len_allowed
                 break
 
