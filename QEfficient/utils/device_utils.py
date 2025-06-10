@@ -6,10 +6,19 @@
 # -----------------------------------------------------------------------------
 
 import math
+import re
 import subprocess
 
 from QEfficient.utils.constants import Constants
 from QEfficient.utils.logging_utils import logger
+
+
+def is_networks_loaded(stdout):
+    # Check is the networks are loaded on the device.
+    network_loaded = re.search(r"Networks Loaded:(\d+)", stdout)
+    if network_loaded and int(network_loaded.group(1)) > 0:
+        return True
+    return False
 
 
 def get_available_device_id():
@@ -35,7 +44,7 @@ def get_available_device_id():
         if result:
             if "Status:Error" in result.stdout:
                 device_id += 1
-            elif "Status:Ready" in result.stdout:
+            elif "Status:Ready" in result.stdout and not is_networks_loaded(result.stdout):
                 logger.info("device is available.")
                 return [device_id]
             elif "Failed to find requested device ID" in result.stdout:
