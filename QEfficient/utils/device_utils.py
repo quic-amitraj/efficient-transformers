@@ -42,9 +42,9 @@ def get_available_device_id():
             logger.warning("Not a Cloud AI 100 device, Command not found", command)
             return None
         if result:
-            if "Status:Error" in result.stdout:
+            if "Status:Error" in result.stdout or is_networks_loaded(result.stdout):
                 device_id += 1
-            elif "Status:Ready" in result.stdout and not is_networks_loaded(result.stdout):
+            elif "Status:Ready" in result.stdout:
                 logger.info("device is available.")
                 return [device_id]
             elif "Failed to find requested device ID" in result.stdout:
