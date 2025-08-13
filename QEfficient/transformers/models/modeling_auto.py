@@ -60,15 +60,6 @@ from QEfficient.utils import (
     get_padding_shape_from_config,
 )
 from QEfficient.utils.logging_utils import logger
-from transformers import (
-    AutoModel,
-    AutoModelForCausalLM,
-    AutoModelForImageTextToText,
-    AutoModelForSpeechSeq2Seq,
-    PreTrainedTokenizer,
-    PreTrainedTokenizerFast,
-    TextStreamer,
-)
 
 
 class QEFFTransformersBase(QEFFBaseModel):
