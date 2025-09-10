@@ -1836,7 +1836,7 @@ def _get_param_or_dummy_zero(param, default_tensor_if_none: Optional[torch.Tenso
 
 def _get_activation_fn_type_from_module(act_fn_module: nn.Module) -> int:
     # Based on the original FeedForward's activation_fn logic
-    # Mapping: 0: "gelu", 1: "gelu-approximate", 2: "geglu", 3: "geglu-approximate", 4: "swiglu"
+    # Mapping: 0: "gelu", 1: "gelu-approximate"
     if isinstance(act_fn_module, GELU):
         if hasattr(act_fn_module, "approximate") and act_fn_module.approximate == "tanh":
             return 1  # "gelu-approximate"
