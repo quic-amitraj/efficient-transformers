@@ -1650,3 +1650,213 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             ff_context_activation_fn_type_i=ff_context_activation_fn_type,
         )
         return result
+    
+
+
+# Helper for safely getting params or dummy zeros
+def _get_param_or_dummy_zero(param, default_tensor_if_none: Optional[torch.Tensor] = None):
+    if isinstance(param, nn.Parameter):
+        return param
+    if param is None:
+        if default_tensor_if_none is not None:
+            return default_tensor_if_none
+        return torch.tensor(0.0) # Scalar zero for non-tensor defaults
+    return param
+
+def _get_activation_fn_type_from_module(act_fn_module: nn.Module) -> int:
+    # Based on the original FeedForward's activation_fn logic
+    # Mapping: 0: "gelu", 1: "gelu-approximate", 2: "geglu", 3: "geglu-approximate", 4: "swiglu"
+    if isinstance(act_fn_module, GELU):
+        if hasattr(act_fn_module, 'approximate') and act_fn_module.approximate == "tanh":
+            return 1 # "gelu-approximate"
+        else:
+            return 0 # "gelu"
+    elif isinstance(act_fn_module, GEGLU):
+        return 2 # "geglu"
+    elif isinstance(act_fn_module, ApproximateGELU):
+        return 3 # "geglu-approximate"
+    elif isinstance(act_fn_module, SwiGLU):
+        return 4 # "swiglu"
+    else:
+        raise ValueError(f"Unsupported activation function module type: {type(act_fn_module)}")
+    
+class JointTransformerBlockAIC(nn.Module):
+    """
+    JointTransformerBlock module that works by replacing the current module with
+    compiler-known custom-op via JointTransformerBlockFunc.
+    This version is hardcoded for specific conditions:
+    - use_dual_attention = False
+    - context_pre_only = False
+    - _chunk_size = None
+    """
+    def __init__(self, original_module: JointTransformerBlock):
+        super().__init__()
+        # Store original fixed parameters
+        self._use_dual_attention = original_module.use_dual_attention # Should be False
+        self._context_pre_only = original_module.context_pre_only     # Should be False
+        self._chunk_size = original_module._chunk_size                 # Should be None
+        self._chunk_dim = original_module._chunk_dim                   # Should be 0
+
+        if self._use_dual_attention or self._context_pre_only or self._chunk_size is not None:
+            raise ValueError(
+                "JointTransformerBlockAIC is specialized for "
+                "use_dual_attention=False, context_pre_only=False, _chunk_size=None. "
+                "Found different values."
+            )
+
+        # --- Extract parameters for norm1 (AdaLayerNormZero) ---
+        self.norm1_linear_weight = original_module.norm1.linear.weight
+        self.norm1_linear_bias = _get_param_or_dummy_zero(original_module.norm1.linear.bias, torch.zeros(original_module.norm1.linear.out_features))
+        self.norm1_epsilon = original_module.norm1.norm.eps
+        # --- Extract parameters for norm1_context (AdaLayerNormZero) ---
+        self.norm1_context_linear_weight = original_module.norm1_context.linear.weight
+        self.norm1_context_linear_bias = _get_param_or_dummy_zero(original_module.norm1_context.linear.bias, torch.zeros(original_module.norm1_context.linear.out_features))
+        self.norm1_context_epsilon = original_module.norm1_context.norm.eps
+
+        # --- Extract parameters for attn (Attention / JointAttnProcessor2_0) ---
+        # Assuming original_module.attn is an Attention instance.
+        # It's better if it's already wrapped in AttentionAIC, but we can extract raw params.
+        self.attn_heads = original_module.attn.heads
+        self.attn_head_dim = original_module.attn.dim_head
+        self.attn_scale_qk = original_module.attn.scale_qk
+        self.attn_scale_val = original_module.attn.scale
+        self.attn_query_dim = original_module.attn.query_dim
+        self.attn_inner_dim = original_module.attn.inner_dim
+        self.attn_inner_kv_dim = original_module.attn.inner_kv_dim
+        
+        self.attn_to_q_weight = original_module.attn.to_q.weight
+        self.attn_to_q_bias = _get_param_or_dummy_zero(original_module.attn.to_q.bias, torch.zeros(original_module.attn.to_q.out_features))
+        self.attn_to_k_weight = original_module.attn.to_k.weight
+        self.attn_to_k_bias = _get_param_or_dummy_zero(original_module.attn.to_k.bias, torch.zeros(original_module.attn.to_k.out_features))
+        self.attn_to_v_weight = original_module.attn.to_v.weight
+        self.attn_to_v_bias = _get_param_or_dummy_zero(original_module.attn.to_v.bias, torch.zeros(original_module.attn.to_v.out_features))
+
+        self.attn_norm_q_weight = _get_param_or_dummy_zero(original_module.attn.norm_q.weight, torch.zeros(original_module.attn.norm_q.weight.shape if hasattr(original_module.attn.norm_q, 'weight') and original_module.attn.norm_q.weight is not None else original_module.attn.dim_head))
+        self.attn_norm_q_eps = original_module.attn.norm_q.eps if hasattr(original_module.attn.norm_q, 'eps') else 1e-6
+        self.attn_norm_q_elementwise_affine = original_module.attn.norm_q.elementwise_affine if hasattr(original_module.attn.norm_q, 'elementwise_affine') else True
+
+        self.attn_norm_k_weight = _get_param_or_dummy_zero(original_module.attn.norm_k.weight, torch.zeros(original_module.attn.norm_k.weight.shape if hasattr(original_module.attn.norm_k, 'weight') and original_module.attn.norm_k.weight is not None else original_module.attn.dim_head))
+        self.attn_norm_k_eps = original_module.attn.norm_k.eps if hasattr(original_module.attn.norm_k, 'eps') else 1e-6
+        self.attn_norm_k_elementwise_affine = original_module.attn.norm_k.elementwise_affine if hasattr(original_module.attn.norm_k, 'elementwise_affine') else True
+
+        self.attn_add_q_proj_weight = _get_param_or_dummy_zero(original_module.attn.add_q_proj.weight, torch.zeros(original_module.attn.add_q_proj.out_features))
+        self.attn_add_q_proj_bias = _get_param_or_dummy_zero(original_module.attn.add_q_proj.bias, torch.zeros(original_module.attn.add_q_proj.out_features))
+        self.attn_add_k_proj_weight = _get_param_or_dummy_zero(original_module.attn.add_k_proj.weight, torch.zeros(original_module.attn.add_k_proj.out_features))
+        self.attn_add_k_proj_bias = _get_param_or_dummy_zero(original_module.attn.add_k_proj.bias, torch.zeros(original_module.attn.add_k_proj.out_features))
+        self.attn_add_v_proj_weight = _get_param_or_dummy_zero(original_module.attn.add_v_proj.weight, torch.zeros(original_module.attn.add_v_proj.out_features))
+        self.attn_add_v_proj_bias = _get_param_or_dummy_zero(original_module.attn.add_v_proj.bias, torch.zeros(original_module.attn.add_v_proj.out_features))
+
+        self.attn_norm_added_q_weight = _get_param_or_dummy_zero(original_module.attn.norm_added_q.weight, torch.zeros(original_module.attn.norm_added_q.weight.shape if hasattr(original_module.attn.norm_added_q, 'weight') and original_module.attn.norm_added_q.weight is not None else original_module.attn.dim_head))
+        self.attn_norm_added_q_eps = original_module.attn.norm_added_q.eps if hasattr(original_module.attn.norm_added_q, 'eps') else 1e-6
+        self.attn_norm_added_q_elementwise_affine = original_module.attn.norm_added_q.elementwise_affine if hasattr(original_module.attn.norm_added_q, 'elementwise_affine') else True
+
+        self.attn_norm_added_k_weight = _get_param_or_dummy_zero(original_module.attn.norm_added_k.weight, torch.zeros(original_module.attn.norm_added_k.weight.shape if hasattr(original_module.attn.norm_added_k, 'weight') and original_module.attn.norm_added_k.weight is not None else original_module.attn.dim_head))
+        self.attn_norm_added_k_eps = original_module.attn.norm_added_k.eps if hasattr(original_module.attn.norm_added_k, 'eps') else 1e-6
+        self.attn_norm_added_k_elementwise_affine = original_module.attn.norm_added_k.elementwise_affine if hasattr(original_module.attn.norm_added_k, 'elementwise_affine') else True
+
+        self.attn_to_out_0_weight = original_module.attn.to_out[0].weight
+        self.attn_to_out_0_bias = _get_param_or_dummy_zero(original_module.attn.to_out[0].bias, torch.zeros(original_module.attn.to_out[0].out_features))
+        self.attn_to_out_1_dropout_p = original_module.attn.to_out[1].p
+        self.attn_context_pre_only_flag = original_module.attn.context_pre_only
+        self.attn_added_kv_proj_dim = original_module.attn.added_kv_proj_dim
+        self.attn_to_add_out_weight = _get_param_or_dummy_zero(original_module.attn.to_add_out.weight, torch.zeros(original_module.attn.to_add_out.out_features))
+        self.attn_to_add_out_bias = _get_param_or_dummy_zero(original_module.attn.to_add_out.bias, torch.zeros(original_module.attn.to_add_out.out_features))
+
+         # --- Extract parameters for norm2 (RMSNorm) ---
+        self.norm2_weight = _get_param_or_dummy_zero(original_module.norm2.weight, torch.zeros(original_module.norm2.weight.shape if hasattr(original_module.norm2, 'weight') and original_module.norm2.weight is not None else original_module.norm2.dim))
+        self.norm2_eps = original_module.norm2.eps if hasattr(original_module.norm2, 'eps') else 1e-6
+        self.norm2_elementwise_affine = original_module.norm2.elementwise_affine if hasattr(original_module.norm2, 'elementwise_affine') else True
+
+        # --- Extract parameters for ff (FeedForward) ---
+        self.ff_dim = original_module.ff.dim
+        self.ff_dim_out = original_module.ff.dim_out
+        self.ff_mult = original_module.ff.mult
+        self.ff_dropout_ratio = original_module.ff.dropout
+        self.ff_final_dropout = original_module.ff.final_dropout
+        self.ff_act_fn_proj_weight = original_module.ff.net[0].proj.weight
+        self.ff_act_fn_proj_bias = _get_param_or_dummy_zero(original_module.ff.net[0].proj.bias, torch.zeros(original_module.ff.net[0].proj.out_features))
+        self.ff_project_out_weight = original_module.ff.net[2].weight
+        self.ff_project_out_bias = _get_param_or_dummy_zero(original_module.ff.net[2].bias, torch.zeros(original_module.ff.net[2].out_features))
+        self.ff_activation_fn_type = _get_activation_fn_type_from_module(original_module.ff.net[0])
+
+        # --- Extract parameters for norm2_context (RMSNorm) ---
+        self.norm2_context_weight = _get_param_or_dummy_zero(original_module.norm2_context.weight, torch.zeros(original_module.norm2_context.weight.shape if hasattr(original_module.norm2_context, 'weight') and original_module.norm2_context.weight is not None else original_module.norm2_context.dim))
+        self.norm2_context_eps = original_module.norm2_context.eps if hasattr(original_module.norm2_context, 'eps') else 1e-6
+        self.norm2_context_elementwise_affine = original_module.norm2_context.elementwise_affine if hasattr(original_module.norm2_context, 'elementwise_affine') else True
+
+        # --- Extract parameters for ff_context (FeedForward) ---
+        self.ff_context_dim = original_module.ff_context.dim
+        self.ff_context_dim_out = original_module.ff_context.dim_out
+        self.ff_context_mult = original_module.ff_context.mult
+        self.ff_context_dropout_ratio = original_module.ff_context.dropout
+        self.ff_context_final_dropout = original_module.ff_context.final_dropout
+        self.ff_context_act_fn_proj_weight = original_module.ff_context.net[0].proj.weight
+        self.ff_context_act_fn_proj_bias = _get_param_or_dummy_zero(original_module.ff_context.net[0].proj.bias, torch.zeros(original_module.ff_context.net[0].proj.out_features))
+        self.ff_context_project_out_weight = original_module.ff_context.net[2].weight
+        self.ff_context_project_out_bias = _get_param_or_dummy_zero(original_module.ff_context.net[2].bias, torch.zeros(original_module.ff_context.net[2].out_features))
+        self.ff_context_activation_fn_type = _get_activation_fn_type_from_module(original_module.ff_context.net[0])
+def forward(
+        self,
+        hidden_states: torch.Tensor,
+        encoder_hidden_states: torch.Tensor,
+        temb: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        # --- Handle optional attention_mask for processor if it was None ---
+        # JointAttnProcessor2_0Onnx expects attention_mask, even if zero-sized.
+        # If it's dynamically generated or None, pass an empty tensor.
+        # This wrapper expects attention_mask not to be an input to JTB.
+        # So we assume it's always an empty tensor to the processor.
+        attention_mask_for_attn = torch.empty(0, device=hidden_states.device, dtype=hidden_states.dtype)
+        _attn_original_attention_mask_was_none = True
+
+        # JointAttnProcessor2_0 always expects encoder_hidden_states (not None).
+        # We also pass it as a regular tensor here.
+        _attn_original_encoder_hidden_states_was_none = False
+
+
+        return JointTransformerBlockFunc.apply(
+            hidden_states,
+            encoder_hidden_states,
+            temb,
+            self._use_dual_attention,
+            self._context_pre_only,
+            self._chunk_size,
+            self._chunk_dim,
+
+            self.norm1_linear_weight, self.norm1_linear_bias, self.norm1_epsilon,
+            self.norm1_context_linear_weight, self.norm1_context_linear_bias, self.norm1_context_epsilon,
+
+            self.attn_heads, self.attn_head_dim, self.attn_scale_qk, self.attn_scale_val,
+            self.attn_query_dim, self.attn_inner_dim, self.attn_inner_kv_dim,
+            self.attn_to_q_weight, self.attn_to_q_bias,
+            self.attn_to_k_weight, self.attn_to_k_bias,
+            self.attn_to_v_weight, self.attn_to_v_bias,
+            self.attn_norm_q_weight, self.attn_norm_q_eps, self.attn_norm_q_elementwise_affine,
+            self.attn_norm_k_weight, self.attn_norm_k_eps, self.attn_norm_k_elementwise_affine,
+            self.attn_add_q_proj_weight, self.attn_add_q_proj_bias,
+            self.attn_add_k_proj_weight, self.attn_add_k_proj_bias,
+            self.attn_add_v_proj_weight, self.attn_add_v_proj_bias,
+            self.attn_norm_added_q_weight, self.attn_norm_added_q_eps, self.attn_norm_added_q_elementwise_affine,
+            self.attn_norm_added_k_weight, self.attn_norm_added_k_eps, self.attn_norm_added_k_elementwise_affine,
+            self.attn_to_out_0_weight, self.attn_to_out_0_bias,
+            self.attn_to_out_1_dropout_p,
+            self.attn_context_pre_only_flag,
+            self.attn_added_kv_proj_dim,
+            self.attn_to_add_out_weight, self.attn_to_add_out_bias,
+            self.norm2_weight, self.norm2_eps, self.norm2_elementwise_affine,
+
+            self.ff_dim, self.ff_dim_out, self.ff_mult, self.ff_dropout_ratio, self.ff_final_dropout,
+            self.ff_act_fn_proj_weight, self.ff_act_fn_proj_bias,
+            self.ff_project_out_weight, self.ff_project_out_bias,
+            self.ff_activation_fn_type,
+
+            self.norm2_context_weight, self.norm2_context_eps, self.norm2_context_elementwise_affine,
+
+            self.ff_context_dim, self.ff_context_dim_out, self.ff_context_mult, self.ff_context_dropout_ratio, self.ff_context_final_dropout,
+            self.ff_context_act_fn_proj_weight, self.ff_context_act_fn_proj_bias,
+            self.ff_context_project_out_weight, self.ff_context_project_out_bias,
+            self.ff_context_activation_fn_type,
+
+            _attn_original_encoder_hidden_states_was_none,
+            _attn_original_attention_mask_was_none,
+        )
