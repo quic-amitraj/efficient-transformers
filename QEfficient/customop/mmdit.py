@@ -582,42 +582,42 @@ class FeedForwardAIC(nn.Module):
 # recheck this with the customRMSNorm we have earlier
 
 
-@onnxscript.script(CUSTOM_OPSET)
-def RMSNormOnnx(
-    hidden_states: onnxscript.FLOAT,  # Input tensor
-    weight: onnxscript.FLOAT,  # Corresponds to self.weight (nn.Parameter)
-    # Pass an empty tensor or zero tensor if elementwise_affine is False
-    eps: float,  # Corresponds to self.eps
-    elementwise_affine: bool,  # Corresponds to elementwise_affine in __init__
-):
-    """
-    ONNXScript equivalent of RMSNorm.
-    Handles dtype conversions and conditional weight application.
-    """
+# @onnxscript.script(CUSTOM_OPSET)
+# def RMSNormOnnx(
+#     hidden_states: onnxscript.FLOAT,  # Input tensor
+#     weight: onnxscript.FLOAT,  # Corresponds to self.weight (nn.Parameter)
+#     # Pass an empty tensor or zero tensor if elementwise_affine is False
+#     eps: float,  # Corresponds to self.eps
+#     elementwise_affine: bool,  # Corresponds to elementwise_affine in __init__
+# ):
+#     """
+#     ONNXScript equivalent of RMSNorm.
+#     Handles dtype conversions and conditional weight application.
+#     """
 
-    # 1. variance = hidden_states.to(torch.float32).pow(2).mean(-1, keepdim=True)
+#     # 1. variance = hidden_states.to(torch.float32).pow(2).mean(-1, keepdim=True)
 
-    hidden_states_fp32 = ops.Cast(hidden_states, to=1)  # 1 is ONNX FLOAT (float32)
+#     hidden_states_fp32 = ops.Cast(hidden_states, to=1)  # 1 is ONNX FLOAT (float32)
 
-    variance = ops.ReduceMean(ops.Pow(hidden_states_fp32, 2), axes=[-1], keepdims=1)
+#     variance = ops.ReduceMean(ops.Pow(hidden_states_fp32, 2), axes=[-1], keepdims=1)
 
-    # 2. hidden_states = hidden_states * torch.rsqrt(variance + self.eps)
+#     # 2. hidden_states = hidden_states * torch.rsqrt(variance + self.eps)
 
-    variance_with_eps = ops.Add(variance, ops.Constant(value_float=eps))
-    rsqrt_val = ops.Reciprocal(ops.Sqrt(variance_with_eps))
+#     variance_with_eps = ops.Add(variance, ops.Constant(value_float=eps))
+#     rsqrt_val = ops.Reciprocal(ops.Sqrt(variance_with_eps))
 
-    hidden_states_normalized = ops.Mul(hidden_states, rsqrt_val)
+#     hidden_states_normalized = ops.Mul(hidden_states, rsqrt_val)
 
-    # 3. Conditional weight application: if self.weight is not None: hidden_states = hidden_states * self.weight
-    # This `if` corresponds to `elementwise_affine` boolean
-    if elementwise_affine:
-        hidden_states_to_weight_dtype = ops.Cast(hidden_states_normalized, to=ops.DTYPE_MAP[weight.dtype])  # type: ignore
+#     # 3. Conditional weight application: if self.weight is not None: hidden_states = hidden_states * self.weight
+#     # This `if` corresponds to `elementwise_affine` boolean
+#     if elementwise_affine:
+#         hidden_states_to_weight_dtype = ops.Cast(hidden_states_normalized, to=ops.DTYPE_MAP[weight.dtype])  # type: ignore
 
-        output = ops.Mul(hidden_states_to_weight_dtype, weight)
-    else:
-        output = hidden_states_normalized
+#         output = ops.Mul(hidden_states_to_weight_dtype, weight)
+#     else:
+#         output = hidden_states_normalized
 
-    return output
+#     return output
 
 @onnxscript.script(onnxscript.values.Opset(domain="com.qti.aisw.onnx", version=1))
 def CustomRMSNorm(hidden_states: onnxscript.FLOAT, weight: onnxscript.FLOAT, epsilon: float):
@@ -713,6 +713,11 @@ def JointAttnProcessor2_0Onnx(
     residual = hidden_states
     batch_size = ops.Shape(hidden_states)[0]
 
+    # Convert Python ints to 1-element ONNX tensors
+    # These are needed for ops.Concat as it expects tensors.
+    attn_heads_tensor = ops.Constant(value_int=attn_heads)
+    attn_head_dim_tensor = ops.Constant(value_int=attn_head_dim)
+
     # Check if encoder_hidden_states is "None" (represented by empty tensor)
     # This conditional handling for ONNX `If` is tricky. I'll use Python `if` for tracing.
     # A true ONNX graph might trace both paths if this is a dynamic input.
@@ -726,19 +731,27 @@ def JointAttnProcessor2_0Onnx(
     # Reshape for multi-head attention and transpose
     # (batch_size, seq_len, inner_dim) -> (batch_size, seq_len, heads, head_dim) -> (batch_size, heads, seq_len, head_dim)
     seq_len = ops.Shape(hidden_states)[1]
+    # Create the shape tensor for Reshape by concatenating 1-element tensors
+    # Each element in the list for ops.Concat MUST be an ONNX tensor.
+    # We reshape scalar tensors (like batch_size, seq_len, attn_heads_tensor, attn_head_dim_tensor)
+    # into 1-element 1D tensors before concatenating them.
+    s0 = ops.Reshape(batch_size, ops.Constant(value_ints=[1]))
+    s1 = ops.Reshape(seq_len, ops.Constant(value_ints=[1]))
+    s2 = ops.Reshape(attn_heads_tensor, ops.Constant(value_ints=[1]))
+    s3 = ops.Reshape(attn_head_dim_tensor, ops.Constant(value_ints=[1]))
 
-    query = ops.Transpose(
-        ops.Reshape(query, ops.Concat([batch_size, seq_len, attn_heads, attn_head_dim], axis=0)), perm=[0, 2, 1, 3]
-    )
-    key = ops.Transpose(
-        ops.Reshape(key, ops.Concat([batch_size, seq_len, attn_heads, attn_head_dim], axis=0)), perm=[0, 2, 1, 3]
-    )
-    value = ops.Transpose(
-        ops.Reshape(value, ops.Concat([batch_size, seq_len, attn_heads, attn_head_dim], axis=0)), perm=[0, 2, 1, 3]
+    reshape_shape = ops.Concat(
+        s0, s1, s2, s3, 
+        axis=0
     )
 
-    query = CustomRMSNorm(query, norm_q_weight, norm_q_eps, norm_q_elementwise_affine)
-    key = CustomRMSNorm(key, norm_k_weight, norm_k_eps, norm_k_elementwise_affine)
+    query = ops.Transpose(ops.Reshape(query, reshape_shape), perm=[0, 2, 1, 3])
+    key = ops.Transpose(ops.Reshape(key, reshape_shape), perm=[0, 2, 1, 3])
+    value = ops.Transpose(ops.Reshape(value, reshape_shape), perm=[0, 2, 1, 3])
+    
+
+    query = CustomRMSNorm(query, norm_q_weight, norm_q_eps)
+    key = CustomRMSNorm(key, norm_k_weight, norm_k_eps)
     # --- Context Projections (from encoder_hidden_states) ---
     # This block is conditional on `encoder_hidden_states is not None`
     # We will compute both paths and use `ops.If` or a conditional switch later if truly dynamic.
@@ -762,70 +775,80 @@ def JointAttnProcessor2_0Onnx(
 
         # Reshape and transpose for multi-head attention
         enc_seq_len = ops.Shape(encoder_hidden_states)[1]
+        es0 = ops.Reshape(batch_size, ops.Constant(value_ints=[1]))
+        es1 = ops.Reshape(enc_seq_len, ops.Constant(value_ints=[1]))
+        es2 = ops.Reshape(attn_heads_tensor, ops.Constant(value_ints=[1]))
+        es3 = ops.Reshape(attn_head_dim_tensor, ops.Constant(value_ints=[1]))
 
-        encoder_hidden_states_query_proj = ops.Transpose(
-            ops.Reshape(
-                encoder_hidden_states_query_proj,
-                ops.Concat([batch_size, enc_seq_len, attn_heads, attn_head_dim], axis=0),
-            ),
-            perm=[0, 2, 1, 3],
+        reshape_enc_shape = ops.Concat(
+            es0, es1, es2, es3, # Changed to separate arguments
+            axis=0
         )
-        encoder_hidden_states_key_proj = ops.Transpose(
-            ops.Reshape(
-                encoder_hidden_states_key_proj, ops.Concat([batch_size, enc_seq_len, attn_heads, attn_head_dim], axis=0)
-            ),
-            perm=[0, 2, 1, 3],
-        )
-        encoder_hidden_states_value_proj = ops.Transpose(
-            ops.Reshape(
-                encoder_hidden_states_value_proj,
-                ops.Concat([batch_size, enc_seq_len, attn_heads, attn_head_dim], axis=0),
-            ),
-            perm=[0, 2, 1, 3],
-        )
+        encoder_hidden_states_query_proj = ops.Transpose(ops.Reshape(encoder_hidden_states_query_proj, reshape_enc_shape), perm=[0, 2, 1, 3])
+        encoder_hidden_states_key_proj = ops.Transpose(ops.Reshape(encoder_hidden_states_key_proj, reshape_enc_shape), perm=[0, 2, 1, 3])
+        encoder_hidden_states_value_proj = ops.Transpose(ops.Reshape(encoder_hidden_states_value_proj, reshape_enc_shape), perm=[0, 2, 1, 3])
+
 
         # Apply RMSNorm if enabled (norm_added_q, norm_added_k)
-        encoder_hidden_states_query_proj = RMSNorm(
-            encoder_hidden_states_query_proj, norm_added_q_weight, norm_added_q_eps, norm_added_q_elementwise_affine
+        encoder_hidden_states_query_proj = CustomRMSNorm(
+            encoder_hidden_states_query_proj, norm_added_q_weight, norm_added_q_eps
         )
-        encoder_hidden_states_key_proj = RMSNorm(
-            encoder_hidden_states_key_proj, norm_added_k_weight, norm_added_k_eps, norm_added_k_elementwise_affine
+        encoder_hidden_states_key_proj = CustomRMSNorm(
+            encoder_hidden_states_key_proj, norm_added_k_weight, norm_added_k_eps
         )
 
         # Concatenate query, key, value from sample and context
-        query = ops.Concat([query, encoder_hidden_states_query_proj], dim=2)  # Concat along sequence length (dim=2)
-        key = ops.Concat([key, encoder_hidden_states_key_proj], dim=2)
-        value = ops.Concat([value, encoder_hidden_states_value_proj], dim=2)
+        query = ops.Concat(query, encoder_hidden_states_query_proj, axis=2)  # Concat along sequence length (dim=2)
+        key = ops.Concat(key, encoder_hidden_states_key_proj, axis=2)
+        value = ops.Concat(value, encoder_hidden_states_value_proj, axis=2)
         # --- Scaled Dot-Product Attention ---
     # `dropout_p=0.0, is_causal=False` are fixed.
     hidden_states_attn = ops.ScaledDotProductAttention(query, key, value, attention_mask, is_causal=False)
 
     # Reshape output back to (batch_size, seq_len, total_heads * head_dim)
     # hidden_states = hidden_states.transpose(1, 2).reshape(batch_size, -1, attn.heads * head_dim)
-    hidden_states_attn = ops.Transpose(hidden_states_attn, perm=[0, 2, 1, 3])
-    hidden_states_attn = ops.Reshape(
-        hidden_states_attn, ops.Concat([batch_size, -1, ops.Mul(attn_heads, attn_head_dim)], axis=0)
+    combined_head_dim = ops.Mul(attn_heads_tensor, attn_head_dim_tensor)
+    
+    fo0 = ops.Reshape(batch_size, ops.Constant(value_ints=[1]))
+    fo1 = ops.Reshape(ops.Constant(value_int=-1), ops.Constant(value_ints=[1]))
+    fo2 = ops.Reshape(combined_head_dim, ops.Constant(value_ints=[1]))
+
+    final_output_reshape_shape = ops.Concat(
+        fo0, fo1, fo2, # Changed to separate arguments
+        axis=0
     )
+    
+    hidden_states_attn = ops.Transpose(hidden_states_attn, perm=[0, 2, 1, 3])
+    hidden_states_attn = ops.Reshape(hidden_states_attn, final_output_reshape_shape)
+
+    
     final_hidden_states = ops.Constant(value_float=0.0)
     final_encoder_hidden_states = ops.Constant(value_float=0.0)
 
     if encoder_is_not_none:  # If cross-attention was performed, split the output
         sample_output_len = ops.Shape(residual)[1]  # Length of the original 'sample' sequence
         total_output_len = ops.Shape(hidden_states_attn)[1]
+        s_end_0 = ops.Reshape(ops.Shape(hidden_states_attn)[0], ops.Constant(value_ints=[1]))
+        s_end_1 = ops.Reshape(sample_output_len, ops.Constant(value_ints=[1]))
+        
         # Slice `hidden_states_attn` into two parts
         final_hidden_states = ops.Slice(
             hidden_states_attn,
             starts=ops.Constant(value_ints=[0, 0]),
-            ends=ops.Constant(value_ints=[ops.Shape(hidden_states_attn)[0], sample_output_len]),
+            ends=ops.Concat(s_end_0, s_end_1, axis=0),
             axes=ops.Constant(value_ints=[0, 1]),
-            steps=ops.Constant(value_ints=[1, 1]),
         )
+        s2_start_0 = ops.Reshape(ops.Constant(value_int=0), ops.Constant(value_ints=[1]))
+        s2_start_1 = ops.Reshape(sample_output_len, ops.Constant(value_ints=[1]))
+
+        s2_end_0 = ops.Reshape(ops.Shape(hidden_states_attn)[0], ops.Constant(value_ints=[1]))
+        s2_end_1 = ops.Reshape(total_output_len, ops.Constant(value_ints=[1]))
+
         final_encoder_hidden_states = ops.Slice(
             hidden_states_attn,
-            starts=ops.Constant(value_ints=[0, sample_output_len]),
-            ends=ops.Constant(value_ints=[ops.Shape(hidden_states_attn)[0], total_output_len]),
+            starts=ops.Concat(s2_start_0, s2_start_1, axis=0), # Changed to separate arguments
+            ends=ops.Concat(s2_end_0, s2_end_1, axis=0), 
             axes=ops.Constant(value_ints=[0, 1]),
-            steps=ops.Constant(value_ints=[1, 1]),
         )
     else:  # If no cross-attention, the attention output is just for `hidden_states`
         final_hidden_states = hidden_states_attn
@@ -835,8 +858,8 @@ def JointAttnProcessor2_0Onnx(
 
     # --- Post-Attention Processing ---
     # Apply attn.to_add_out if not context_pre_only and encoder_hidden_states was present
-    if (not attn_context_pre_only) and encoder_is_not_none:
-        final_encoder_hidden_states = ops.Add(
+    # context_pre_only = false in config
+    final_encoder_hidden_states = ops.Add(
             ops.MatMul(final_encoder_hidden_states, ops.Transpose(to_add_out_weight, perm=[1, 0])), to_add_out_bias
         )
 
@@ -878,10 +901,8 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         # Use a consistent structure for weights and epsilons
         norm_q_weight: torch.Tensor,
         norm_q_eps: float,
-        norm_q_elementwise_affine: bool,
         norm_k_weight: torch.Tensor,
         norm_k_eps: float,
-        norm_k_elementwise_affine: bool,
         # Weights and Biases for Cross-Attention Projections (`attn.add_q_proj`, etc.)
         add_q_proj_weight: torch.Tensor,
         add_q_proj_bias: torch.Tensor,
@@ -891,7 +912,8 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         add_v_proj_bias: torch.Tensor,
         norm_added_q_weight: torch.Tensor,
         norm_added_q_eps: float,
-        norm_added_q_elementwise_affine: bool,
+        norm_added_k_weight: torch.Tensor,
+        norm_added_k_eps: float,
         # Weights and Biases for Output Projections (`attn.to_out[0]`, `attn.to_out[1]`)
         to_out_0_weight: torch.Tensor,
         to_out_0_bias: torch.Tensor,
@@ -1029,10 +1051,8 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         to_v_bias: torch.Value,
         norm_q_weight: torch.Value,
         norm_q_eps: float,
-        norm_q_elementwise_affine: bool,
         norm_k_weight: torch.Value,
         norm_k_eps: float,
-        norm_k_elementwise_affine: bool,
         add_q_proj_weight: torch.Value,
         add_q_proj_bias: torch.Value,
         add_k_proj_weight: torch.Value,
@@ -1041,10 +1061,8 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         add_v_proj_bias: torch.Value,
         norm_added_q_weight: torch.Value,
         norm_added_q_eps: float,
-        norm_added_q_elementwise_affine: bool,
         norm_added_k_weight: torch.Value,
         norm_added_k_eps: float,
-        norm_added_k_elementwise_affine: bool,
         to_out_0_weight: torch.Value,
         to_out_0_bias: torch.Value,
         to_out_1_dropout_p: float,
@@ -1079,10 +1097,8 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
             to_v_bias=to_v_bias,
             norm_q_weight=norm_q_weight,
             norm_q_eps_f=norm_q_eps,
-            norm_q_elementwise_affine_i=norm_q_elementwise_affine,
             norm_k_weight=norm_k_weight,
             norm_k_eps_f=norm_k_eps,
-            norm_k_elementwise_affine_i=norm_k_elementwise_affine,
             add_q_proj_weight=add_q_proj_weight,
             add_q_proj_bias=add_q_proj_bias,
             add_k_proj_weight=add_k_proj_weight,
@@ -1091,10 +1107,8 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
             add_v_proj_bias=add_v_proj_bias,
             norm_added_q_weight=norm_added_q_weight,
             norm_added_q_eps_f=norm_added_q_eps,
-            norm_added_q_elementwise_affine_i=norm_added_q_elementwise_affine,
             norm_added_k_weight=norm_added_k_weight,
             norm_added_k_eps_f=norm_added_k_eps,
-            norm_added_k_elementwise_affine_i=norm_added_k_elementwise_affine,
             to_out_0_weight=to_out_0_weight,
             to_out_0_bias=to_out_0_bias,
             to_out_1_dropout_p_f=to_out_1_dropout_p,
@@ -1269,10 +1283,10 @@ class JointAttnProcessor2_0AIC(nn.Module):
             self.to_v_bias,
             self.norm_q_weight,
             self.norm_q_eps,
-            self.norm_q_elementwise_affine,
+            # self.norm_q_elementwise_affine,
             self.norm_k_weight,
             self.norm_k_eps,
-            self.norm_k_elementwise_affine,
+            # self.norm_k_elementwise_affine,
             self.add_q_proj_weight,
             self.add_q_proj_bias,
             self.add_k_proj_weight,
@@ -1281,10 +1295,10 @@ class JointAttnProcessor2_0AIC(nn.Module):
             self.add_v_proj_bias,
             self.norm_added_q_weight,
             self.norm_added_q_eps,
-            self.norm_added_q_elementwise_affine,
+            # self.norm_added_q_elementwise_affine,
             self.norm_added_k_weight,
             self.norm_added_k_eps,
-            self.norm_added_k_elementwise_affine,
+            # self.norm_added_k_elementwise_affine,
             self.to_out_0_weight,
             self.to_out_0_bias,
             self.to_out_1_dropout_p,
@@ -1418,10 +1432,10 @@ def JointTransformerBlockOnnx(
         to_v_bias=attn_to_v_bias,
         norm_q_weight=attn_norm_q_weight,
         norm_q_eps=attn_norm_q_eps,
-        norm_q_elementwise_affine=attn_norm_q_elementwise_affine,
+        # norm_q_elementwise_affine=attn_norm_q_elementwise_affine,
         norm_k_weight=attn_norm_k_weight,
         norm_k_eps=attn_norm_k_eps,
-        norm_k_elementwise_affine=attn_norm_k_elementwise_affine,
+        # norm_k_elementwise_affine=attn_norm_k_elementwise_affine,
         add_q_proj_weight=attn_add_q_proj_weight,
         add_q_proj_bias=attn_add_q_proj_bias,
         add_k_proj_weight=attn_add_k_proj_weight,
@@ -1430,10 +1444,10 @@ def JointTransformerBlockOnnx(
         add_v_proj_bias=attn_add_v_proj_bias,
         norm_added_q_weight=attn_norm_added_q_weight,
         norm_added_q_eps=attn_norm_added_q_eps,
-        norm_added_q_elementwise_affine=attn_norm_added_q_elementwise_affine,
+        # norm_added_q_elementwise_affine=attn_norm_added_q_elementwise_affine,
         norm_added_k_weight=attn_norm_added_k_weight,
         norm_added_k_eps=attn_norm_added_k_eps,
-        norm_added_k_elementwise_affine=attn_norm_added_k_elementwise_affine,
+        # norm_added_k_elementwise_affine=attn_norm_added_k_elementwise_affine,
         to_out_0_weight=attn_to_out_0_weight,
         to_out_0_bias=attn_to_out_0_bias,
         to_out_1_dropout_p=attn_to_out_1_dropout_p,
@@ -1548,10 +1562,10 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_to_v_bias: torch.Tensor,
         attn_norm_q_weight: torch.Tensor,
         attn_norm_q_eps: float,
-        attn_norm_q_elementwise_affine: bool,
+        # attn_norm_q_elementwise_affine: bool,
         attn_norm_k_weight: torch.Tensor,
         attn_norm_k_eps: float,
-        attn_norm_k_elementwise_affine: bool,
+        # attn_norm_k_elementwise_affine: bool,
         attn_add_q_proj_weight: torch.Tensor,
         attn_add_q_proj_bias: torch.Tensor,
         attn_add_k_proj_weight: torch.Tensor,
@@ -1560,10 +1574,10 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_add_v_proj_bias: torch.Tensor,
         attn_norm_added_q_weight: torch.Tensor,
         attn_norm_added_q_eps: float,
-        attn_norm_added_q_elementwise_affine: bool,
+        # attn_norm_added_q_elementwise_affine: bool,
         attn_norm_added_k_weight: torch.Tensor,
         attn_norm_added_k_eps: float,
-        attn_norm_added_k_elementwise_affine: bool,
+        # attn_norm_added_k_elementwise_affine: bool,
         attn_to_out_0_weight: torch.Tensor,
         attn_to_out_0_bias: torch.Tensor,
         attn_to_out_1_dropout_p: float,
@@ -1637,10 +1651,10 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_to_v_bias,
             attn_norm_q_weight,
             attn_norm_q_eps,
-            attn_norm_q_elementwise_affine,
+            # attn_norm_q_elementwise_affine,
             attn_norm_k_weight,
             attn_norm_k_eps,
-            attn_norm_k_elementwise_affine,
+            # attn_norm_k_elementwise_affine,
             attn_add_q_proj_weight,
             attn_add_q_proj_bias,
             attn_add_k_proj_weight,
@@ -1649,10 +1663,10 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_add_v_proj_bias,
             attn_norm_added_q_weight,
             attn_norm_added_q_eps,
-            attn_norm_added_q_elementwise_affine,
+            # attn_norm_added_q_elementwise_affine,
             attn_norm_added_k_weight,
             attn_norm_added_k_eps,
-            attn_norm_added_k_elementwise_affine,
+            # attn_norm_added_k_elementwise_affine,
             attn_to_out_0_weight,
             attn_to_out_0_bias,
             attn_to_out_1_dropout_p,
