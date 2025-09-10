@@ -5,71 +5,73 @@ import math
 from typing import Optional, Tuple
 import torch.nn.functional as F
 
+# from onnxscript import int_literal
 from diffusers.models.attention_processor import Attention
 from diffusers.models.activations import GELU
 from diffusers.models.attention import FeedForward, JointTransformerBlock
+from diffusers.models.normalization import AdaLayerNormZero
 
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
 # Import the ONNX Script opset for version 13
 ops = getattr(onnxscript, "opset" + str(13))
 
 
-@onnxscript.script(onnxscript.values.Opset("com.qualcomm.cloud", 1))
-def SD35AdaLayerNormZeroX(
-    hidden_states: onnxscript.FLOAT,
-    emb: onnxscript.FLOAT,
-    linear_weight: onnxscript.FLOAT,
-    linear_bias: onnxscript.FLOAT,
-    norm_epsilon: float,
-):
-    # 1. emb = self.linear(self.silu(emb))
-    silu_emb = ops.Mul(emb, ops.Sigmoid(emb))
-    linear_out = ops.MatMul(silu_emb, ops.Transpose(linear_weight, perm=[1, 0]))
-    linear_out = ops.Add(linear_out, linear_bias)
+# @onnxscript.script(onnxscript.values.Opset("com.qualcomm.cloud", 1))
+# def SD35AdaLayerNormZeroX(
+#     hidden_states: onnxscript.FLOAT,
+#     emb: onnxscript.FLOAT,
+#     linear_weight: onnxscript.FLOAT,
+#     linear_bias: onnxscript.FLOAT,
+#     norm_epsilon: float,
+# ):
+#     # 1. emb = self.linear(self.silu(emb))
+#     silu_emb = ops.Mul(emb, ops.Sigmoid(emb))
+#     linear_out = ops.MatMul(silu_emb, ops.Transpose(linear_weight, perm=[1, 0]))
+#     linear_out = ops.Add(linear_out, linear_bias)
 
-    # 2. Chunk `linear_out` into 9
-    # shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp, shift_msa2, scale_msa2, gate_msa2
-    # Determine chunk size dynamically, assuming equal chunks.
-    output_dim_linear = ops.Shape(linear_out)[-1]
-    chunk_size = ops.Cast(output_dim_linear / 9, to=6)  # Cast to Int64
+#     # 2. Chunk `linear_out` into 9
+#     # shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp, shift_msa2, scale_msa2, gate_msa2
+#     # Determine chunk size dynamically, assuming equal chunks.
+#     output_dim_linear = ops.Shape(linear_out)[-1]
+#     chunk_size = ops.Cast(output_dim_linear / 9, to=6)  # Cast to Int64
 
-    split_sizes = ops.Constant(value_ints=[chunk_size] * 9)  # A tuple of 9 chunk_size values
-    split_outputs = ops.Split(linear_out, split_size=split_sizes, axis=1)
+#     split_sizes = ops.Constant(value_ints=[chunk_size] * 9)  # A tuple of 9 chunk_size values
+#     split_outputs = ops.Split(linear_out, split_size=split_sizes, axis=1)
 
-    shift_msa = split_outputs[0]
-    scale_msa = split_outputs[1]
-    gate_msa = split_outputs[2]
-    shift_mlp = split_outputs[3]
-    scale_mlp = split_outputs[4]
-    gate_mlp = split_outputs[5]
-    shift_msa2 = split_outputs[6]
-    scale_msa2 = split_outputs[7]
-    gate_msa2 = split_outputs[8]
+#     shift_msa = split_outputs[0]
+#     scale_msa = split_outputs[1]
+#     gate_msa = split_outputs[2]
+#     shift_mlp = split_outputs[3]
+#     scale_mlp = split_outputs[4]
+#     gate_mlp = split_outputs[5]
+#     shift_msa2 = split_outputs[6]
+#     scale_msa2 = split_outputs[7]
+#     gate_msa2 = split_outputs[8]
 
-    # 3. norm_hidden_states = self.norm(hidden_states)
-    norm_hidden_states = ops.LayerNormalization(
-        hidden_states,
-        scale=ops.Constant(value_float=1.0, output_dtype=1),  # float
-        bias=ops.Constant(value_float=0.0, output_dtype=1),  # float
-        epsilon=norm_epsilon,
-    )
+#     # 3. norm_hidden_states = self.norm(hidden_states)
+#     norm_hidden_states = ops.LayerNormalization(
+#         hidden_states,
+#         scale=ops.Constant(value_float=1.0, output_dtype=1),  # float
+#         bias=ops.Constant(value_float=0.0, output_dtype=1),  # float
+#         epsilon=norm_epsilon,
+#     )
 
-    # 4. hidden_states = norm_hidden_states * (1 + scale_msa[:, None]) + shift_msa[:, None]
-    # This `hidden_states` becomes the first output of the function.
-    output_hidden_states = ops.Add(
-        ops.Mul(norm_hidden_states, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(scale_msa, axes=[1]))),
-        ops.Unsqueeze(shift_msa, axes=[1]),
-    )
+#     # 4. hidden_states = norm_hidden_states * (1 + scale_msa[:, None]) + shift_msa[:, None]
+#     # This `hidden_states` becomes the first output of the function.
+#     output_hidden_states = ops.Add(
+#         ops.Mul(norm_hidden_states, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(scale_msa, axes=[1]))),
+#         ops.Unsqueeze(shift_msa, axes=[1]),
+#     )
 
-    # 5. norm_hidden_states2 = norm_hidden_states * (1 + scale_msa2[:, None]) + shift_msa2[:, None]
-    output_norm_hidden_states2 = ops.Add(
-        ops.Mul(norm_hidden_states, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(scale_msa2, axes=[1]))),
-        ops.Unsqueeze(shift_msa2, axes=[1]),
-    )
+#     # 5. norm_hidden_states2 = norm_hidden_states * (1 + scale_msa2[:, None]) + shift_msa2[:, None]
+#     output_norm_hidden_states2 = ops.Add(
+#         ops.Mul(norm_hidden_states, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(scale_msa2, axes=[1]))),
+#         ops.Unsqueeze(shift_msa2, axes=[1]),
+#     )
 
-    # Return signature of SD35AdaLayerNormZeroX's forward is:
-    # Tuple[torch.Tensor, ...]: hidden_states, gate_msa, shift_mlp, scale_mlp, gate_mlp, norm_hidden_states2, gate_msa2
-    return output_hidden_states, gate_msa, shift_mlp, scale_mlp, gate_mlp, output_norm_hidden_states2, gate_msa2
+#     # Return signature of SD35AdaLayerNormZeroX's forward is:
+#     # Tuple[torch.Tensor, ...]: hidden_states, gate_msa, shift_mlp, scale_mlp, gate_mlp, norm_hidden_states2, gate_msa2
+#     return output_hidden_states, gate_msa, shift_mlp, scale_mlp, gate_mlp, output_norm_hidden_states2, gate_msa2
 
 
 class AdaLayerNormZeroFunc(torch.autograd.Function):
@@ -116,7 +118,7 @@ class AdaLayerNormZeroFunc(torch.autograd.Function):
         # Call the corresponding ONNXScript function
         # g.onnxscript_op automatically handles packing/unpacking inputs/outputs
         result = g.onnxscript_op(
-            AdaLayerNormZero,  # Your ONNXScript function
+            AdaLayerNormZeroOnnx,  # Your ONNXScript function
             x,
             emb,
             linear_weight,
@@ -143,11 +145,23 @@ def AdaLayerNormZeroOnnx(
     # 2. `shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp = emb.chunk(6, dim=1)`
     # The linear_out has a shape of [..., 6 * embedding_dim]
     output_dim_linear = ops.Shape(linear_out)[-1]
-    chunk_size = ops.Cast(ops.Div(output_dim_linear, ops.Constant(value_int=6)), to=6)  # Cast to Int64
+    
+    # Calculate chunk_size dynamically (as an ONNX symbolic tensor)
+    # Cast output_dim_linear to a float for division, then back to INT64 for chunk_size
+    # (Since output_dim_linear is a symbolic tensor, it's already an integer value type usually)
+    chunk_size = ops.Cast(ops.Div(output_dim_linear, ops.Constant(value_int=6)), to=6) # 6 is ONNX INT64
 
-    # ops.Split requires explicit sizes for each chunk
-    split_sizes = ops.Constant(value_ints=[chunk_size] * 6)
-    split_outputs = ops.Split(linear_out, split_size=split_sizes, axis=1)
+    # Create a 1D tensor of `chunk_size` repeated 6 times for ops.Split's split_size input.
+    num_chunks = ops.Constant(value_int=6) # Scalar ONNX integer for number of chunks
+    
+    # Reshape `chunk_size` (which is a scalar tensor) to a 1-element 1D tensor
+    chunk_size_1d = ops.Reshape(chunk_size, ops.Constant(value_ints=[1]))
+    
+    # Tile `chunk_size_1d` 6 times to get the required split_size tensor
+    # The `reps` argument for ops.Tile needs to be a 1D tensor.
+    reps_1d = ops.Reshape(num_chunks, ops.Constant(value_ints=[1]))
+    split_sizes_tensor = ops.Tile(chunk_size_1d, reps_1d) # split_sizes_tensor has a shape of [6]
+    split_outputs = ops.Split(linear_out, split_sizes_tensor, axis=1)
 
     shift_msa = split_outputs[0]
     scale_msa = split_outputs[1]
@@ -157,11 +171,34 @@ def AdaLayerNormZeroOnnx(
     gate_mlp = split_outputs[5]
 
     # 3. `x = self.norm(x) * (1 + scale_msa[:, None]) + shift_msa[:, None]`
+    # norm_x = ops.LayerNormalization(
+    #     x,
+    #     scale=ops.Constant(value_float=1.0),  # float type (ONNX FLOAT)
+    #     bias=ops.Constant(value_float=0.0),  # float type (ONNX FLOAT)
+    #     epsilon=norm_epsilon,
+    # )
+    # Get the `embedding_dim` (the last dimension of `x`) to create correct scale/bias shapes
+    x_shape = ops.Shape(x)
+    embedding_dim = x_shape[-1] 
+
+    # Create 1D constant tensors for scale (all ones) and bias (all zeros)
+    # The `shape` argument to ops.ConstantOfShape needs to be a 1D tensor representing the output shape.
+    scale_shape_tensor = ops.Reshape(embedding_dim, ops.Constant(value_ints=[1])) # Reshape scalar `embedding_dim` to a 1D tensor `[embedding_dim]`
+
+    scale_tensor = ops.ConstantOfShape(
+        scale_shape_tensor,
+        value=1.0  # Value to fill with
+    )
+    bias_tensor = ops.ConstantOfShape(
+        scale_shape_tensor, # Same shape as scale
+        value=0.0 
+    )
+
     norm_x = ops.LayerNormalization(
-        x,
-        scale=ops.Constant(value_float=1.0, output_dtype=1),  # float type (ONNX FLOAT)
-        bias=ops.Constant(value_float=0.0, output_dtype=1),  # float type (ONNX FLOAT)
-        epsilon=norm_epsilon,
+        x,           # Input tensor (X)
+        scale_tensor, # Scale input (S) - a tensor of ones
+        bias_tensor,  # Bias input (B) - a tensor of zeros
+        epsilon=norm_epsilon # Epsilon is an attribute
     )
 
     # Apply the scaling and shifting: `norm_x * (1 + scale_msa[:, None]) + shift_msa[:, None]`
@@ -582,7 +619,46 @@ def RMSNormOnnx(
 
     return output
 
+@onnxscript.script(onnxscript.values.Opset(domain="com.qti.aisw.onnx", version=1))
+def CustomRMSNorm(hidden_states: onnxscript.FLOAT, weight: onnxscript.FLOAT, epsilon: float):
+    weight = ops.Cast(weight, to=1)
+    variance = ops.ReduceMean(ops.Pow(hidden_states, 2), axes=[-1], keepdims=1)
+    epsilon = ops.Expand(epsilon, ops.Shape(variance))
+    hidden_states = hidden_states * ops.Reciprocal(ops.Sqrt(variance + epsilon))
+    return weight * hidden_states
 
+
+class CustomRMSNormFunc(torch.autograd.Function):
+    @staticmethod
+    def forward(hidden_states: torch.Tensor, weight: torch.Tensor, epsilon: float):
+        variance = hidden_states.pow(2).mean(-1, keepdim=True)
+        hidden_states = hidden_states * torch.rsqrt(variance + epsilon)
+        return weight * hidden_states
+
+    @staticmethod
+    def setup_context(ctx, inputs, outputs):
+        pass
+
+    @staticmethod
+    def symbolic(g: torch.Graph, hidden_states: torch.Value, weight: torch.Value, epsilon: torch.Value) -> torch.Value:
+        return g.onnxscript_op(CustomRMSNorm, hidden_states, weight, epsilon_f=epsilon).setTypeAs(hidden_states)
+
+class CustomRMSNormAIC(nn.Module):
+    """
+    RMSNorm module that works by replacing the current module with compiler known custom-op.
+    """
+
+    def __init__(self, hidden_size, eps=1e-05):
+        super(CustomRMSNormAIC, self).__init__()
+        self.variance_epsilon = eps
+        self.eps = eps  # Added to support GemmaRMSNorm
+        self.weight = torch.nn.Parameter(torch.ones(hidden_size))
+
+    def forward(self, hidden_states):
+        return CustomRMSNormFunc.apply(
+            hidden_states, self.weight, self.variance_epsilon if hasattr(self, "variance_epsilon") else self.eps
+        )
+        
 @onnxscript.script(CUSTOM_OPSET)
 def JointAttnProcessor2_0Onnx(
     hidden_states: onnxscript.FLOAT,
@@ -661,17 +737,17 @@ def JointAttnProcessor2_0Onnx(
         ops.Reshape(value, ops.Concat([batch_size, seq_len, attn_heads, attn_head_dim], axis=0)), perm=[0, 2, 1, 3]
     )
 
-    query = RMSNorm(query, norm_q_weight, norm_q_eps, norm_q_elementwise_affine)
-    key = RMSNorm(key, norm_k_weight, norm_k_eps, norm_k_elementwise_affine)
+    query = CustomRMSNorm(query, norm_q_weight, norm_q_eps, norm_q_elementwise_affine)
+    key = CustomRMSNorm(key, norm_k_weight, norm_k_eps, norm_k_elementwise_affine)
     # --- Context Projections (from encoder_hidden_states) ---
     # This block is conditional on `encoder_hidden_states is not None`
     # We will compute both paths and use `ops.If` or a conditional switch later if truly dynamic.
     # For tracing, it will trace with a non-empty encoder_hidden_states if provided.
 
     # Placeholder for conditional output to ensure full graph is traced if encoder_is_not_none can be dynamic.
-    encoder_hidden_states_query_proj_out = ops.Constant(value_float=0.0, output_dtype=1)
-    encoder_hidden_states_key_proj_out = ops.Constant(value_float=0.0, output_dtype=1)
-    encoder_hidden_states_value_proj_out = ops.Constant(value_float=0.0, output_dtype=1)
+    encoder_hidden_states_query_proj_out = ops.Constant(value_float=0.0)
+    encoder_hidden_states_key_proj_out = ops.Constant(value_float=0.0)
+    encoder_hidden_states_value_proj_out = ops.Constant(value_float=0.0)
 
     if encoder_is_not_none:  # `if encoder_hidden_states is not None` branch
         encoder_hidden_states_query_proj = ops.Add(
@@ -730,8 +806,8 @@ def JointAttnProcessor2_0Onnx(
     hidden_states_attn = ops.Reshape(
         hidden_states_attn, ops.Concat([batch_size, -1, ops.Mul(attn_heads, attn_head_dim)], axis=0)
     )
-    final_hidden_states = ops.Constant(value_float=0.0, output_dtype=1)
-    final_encoder_hidden_states = ops.Constant(value_float=0.0, output_dtype=1)
+    final_hidden_states = ops.Constant(value_float=0.0)
+    final_encoder_hidden_states = ops.Constant(value_float=0.0)
 
     if encoder_is_not_none:  # If cross-attention was performed, split the output
         sample_output_len = ops.Shape(residual)[1]  # Length of the original 'sample' sequence
@@ -856,8 +932,8 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         # Apply RMSNorm if enabled (norm_q, norm_k)
         # Note: RMSNorm here is the PyTorch module's forward, not the ONNXScript function.
         # We need an instance of RMSNorm or a functional version
-        query = RMSNormFunc.apply(query, norm_q_weight, norm_q_eps, norm_q_elementwise_affine)
-        key = RMSNormFunc.apply(key, norm_k_weight, norm_k_eps, norm_k_elementwise_affine)
+        query = CustomRMSNormFunc.apply(query, norm_q_weight, norm_q_eps)
+        key = CustomRMSNormFunc.apply(key, norm_k_weight, norm_k_eps)
 
         # --- Context Projections (conditional on actual_encoder_hidden_states) ---
         if actual_encoder_hidden_states is not None:
@@ -879,11 +955,11 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
                 batch_size, -1, attn_heads, attn_head_dim
             ).transpose(1, 2)
 
-            encoder_hidden_states_query_proj = RMSNormFunc.apply(
-                encoder_hidden_states_query_proj, norm_added_q_weight, norm_added_q_eps, norm_added_q_elementwise_affine
+            encoder_hidden_states_query_proj = CustomRMSNormFunc.apply(
+                encoder_hidden_states_query_proj, norm_added_q_weight, norm_added_q_eps, 
             )
-            encoder_hidden_states_key_proj = RMSNormFunc.apply(
-                encoder_hidden_states_key_proj, norm_added_k_weight, norm_added_k_eps, norm_added_k_elementwise_affine
+            encoder_hidden_states_key_proj = CustomRMSNormFunc.apply(
+                encoder_hidden_states_key_proj, norm_added_k_weight, norm_added_k_eps, 
             )
             query = torch.cat([query, encoder_hidden_states_query_proj], dim=2)
             key = torch.cat([key, encoder_hidden_states_key_proj], dim=2)
@@ -1277,7 +1353,6 @@ def JointTransformerBlockOnnx(
     # Weights and parameters for norm2 (RMSNormOnnx)
     norm2_weight: onnxscript.FLOAT,
     norm2_eps: float,
-    norm2_elementwise_affine: bool,
     # Weights and parameters for ff (FeedForwardOnnx)
     ff_dim: int,
     ff_dim_out: int,
@@ -1292,7 +1367,6 @@ def JointTransformerBlockOnnx(
     # Weights and parameters for norm2_context (RMSNormOnnx)
     norm2_context_weight: onnxscript.FLOAT,
     norm2_context_eps: float,
-    norm2_context_elementwise_affine: bool,
     # Weights and parameters for ff_context (FeedForwardOnnx)
     ff_context_dim: int,
     ff_context_dim_out: int,
@@ -1377,7 +1451,7 @@ def JointTransformerBlockOnnx(
     # ----------------------------------------------------------------------
     # 4. MLP for hidden_states
     # ----------------------------------------------------------------------
-    norm_hidden_states = RMSNorm(hidden_states, norm2_weight, norm2_eps, norm2_elementwise_affine)
+    norm_hidden_states = CustomRMSNorm(hidden_states, norm2_weight, norm2_eps)
     norm_hidden_states = ops.Add(
         ops.Mul(norm_hidden_states, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(scale_mlp, axes=[1]))),
         ops.Unsqueeze(shift_mlp, axes=[1]),
@@ -1407,8 +1481,8 @@ def JointTransformerBlockOnnx(
     context_attn_output = ops.Mul(ops.Unsqueeze(c_gate_msa, axes=[1]), context_attn_output)
     encoder_hidden_states = ops.Add(encoder_hidden_states, context_attn_output)
 
-    norm_encoder_hidden_states = RMSNorm(
-        encoder_hidden_states, norm2_context_weight, norm2_context_eps, norm2_context_elementwise_affine
+    norm_encoder_hidden_states = CustomRMSNorm(
+        encoder_hidden_states, norm2_context_weight, norm2_context_eps, 
     )
     norm_encoder_hidden_states = ops.Add(
         ops.Mul(
@@ -1500,11 +1574,15 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # --- Parameters for norm2 (RMSNorm) ---
         norm2_weight: torch.Tensor,
         norm2_eps: float,
-        norm2_elementwise_affine: bool,
+         # --- Parameters for ff (FeedForward) ---
+        ff_dim: int, ff_dim_out: int, ff_mult: int, ff_dropout_ratio: float, ff_final_dropout: bool,
+        ff_act_fn_proj_weight: torch.Tensor, ff_act_fn_proj_bias: torch.Tensor,
+        ff_project_out_weight: torch.Tensor, ff_project_out_bias: torch.Tensor,
+        ff_activation_fn_type: int, # The type for FeedForwardFunc
+        
         # --- Parameters for norm2_context (RMSNorm) ---
         norm2_context_weight: torch.Tensor,
         norm2_context_eps: float,
-        norm2_context_elementwise_affine: bool,
         # --- Parameters for ff_context (FeedForward) ---
         ff_context_dim: int,
         ff_context_dim_out: int,
@@ -1593,8 +1671,8 @@ class JointTransformerBlockFunc(torch.autograd.Function):
 
         # 4. MLP for hidden_states
         # Assuming RMSNormFunc.apply exists
-        norm_hidden_states_mlp = RMSNormFunc.apply(
-            current_hidden_states, norm2_weight, norm2_eps, norm2_elementwise_affine
+        norm_hidden_states_mlp = CustomRMSNormFunc.apply(
+            current_hidden_states, norm2_weight, norm2_eps
         )
         norm_hidden_states_mlp = norm_hidden_states_mlp * (1 + scale_mlp.unsqueeze(1)) + shift_mlp.unsqueeze(1)
 
@@ -1619,8 +1697,8 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # Note: `if self.context_pre_only` block is skipped.
         current_encoder_hidden_states = encoder_hidden_states + c_gate_msa.unsqueeze(1) * context_attn_output
 
-        norm_encoder_hidden_states_mlp = RMSNormFunc.apply(
-            current_encoder_hidden_states, norm2_context_weight, norm2_context_eps, norm2_context_elementwise_affine
+        norm_encoder_hidden_states_mlp = CustomRMSNormFunc.apply(
+            current_encoder_hidden_states, norm2_context_weight, norm2_context_eps
         )
         norm_encoder_hidden_states_mlp = norm_encoder_hidden_states_mlp * (
             1 + c_scale_mlp.unsqueeze(1)

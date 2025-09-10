@@ -26,8 +26,9 @@ from QEfficient.diffusers.models.attention_processor import (
 
 class CustomOpsTransform(ModuleMappingTransform):
     _module_mapping = {RMSNorm: CustomRMSNormAIC,
-                       JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
-                       JointTransformerBlock: JointTransformerBlockAIC}
+                    #    JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
+                    #    JointTransformerBlock: JointTransformerBlockAIC
+                    }
 
     @classmethod
     def apply(cls, model: nn.Module) -> Tuple[nn.Module, bool]:
@@ -38,8 +39,8 @@ class CustomOpsTransform(ModuleMappingTransform):
 class AttentionTransform(ModuleMappingTransform):
     _module_mapping = {
         Attention: QEffAttention,
-        # JointAttnProcessor2_0: QEffJointAttnProcessor2_0,
-        # JointTransformerBlock: QEffJointTransformerBlock,
+        JointAttnProcessor2_0: QEffJointAttnProcessor2_0,
+        JointTransformerBlock: QEffJointTransformerBlock,
     }
 
     @classmethod
