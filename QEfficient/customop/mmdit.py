@@ -1310,14 +1310,14 @@ def JointTransformerBlockOnnx(
     # ----------------------------------------------------------------------
     # 1. Norm1 (Fixed to AdaLayerNormZero as use_dual_attention is False)
     # ----------------------------------------------------------------------
-    norm_hidden_states, gate_msa, shift_mlp, scale_mlp, gate_mlp = AdaLayerNormZero(
+    norm_hidden_states, gate_msa, shift_mlp, scale_mlp, gate_mlp = AdaLayerNormZeroOnnx(
         hidden_states, temb, norm1_linear_weight, norm1_linear_bias, norm1_epsilon
     )
 
     # ----------------------------------------------------------------------
     # 2. Norm1_context (Fixed to AdaLayerNormZero as context_pre_only is False)
     # ----------------------------------------------------------------------
-    norm_encoder_hidden_states, c_gate_msa, c_shift_mlp, c_scale_mlp, c_gate_mlp = AdaLayerNormZero(
+    norm_encoder_hidden_states, c_gate_msa, c_shift_mlp, c_scale_mlp, c_gate_mlp = AdaLayerNormZeroOnnx(
         encoder_hidden_states, temb, norm1_context_linear_weight, norm1_context_linear_bias, norm1_context_epsilon
     )
 
@@ -1325,7 +1325,7 @@ def JointTransformerBlockOnnx(
     # 3. Attention
     # ----------------------------------------------------------------------
     # JointAttnProcessor2_0Onnx returns (hidden_states_out, encoder_hidden_states_out)
-    attn_output, context_attn_output = JointAttnProcessor2_0(
+    attn_output, context_attn_output = JointAttnProcessor2_0Onnx(
         hidden_states=norm_hidden_states,
         encoder_hidden_states=norm_encoder_hidden_states,
         attention_mask=ops.Constant(value_float=0.0),  # Assuming attention_mask is handled externally or not dynamic
@@ -1842,12 +1842,6 @@ def _get_activation_fn_type_from_module(act_fn_module: nn.Module) -> int:
             return 1  # "gelu-approximate"
         else:
             return 0  # "gelu"
-    elif isinstance(act_fn_module, GEGLU):
-        return 2  # "geglu"
-    elif isinstance(act_fn_module, ApproximateGELU):
-        return 3  # "geglu-approximate"
-    elif isinstance(act_fn_module, SwiGLU):
-        return 4  # "swiglu"
     else:
         raise ValueError(f"Unsupported activation function module type: {type(act_fn_module)}")
 
