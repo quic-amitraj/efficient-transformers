@@ -1,12 +1,13 @@
 import onnxscript
 import torch
+import onnx 
 import torch.nn as nn
 import math
 from typing import Optional, Tuple
 import torch.nn.functional as F
-
+from onnx import TensorProto
 # from onnxscript import int_literal
-from diffusers.models.attention_processor import Attention
+from diffusers.models.attention_processor import Attention, JointAttnProcessor2_0
 from diffusers.models.activations import GELU
 from diffusers.models.attention import FeedForward, JointTransformerBlock
 from diffusers.models.normalization import AdaLayerNormZero
@@ -15,7 +16,13 @@ CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
 # Import the ONNX Script opset for version 13
 ops = getattr(onnxscript, "opset" + str(13))
 
-
+# map PyTorch dtype to ONNX dtype code
+dtype_map = {
+    torch.float32: TensorProto.FLOAT,
+    torch.float16: TensorProto.FLOAT16,
+    torch.int32: TensorProto.INT32,
+    torch.int64: TensorProto.INT64,
+}
 # @onnxscript.script(onnxscript.values.Opset("com.qualcomm.cloud", 1))
 # def SD35AdaLayerNormZeroX(
 #     hidden_states: onnxscript.FLOAT,
@@ -495,7 +502,6 @@ class FeedForwardFunc(torch.autograd.Function):
             mult=mult,
             dropout_ratio=dropout_ratio,
             final_dropout=final_dropout,
-            # No activation_fn_type param needed here if FeedForwardOnnx is simplified
             act_fn_proj_weight=act_fn_proj_weight,
             act_fn_proj_bias=act_fn_proj_bias,
             project_out_weight=project_out_weight,
@@ -658,7 +664,95 @@ class CustomRMSNormAIC(nn.Module):
         return CustomRMSNormFunc.apply(
             hidden_states, self.weight, self.variance_epsilon if hasattr(self, "variance_epsilon") else self.eps
         )
-        
+
+@onnxscript.script(CUSTOM_OPSET)
+def QEffAttentionGetScoresOnnx(
+    query: onnxscript.FLOAT,
+    key: onnxscript.FLOAT,          # Expected to be pre-transposed for Q @ K.T
+    attention_mask: onnxscript.FLOAT, # Passed as an empty tensor if original PyTorch was None
+    self_upcast_attention: bool,     # Corresponds to `self.upcast_attention`
+    self_upcast_softmax: bool,       # Corresponds to `self.upcast_softmax`
+    self_scale: float,               # Corresponds to `self.scale`
+    original_input_dtype_code: int,  # ONNX data type code of the original `query` input
+):
+    # 1. upcast_attention
+    if self_upcast_attention:
+        query = ops.Cast(query, to=1) # 1 is ONNX float32
+        key = ops.Cast(key, to=1)     # 1 is ONNX float32
+    # 2. Handle attention_mask and prepare components for decomposition
+    attention_mask_is_none = ops.Equal(ops.Size(attention_mask), ops.Constant(value_int=0))
+
+    # Calculate shape for zero-filled tensor (for `input` when beta=0)
+    # The `key` input should already be pre-transposed for Q @ K.T, so its shape is (B*H, Head_Dim, K_Seq_Len)
+    # The output of Q @ K.T (or MatMul(query, key)) will be (B*H, Q_Seq_Len, K_Seq_Len)
+    q_shape = ops.Shape(query) # (B*H, Q_Seq_Len, Head_Dim)
+    k_shape = ops.Shape(key)   # (B*H, Head_Dim, K_Seq_Len)
+    
+    # Shape for the result of MatMul(query, key) and for the `input` term
+    attention_scores_shape = ops.Concat(
+        ops.Reshape(q_shape[0], ops.Constant(value_ints=[1])), # Batch*Heads
+        ops.Reshape(q_shape[1], ops.Constant(value_ints=[1])), # Q_Seq_Len
+        ops.Reshape(k_shape[2], ops.Constant(value_ints=[1])), # K_Seq_Len
+        axis=0
+    )
+    # Create the zero-filled tensor
+    zero_filled_input_tensor = ops.ConstantOfShape(attention_scores_shape, value=0.0)
+    
+    # --- Conditional setup for `baddbmm` decomposition ---
+    # `beta_value_for_mul`: This is the scalar value (0.0 or 1.0) to multiply `input_tensor_for_mul` with.
+    # `input_tensor_for_mul`: This is `baddbmm_input` from PyTorch (either `attention_mask` or zeros).
+
+    if attention_mask_is_none:
+        beta_value_for_mul = ops.Constant(value_float=0.0) # Beta is 0.0
+        input_tensor_for_mul = zero_filled_input_tensor # Input should be a tensor of zeros
+    else:
+        beta_value_for_mul = ops.Constant(value_float=1.0) # Beta is 1.0
+        input_tensor_for_mul = attention_mask             # Input is the attention_mask
+
+    # 3. Decompose torch.baddbmm: `output = beta * input + alpha * (batch1 @ batch2)`
+
+    # Step 1: `batch1 @ batch2` (which is `query @ key_transposed` in this context)
+    matmul_result = ops.MatMul(query, key)
+
+    # Step 2: `alpha * (batch1 @ batch2)`
+    alpha_tensor = ops.Constant(value_float=self_scale)
+    scaled_matmul_result = ops.Mul(alpha_tensor, matmul_result)
+    # Step 3: `beta * input`
+    scaled_input_result = ops.Mul(beta_value_for_mul, input_tensor_for_mul)
+
+    # Step 4: Add them together
+    attention_scores = ops.Add(scaled_input_result, scaled_matmul_result)
+
+    # 4. upcast_softmax
+    if self_upcast_softmax:
+        attention_scores = ops.Cast(attention_scores, to=1) # 1 is ONNX float32
+
+    # 5. softmax
+    attention_probs = ops.Softmax(attention_scores, axis=-1)
+
+    # 6. Cast back to original dtype
+    attention_probs = ops.Cast(attention_probs, to=original_input_dtype_code)
+
+    return attention_probs
+
+@onnxscript.script(CUSTOM_OPSET)
+def BatchToHeadDimOnnx(hidden_states: onnxscript.FLOAT, heads: int) -> onnxscript.FLOAT:
+    input_shape = ops.Shape(hidden_states)
+    batch_heads = input_shape[0]
+    seq_len = input_shape[1]
+    head_dim = input_shape[2]
+
+    batch_size = ops.Div(batch_heads, ops.Constant(value_int=heads))
+    inner_dim = ops.Mul(ops.Constant(value_int=heads), head_dim)
+    
+    output_shape = ops.Concat(
+        ops.Reshape(batch_size, ops.Constant(value_ints=[1])),
+        ops.Reshape(seq_len, ops.Constant(value_ints=[1])),
+        ops.Reshape(inner_dim, ops.Constant(value_ints=[1])),
+        axis=0
+    )
+    
+    return ops.Reshape(hidden_states, output_shape)
 @onnxscript.script(CUSTOM_OPSET)
 def JointAttnProcessor2_0Onnx(
     hidden_states: onnxscript.FLOAT,
@@ -667,8 +761,7 @@ def JointAttnProcessor2_0Onnx(
     # Parameters from `Attention` module
     attn_heads: int,
     attn_head_dim: int,
-    attn_scale_qk: bool,
-    attn_scale_val: float,  # self.scale
+    attn_scale: float,  # self.scale
     attn_query_dim: int,  # self.query_dim (input dim to to_q, to_out[0])
     attn_inner_dim: int,  # output dim of to_q
     attn_inner_kv_dim: int,  # output dim of to_k, to_v
@@ -683,10 +776,8 @@ def JointAttnProcessor2_0Onnx(
     # Pass weight and epsilon for each
     norm_q_weight: onnxscript.FLOAT,
     norm_q_eps: float,
-    norm_q_elementwise_affine: bool,  # From RMSNorm init
     norm_k_weight: onnxscript.FLOAT,
     norm_k_eps: float,
-    norm_k_elementwise_affine: bool,
     # Weights and Biases for Cross-Attention Projections (`attn.add_q_proj`, `attn.add_k_proj`, `attn.add_v_proj`)
     add_q_proj_weight: onnxscript.FLOAT,
     add_q_proj_bias: onnxscript.FLOAT,
@@ -696,19 +787,19 @@ def JointAttnProcessor2_0Onnx(
     add_v_proj_bias: onnxscript.FLOAT,
     norm_added_q_weight: onnxscript.FLOAT,
     norm_added_q_eps: float,
-    norm_added_q_elementwise_affine: bool,
     norm_added_k_weight: onnxscript.FLOAT,
     norm_added_k_eps: float,
-    norm_added_k_elementwise_affine: bool,
     # Weights and Biases for Output Projections (`attn.to_out[0]`, `attn.to_out[1]`)
     to_out_0_weight: onnxscript.FLOAT,
     to_out_0_bias: onnxscript.FLOAT,
     to_out_1_dropout_p: float,  # Dropout ratio for self.to_out[1]
     # Other flags
-    attn_context_pre_only: bool,  # From attn.context_pre_only
     attn_added_kv_proj_dim: int,  # From attn.added_kv_proj_dim (to determine if add_q_proj etc. exist)
     to_add_out_weight: onnxscript.FLOAT,  # For attn.to_add_out
     to_add_out_bias: onnxscript.FLOAT,
+    attn_upcast_attention: bool,
+    attn_upcast_softmax: bool,
+    original_input_onnx_dtype_code:int,
 ):
     residual = hidden_states
     batch_size = ops.Shape(hidden_states)[0]
@@ -801,79 +892,91 @@ def JointAttnProcessor2_0Onnx(
         query = ops.Concat(query, encoder_hidden_states_query_proj, axis=2)  # Concat along sequence length (dim=2)
         key = ops.Concat(key, encoder_hidden_states_key_proj, axis=2)
         value = ops.Concat(value, encoder_hidden_states_value_proj, axis=2)
-        # --- Scaled Dot-Product Attention ---
-    # `dropout_p=0.0, is_causal=False` are fixed.
-    hidden_states_attn = ops.ScaledDotProductAttention(query, key, value, attention_mask, is_causal=False)
-
-    # Reshape output back to (batch_size, seq_len, total_heads * head_dim)
-    # hidden_states = hidden_states.transpose(1, 2).reshape(batch_size, -1, attn.heads * head_dim)
-    combined_head_dim = ops.Mul(attn_heads_tensor, attn_head_dim_tensor)
-    
-    fo0 = ops.Reshape(batch_size, ops.Constant(value_ints=[1]))
-    fo1 = ops.Reshape(ops.Constant(value_int=-1), ops.Constant(value_ints=[1]))
-    fo2 = ops.Reshape(combined_head_dim, ops.Constant(value_ints=[1]))
-
-    final_output_reshape_shape = ops.Concat(
-        fo0, fo1, fo2, # Changed to separate arguments
+   
+    # Reshape from (batch_size, heads, seq_len, head_dim) to (batch_size * heads, seq_len, head_dim)
+    new_batch_size_heads = ops.Mul(batch_size, attn_heads_tensor)
+    query = ops.Reshape(query, ops.Concat(
+        ops.Reshape(new_batch_size_heads, ops.Constant(value_ints=[1])),
+        ops.Reshape(ops.Shape(query)[2], ops.Constant(value_ints=[1])), # seq_len
+        ops.Reshape(ops.Shape(query)[3], ops.Constant(value_ints=[1])), # head_dim
         axis=0
-    )
-    
-    hidden_states_attn = ops.Transpose(hidden_states_attn, perm=[0, 2, 1, 3])
-    hidden_states_attn = ops.Reshape(hidden_states_attn, final_output_reshape_shape)
+    ))
+    key = ops.Reshape(key, ops.Concat(
+        ops.Reshape(new_batch_size_heads, ops.Constant(value_ints=[1])),
+        ops.Reshape(ops.Shape(key)[2], ops.Constant(value_ints=[1])), # seq_len
+        ops.Reshape(ops.Shape(key)[3], ops.Constant(value_ints=[1])), # head_dim
+        axis=0
+    ))
+    value = ops.Reshape(value, ops.Concat(
+        ops.Reshape(new_batch_size_heads, ops.Constant(value_ints=[1])),
+        ops.Reshape(ops.Shape(value)[2], ops.Constant(value_ints=[1])), # seq_len
+        ops.Reshape(ops.Shape(value)[3], ops.Constant(value_ints=[1])), # head_dim
+        axis=0
+    ))
+    key = ops.Transpose(key, perm=[0, 2, 1]) # key.transpose(-1, -2)
 
-    
-    final_hidden_states = ops.Constant(value_float=0.0)
-    final_encoder_hidden_states = ops.Constant(value_float=0.0)
+    # Always use the eager attention path
+    attention_probs = QEffAttentionGetScoresOnnx(query, key, attention_mask, 
+    self_upcast_attention=attn_upcast_attention,
+    self_upcast_softmax=attn_upcast_softmax,
+    self_scale=attn_scale,
+    original_input_dtype_code=original_input_onnx_dtype_code,
+)
+    final_combined_hidden_states = ops.Bmm(attention_probs, value) # torch.bmm
 
-    if encoder_is_not_none:  # If cross-attention was performed, split the output
-        sample_output_len = ops.Shape(residual)[1]  # Length of the original 'sample' sequence
-        total_output_len = ops.Shape(hidden_states_attn)[1]
-        s_end_0 = ops.Reshape(ops.Shape(hidden_states_attn)[0], ops.Constant(value_ints=[1]))
-        s_end_1 = ops.Reshape(sample_output_len, ops.Constant(value_ints=[1]))
+    final_combined_hidden_states = BatchToHeadDimOnnx(final_combined_hidden_states, attn_heads)
+
+    final_hidden_states_out = ops.Constant(value_float=0.0)
+    final_encoder_hidden_states_out = ops.Constant(value_float=0.0)
+
+    if encoder_is_not_none:
+        sample_output_len = ops.Shape(residual)[1]
         
-        # Slice `hidden_states_attn` into two parts
-        final_hidden_states = ops.Slice(
-            hidden_states_attn,
-            starts=ops.Constant(value_ints=[0, 0]),
-            ends=ops.Concat(s_end_0, s_end_1, axis=0),
-            axes=ops.Constant(value_ints=[0, 1]),
-        )
-        s2_start_0 = ops.Reshape(ops.Constant(value_int=0), ops.Constant(value_ints=[1]))
-        s2_start_1 = ops.Reshape(sample_output_len, ops.Constant(value_ints=[1]))
-
-        s2_end_0 = ops.Reshape(ops.Shape(hidden_states_attn)[0], ops.Constant(value_ints=[1]))
-        s2_end_1 = ops.Reshape(total_output_len, ops.Constant(value_ints=[1]))
-
-        final_encoder_hidden_states = ops.Slice(
-            hidden_states_attn,
-            starts=ops.Concat(s2_start_0, s2_start_1, axis=0), # Changed to separate arguments
-            ends=ops.Concat(s2_end_0, s2_end_1, axis=0), 
-            axes=ops.Constant(value_ints=[0, 1]),
-        )
-    else:  # If no cross-attention, the attention output is just for `hidden_states`
-        final_hidden_states = hidden_states_attn
-        final_encoder_hidden_states = (
-            encoder_hidden_states  # encoder_hidden_states remains what it was (e.g., empty tensor)
+        final_hidden_states_out = ops.Slice(
+            final_combined_hidden_states,
+            starts=ops.Constant(value_ints=[0, 0, 0]),
+            ends=ops.Concat(
+                ops.Reshape(ops.Shape(final_combined_hidden_states)[0], ops.Constant(value_ints=[1])),
+                ops.Reshape(sample_output_len, ops.Constant(value_ints=[1])),
+                ops.Reshape(ops.Shape(final_combined_hidden_states)[2], ops.Constant(value_ints=[1])),
+                axis=0
+            ),
+            axes=ops.Constant(value_ints=[0, 1, 2])
         )
 
-    # --- Post-Attention Processing ---
-    # Apply attn.to_add_out if not context_pre_only and encoder_hidden_states was present
-    # context_pre_only = false in config
-    final_encoder_hidden_states = ops.Add(
-            ops.MatMul(final_encoder_hidden_states, ops.Transpose(to_add_out_weight, perm=[1, 0])), to_add_out_bias
+        final_encoder_hidden_states_out = ops.Slice(
+            final_combined_hidden_states,
+            starts=ops.Concat(
+                ops.Reshape(ops.Constant(value_int=0), ops.Constant(value_ints=[1])),
+                ops.Reshape(sample_output_len, ops.Constant(value_ints=[1])),
+                ops.Reshape(ops.Constant(value_int=0), ops.Constant(value_ints=[1])),
+                axis=0
+            ),
+            ends=ops.Concat(
+                ops.Reshape(ops.Shape(final_combined_hidden_states)[0], ops.Constant(value_ints=[1])),
+                ops.Reshape(ops.Shape(final_combined_hidden_states)[1], ops.Constant(value_ints=[1])),
+                ops.Reshape(ops.Shape(final_combined_hidden_states)[2], ops.Constant(value_ints=[1])),
+                axis=0
+                ),
+            axes=ops.Constant(value_ints=[0, 1, 2])
         )
+
+        final_encoder_hidden_states_out = ops.Add(ops.MatMul(final_encoder_hidden_states_out, ops.Transpose(to_add_out_weight, perm=[1,0])), to_add_out_bias)
+    else:
+        final_hidden_states_out = final_combined_hidden_states
+        final_encoder_hidden_states_out = encoder_hidden_states # Remains original empty/dummy tensor
 
     # Apply attn.to_out[0] (Linear proj)
-    final_hidden_states = ops.Add(
-        ops.MatMul(final_hidden_states, ops.Transpose(to_out_0_weight, perm=[1, 0])), to_out_0_bias
+    final_hidden_states_out = ops.Add(
+        ops.MatMul(final_hidden_states_out, ops.Transpose(to_out_0_weight, perm=[1, 0])), to_out_0_bias
     )
 
     # Apply attn.to_out[1] (Dropout)
-    final_hidden_states = ops.Dropout(final_hidden_states, ratio=to_out_1_dropout_p)
+    final_hidden_states_out = ops.Dropout(final_hidden_states_out, ratio=to_out_1_dropout_p)
     # Return based on whether encoder_hidden_states was provided in the input
     # The output signature must be consistent for ONNX `If` operators.
     # So both outputs are always returned.
-    return final_hidden_states, final_encoder_hidden_states
+    return final_hidden_states_out, final_encoder_hidden_states_out
 
 
 class JointAttnProcessor2_0Func(torch.autograd.Function):
@@ -885,8 +988,7 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         # Parameters from `Attention` module (passed as separate arguments)
         attn_heads: int,
         attn_head_dim: int,
-        attn_scale_qk: bool,
-        attn_scale_val: float,
+        attn_scale: float,
         attn_query_dim: int,
         attn_inner_dim: int,
         attn_inner_kv_dim: int,
@@ -919,15 +1021,18 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         to_out_0_bias: torch.Tensor,
         to_out_1_dropout_p: float,
         # Other flags
-        attn_context_pre_only: bool,
         attn_added_kv_proj_dim: int,
         to_add_out_weight: torch.Tensor,
         to_add_out_bias: torch.Tensor,
+        attn_upcast_attention: bool,
+        attn_upcast_softmax: bool,
+        
         # --- Internal flags for the autograd.Function to replicate exact behavior ---
         # Indicates if `encoder_hidden_states` was originally None.
         # This will allow proper `if encoder_hidden_states is not None` logic.
         _original_encoder_hidden_states_was_none: bool,
         _original_attention_mask_was_none: bool,
+        original_input_onnx_dtype_code: int,
     ) -> Tuple[torch.Tensor, torch.Tensor]:  # Returns two tensors as per JointAttnProcessor2_0Onnx
         # Replicate PyTorch forward logic for JointAttnProcessor2_0
         residual = hidden_states
@@ -941,6 +1046,45 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         actual_attention_mask = None
         if not _original_attention_mask_was_none:
             actual_attention_mask = attention_mask  # Use the passed non-None tensor
+        def get_attention_scores_pytorch(query_input, key_input, mask_input):
+            dtype = query_input.dtype
+            
+            if attn_upcast_attention:
+                query_input = query_input.float()
+                key_input = key_input.float()
+            
+            baddbmm_input = None
+            beta = 0.0 # float
+            if mask_input is None:
+                baddbmm_input = torch.empty(
+                    query_input.shape[0], query_input.shape[1], key_input.shape[2],
+                    dtype=query_input.dtype, device=query_input.device
+                )
+            else:
+                baddbmm_input = mask_input
+                beta = 1.0 # float
+
+            attention_scores = torch.baddbmm(
+                baddbmm_input,
+                query_input,
+                key_input,
+                beta=beta,
+                alpha=attn_scale,
+            )
+
+            if attn_upcast_softmax:
+                attention_scores = attention_scores.float()
+            
+            attention_probs = attention_scores.softmax(dim=-1)
+            attention_probs = attention_probs.to(dtype)
+            return attention_probs
+        def batch_to_head_dim_pytorch(h_states, heads_val):
+            input_shape = h_states.shape
+            batch_heads = input_shape[0]
+            seq_len = input_shape[1]
+            head_dim = input_shape[2]
+            batch_size = batch_heads // heads_val
+            return h_states.view(batch_size, seq_len, heads_val * head_dim)
 
         # --- Sample Projections ---
         query = F.linear(hidden_states, to_q_weight, to_q_bias)
@@ -987,48 +1131,36 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
             key = torch.cat([key, encoder_hidden_states_key_proj], dim=2)
             value = torch.cat([value, encoder_hidden_states_value_proj], dim=2)
 
-        # --- Scaled Dot-Product Attention ---
-        # Ensure attention_mask is passed only if it's not None
-        sdp_attention_mask = actual_attention_mask if actual_attention_mask is not None else None
+        query = query.reshape(-1, query.shape[-2], query.shape[-1])
+        key = key.reshape(-1, key.shape[-2], key.shape[-1])
+        value = value.reshape(-1, value.shape[-2], value.shape[-1])
 
-        hidden_states_attn = F.scaled_dot_product_attention(
-            query, key, value, dropout_p=0.0, is_causal=False, attn_mask=sdp_attention_mask
-        )
+        key = key.transpose(-1, -2) # (..., head_dim, seq_len)
 
-        hidden_states_attn = hidden_states_attn.transpose(1, 2).reshape(batch_size, -1, attn_heads * attn_head_dim)
-        hidden_states_attn = hidden_states_attn.to(query.dtype)  # Convert back to original query dtype
+        # Eager Attention (single block for both self and cross-attention)
+        attention_probs = get_attention_scores_pytorch(query, key, actual_attention_mask)
+        combined_hidden_states = torch.bmm(attention_probs, value) # torch.bmm
+        
+        combined_hidden_states = batch_to_head_dim_pytorch(combined_hidden_states, attn_heads)
 
-        # --- Split attention outputs if actual_encoder_hidden_states was present ---
-        # The output of SDPA contains both hidden_states and encoder_hidden_states concatenated
-        final_hidden_states = hidden_states_attn
         final_encoder_hidden_states = None
-
+        # --- Split attention outputs if actual_encoder_hidden_states was present ---
         if actual_encoder_hidden_states is not None:
-            # Need to split the combined output
-            split_size = residual.shape[1]  # Length of the original 'sample' sequence
-            final_hidden_states, final_encoder_hidden_states = (
-                hidden_states_attn[:, :split_size],
-                hidden_states_attn[:, split_size:],
+            split_size = residual.shape[1]
+            combined_hidden_states, final_encoder_hidden_states = (
+                combined_hidden_states[:, :split_size],
+                combined_hidden_states[:, split_size:],
             )
+            final_encoder_hidden_states = F.linear(final_encoder_hidden_states, to_add_out_weight, to_add_out_bias)
+        
+        combined_hidden_states = F.linear(combined_hidden_states, to_out_0_weight, to_out_0_bias)
+        combined_hidden_states = F.dropout(combined_hidden_states, p=to_out_1_dropout_p, training=False)
 
-            # Apply attn.to_add_out if not context_pre_only
-            if not attn_context_pre_only:
-                final_encoder_hidden_states = F.linear(final_encoder_hidden_states, to_add_out_weight, to_add_out_bias)
-
-        # --- Post-Attention Processing ---
-        # Apply attn.to_out[0] (Linear proj)
-        final_hidden_states = F.linear(final_hidden_states, to_out_0_weight, to_out_0_bias)
-        # Apply attn.to_out[1] (Dropout)
-        final_hidden_states = F.dropout(final_hidden_states, p=to_out_1_dropout_p, training=False)
-
-        # Ensure encoder_hidden_states is returned as a tensor, not None,
-        # to match the consistent output signature of the ONNXScript function.
         if final_encoder_hidden_states is None:
-            # Return an empty tensor or a zero tensor if it was originally None
-            # Matching the input's shape for a dummy tensor.
             final_encoder_hidden_states = torch.empty(0, device=hidden_states.device, dtype=hidden_states.dtype)
 
-        return final_hidden_states, final_encoder_hidden_states
+        return combined_hidden_states, final_encoder_hidden_states
+        
 
     @staticmethod
     def symbolic(
@@ -1038,8 +1170,7 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         attention_mask: torch.Value,
         attn_heads: int,
         attn_head_dim: int,
-        attn_scale_qk: bool,
-        attn_scale_val: float,
+        attn_scale: float,
         attn_query_dim: int,
         attn_inner_dim: int,
         attn_inner_kv_dim: int,
@@ -1070,8 +1201,11 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         attn_added_kv_proj_dim: int,
         to_add_out_weight: torch.Value,
         to_add_out_bias: torch.Value,
+        attn_upcast_attention: bool,
+        attn_upcast_softmax: bool,
         _original_encoder_hidden_states_was_none: bool,  # From ctx
         _original_attention_mask_was_none: bool,  # From ctx
+        original_input_onnx_dtype_code: int,
     ) -> Tuple[torch.Value, torch.Value]:
         # Pass all relevant parameters to the ONNXScript function.
         # The ONNXScript function will handle the conditional logic based on
@@ -1084,8 +1218,6 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
             attention_mask,  # Pass the (potentially dummy) tensor
             attn_heads_i=attn_heads,
             attn_head_dim_i=attn_head_dim,
-            attn_scale_qk_i=attn_scale_qk,
-            attn_scale_val_f=attn_scale_val,
             attn_query_dim_i=attn_query_dim,
             attn_inner_dim_i=attn_inner_dim,
             attn_inner_kv_dim_i=attn_inner_kv_dim,
@@ -1112,10 +1244,13 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
             to_out_0_weight=to_out_0_weight,
             to_out_0_bias=to_out_0_bias,
             to_out_1_dropout_p_f=to_out_1_dropout_p,
-            attn_context_pre_only_i=attn_context_pre_only,
             attn_added_kv_proj_dim_i=attn_added_kv_proj_dim,
             to_add_out_weight=to_add_out_weight,
             to_add_out_bias=to_add_out_bias,
+            attn_scale_f= attn_scale,
+            attn_upcast_attention_i=attn_upcast_attention,
+            attn_upcast_softmax_i=attn_upcast_softmax,
+            original_input_onnx_dtype_code_i=original_input_onnx_dtype_code,
         )
         return result
 
@@ -1143,12 +1278,12 @@ class JointAttnProcessor2_0AIC(nn.Module):
 
         self.attn_heads = attn_module.heads
         self.attn_head_dim = attn_module.dim_head
-        self.attn_scale_qk = attn_module.scale_qk
-        self.attn_scale_val = attn_module.scale
+        self.attn_scale = attn_module.scale
         self.attn_query_dim = attn_module.query_dim
         self.attn_inner_dim = attn_module.inner_dim
         self.attn_inner_kv_dim = attn_module.inner_kv_dim
-
+        self.attn_upcast_attention = attn_module.upcast_attention
+        self.attn_upcast_softmax = attn_module.upcast_softmax
         # Helper to get parameter or a dummy zero tensor if it's None (e.g., bias=False or norm=None)
         # We define it here to access self.attn_head_dim etc. during extraction.
         def get_param_or_dummy_zero(param, default_shape_dim=None):
@@ -1250,7 +1385,8 @@ class JointAttnProcessor2_0AIC(nn.Module):
         # to maintain consistent tensor types for `apply` call and ONNX.
         device = hidden_states.device
         dtype = hidden_states.dtype
-
+        if dtype == torch.float32:
+            original_input_onnx_dtype_code = onnx.TensorProto.FLOAT
         encoder_hidden_states_to_pass = encoder_hidden_states
         if _original_encoder_hidden_states_was_none:
             encoder_hidden_states_to_pass = torch.empty(0, device=device, dtype=dtype)
@@ -1270,8 +1406,7 @@ class JointAttnProcessor2_0AIC(nn.Module):
             attention_mask_to_pass,  # Pass the (potentially dummy) mask
             self.attn_heads,
             self.attn_head_dim,
-            self.attn_scale_qk,
-            self.attn_scale_val,
+            self.attn_scale,
             self.attn_query_dim,
             self.attn_inner_dim,
             self.attn_inner_kv_dim,
@@ -1302,12 +1437,12 @@ class JointAttnProcessor2_0AIC(nn.Module):
             self.to_out_0_weight,
             self.to_out_0_bias,
             self.to_out_1_dropout_p,
-            self.attn_context_pre_only,
             self.attn_added_kv_proj_dim,
             self.to_add_out_weight,
             self.to_add_out_bias,
             _original_encoder_hidden_states_was_none,  # Passed as flag to autograd.Function
             _original_attention_mask_was_none,  # Passed as flag to autograd.Function
+            original_input_onnx_dtype_code,
         )
 
 
@@ -1328,8 +1463,7 @@ def JointTransformerBlockOnnx(
     # Weights and parameters for attn (JointAttnProcessor2_0Onnx)
     attn_heads: int,
     attn_head_dim: int,
-    attn_scale_qk: bool,
-    attn_scale_val: float,
+    attn_scale: float,
     attn_query_dim: int,
     attn_inner_dim: int,
     attn_inner_kv_dim: int,
@@ -1341,10 +1475,8 @@ def JointTransformerBlockOnnx(
     attn_to_v_bias: onnxscript.FLOAT,
     attn_norm_q_weight: onnxscript.FLOAT,
     attn_norm_q_eps: float,
-    attn_norm_q_elementwise_affine: bool,
     attn_norm_k_weight: onnxscript.FLOAT,
     attn_norm_k_eps: float,
-    attn_norm_k_elementwise_affine: bool,
     attn_add_q_proj_weight: onnxscript.FLOAT,
     attn_add_q_proj_bias: onnxscript.FLOAT,
     attn_add_k_proj_weight: onnxscript.FLOAT,
@@ -1353,14 +1485,12 @@ def JointTransformerBlockOnnx(
     attn_add_v_proj_bias: onnxscript.FLOAT,
     attn_norm_added_q_weight: onnxscript.FLOAT,
     attn_norm_added_q_eps: float,
-    attn_norm_added_q_elementwise_affine: bool,
     attn_norm_added_k_weight: onnxscript.FLOAT,
     attn_norm_added_k_eps: float,
-    attn_norm_added_k_elementwise_affine: bool,
     attn_to_out_0_weight: onnxscript.FLOAT,
     attn_to_out_0_bias: onnxscript.FLOAT,
     attn_to_out_1_dropout_p: float,
-    attn_context_pre_only_flag: bool,  # This needs to be set to False for this export
+    # attn_context_pre_only_flag: bool,  # This needs to be set to False for this export
     attn_added_kv_proj_dim: int,
     attn_to_add_out_weight: onnxscript.FLOAT,
     attn_to_add_out_bias: onnxscript.FLOAT,
@@ -1392,6 +1522,9 @@ def JointTransformerBlockOnnx(
     ff_context_act_fn_proj_bias: onnxscript.FLOAT,
     ff_context_project_out_weight: onnxscript.FLOAT,
     ff_context_project_out_bias: onnxscript.FLOAT,
+    attn_upcast_attention: bool, 
+    attn_upcast_softmax: bool,
+    original_input_onnx_dtype_code:int,
 ):
     # Fixed conditions: use_dual_attention = False, context_pre_only = False, _chunk_size = None
 
@@ -1419,8 +1552,7 @@ def JointTransformerBlockOnnx(
         attention_mask=ops.Constant(value_float=0.0),  # Assuming attention_mask is handled externally or not dynamic
         attn_heads=attn_heads,
         attn_head_dim=attn_head_dim,
-        attn_scale_qk=attn_scale_qk,
-        attn_scale_val=attn_scale_val,
+        attn_scale=attn_scale,
         attn_query_dim=attn_query_dim,
         attn_inner_dim=attn_inner_dim,
         attn_inner_kv_dim=attn_inner_kv_dim,
@@ -1451,10 +1583,13 @@ def JointTransformerBlockOnnx(
         to_out_0_weight=attn_to_out_0_weight,
         to_out_0_bias=attn_to_out_0_bias,
         to_out_1_dropout_p=attn_to_out_1_dropout_p,
-        attn_context_pre_only_flag=attn_context_pre_only_flag,
+        # attn_context_pre_only_flag=attn_context_pre_only_flag,
         attn_added_kv_proj_dim=attn_added_kv_proj_dim,
         to_add_out_weight=attn_to_add_out_weight,
         to_add_out_bias=attn_to_add_out_bias,
+        attn_upcast_attention=attn_upcast_attention, # NEW
+        attn_upcast_softmax=attn_upcast_softmax,  
+        original_input_onnx_dtype_code=original_input_onnx_dtype_code,
     )
     # Process attention outputs for the `hidden_states`.
     attn_output = ops.Mul(ops.Unsqueeze(gate_msa, axes=[1]), attn_output)
@@ -1472,7 +1607,7 @@ def JointTransformerBlockOnnx(
     )
 
     # Note: `if self._chunk_size is not None` block is skipped (fixed to None)
-    ff_output = FeedForward(
+    ff_output = FeedForwardOnnx(
         norm_hidden_states,
         ff_dim,
         ff_dim_out,
@@ -1506,7 +1641,7 @@ def JointTransformerBlockOnnx(
     )
 
     # Note: `if self._chunk_size is not None` block is skipped (fixed to None)
-    context_ff_output = FeedForward(
+    context_ff_output = FeedForwardOnnx(
         norm_encoder_hidden_states,
         ff_context_dim,
         ff_context_dim_out,
@@ -1529,15 +1664,9 @@ def JointTransformerBlockOnnx(
 class JointTransformerBlockFunc(torch.autograd.Function):
     @staticmethod
     def forward(
-        ctx,
         hidden_states: torch.Tensor,
         encoder_hidden_states: torch.Tensor,
         temb: torch.Tensor,
-        # Fixed parameters (passed as Python literals during export)
-        _use_dual_attention: bool,  # False
-        _context_pre_only: bool,  # False
-        _chunk_size: Optional[int],  # None
-        _chunk_dim: int,  # Dummy, as _chunk_size is None
         # --- Parameters for norm1 (AdaLayerNormZero) ---
         norm1_linear_weight: torch.Tensor,
         norm1_linear_bias: torch.Tensor,
@@ -1549,8 +1678,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # --- Parameters for attn (JointAttnProcessor2_0) ---
         attn_heads: int,
         attn_head_dim: int,
-        attn_scale_qk: bool,
-        attn_scale_val: float,
+        attn_scale: float,
         attn_query_dim: int,
         attn_inner_dim: int,
         attn_inner_kv_dim: int,
@@ -1581,7 +1709,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_to_out_0_weight: torch.Tensor,
         attn_to_out_0_bias: torch.Tensor,
         attn_to_out_1_dropout_p: float,
-        attn_context_pre_only_flag: bool,  # This is the internal flag for JointAttnProcessor2_0
         attn_added_kv_proj_dim: int,
         attn_to_add_out_weight: torch.Tensor,
         attn_to_add_out_bias: torch.Tensor,
@@ -1592,7 +1719,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         ff_dim: int, ff_dim_out: int, ff_mult: int, ff_dropout_ratio: float, ff_final_dropout: bool,
         ff_act_fn_proj_weight: torch.Tensor, ff_act_fn_proj_bias: torch.Tensor,
         ff_project_out_weight: torch.Tensor, ff_project_out_bias: torch.Tensor,
-        ff_activation_fn_type: int, # The type for FeedForwardFunc
         
         # --- Parameters for norm2_context (RMSNorm) ---
         norm2_context_weight: torch.Tensor,
@@ -1607,10 +1733,12 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         ff_context_act_fn_proj_bias: torch.Tensor,
         ff_context_project_out_weight: torch.Tensor,
         ff_context_project_out_bias: torch.Tensor,
-        ff_context_activation_fn_type: int,  # The type for FeedForwardFunc
         # Flags for `JointAttnProcessor2_0Func` to handle optional tensor inputs
+        attn_upcast_attention: bool,
+        attn_upcast_softmax: bool,
         _attn_original_encoder_hidden_states_was_none: bool,
         _attn_original_attention_mask_was_none: bool,
+        original_input_onnx_dtype_code:int,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # --- Replicate PyTorch forward logic for fixed conditions ---
         # use_dual_attention = False, context_pre_only = False, _chunk_size = None
@@ -1638,8 +1766,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attention_mask_for_attn,  # Pass non-None to processor (potentially empty)
             attn_heads,
             attn_head_dim,
-            attn_scale_qk,
-            attn_scale_val,
+            attn_scale,
             attn_query_dim,
             attn_inner_dim,
             attn_inner_kv_dim,
@@ -1670,12 +1797,14 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_to_out_0_weight,
             attn_to_out_0_bias,
             attn_to_out_1_dropout_p,
-            attn_context_pre_only_flag,
             attn_added_kv_proj_dim,
             attn_to_add_out_weight,
             attn_to_add_out_bias,
+            attn_upcast_attention,
+            attn_upcast_softmax,
             False,  # _original_encoder_hidden_states_was_none - always false for this case
             _attn_original_attention_mask_was_none,
+            original_input_onnx_dtype_code,
         )
         # Process attention outputs for the `hidden_states`.
         # Assuming original `hidden_states` (input to this forward) is what is added to.
@@ -1699,7 +1828,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             ff_mult,
             ff_dropout_ratio,
             ff_final_dropout,
-            ff_activation_fn_type,
             ff_act_fn_proj_weight,
             ff_act_fn_proj_bias,
             ff_project_out_weight,
@@ -1726,7 +1854,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             ff_context_mult,
             ff_context_dropout_ratio,
             ff_context_final_dropout,
-            ff_context_activation_fn_type,
             ff_context_act_fn_proj_weight,
             ff_context_act_fn_proj_bias,
             ff_context_project_out_weight,
@@ -1746,11 +1873,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         hidden_states: torch.Value,
         encoder_hidden_states: torch.Value,
         temb: torch.Value,
-        # Fixed parameters (passed as Python literals from ctx)
-        _use_dual_attention: bool,
-        _context_pre_only: bool,
-        _chunk_size: Optional[int],
-        _chunk_dim: int,
         # Parameters for norm1 (AdaLayerNormZero)
         norm1_linear_weight: torch.Value,
         norm1_linear_bias: torch.Value,
@@ -1762,8 +1884,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # Parameters for attn (JointAttnProcessor2_0)
         attn_heads: int,
         attn_head_dim: int,
-        attn_scale_qk: bool,
-        attn_scale_val: float,
+        attn_scale: float,
         attn_query_dim: int,
         attn_inner_dim: int,
         attn_inner_kv_dim: int,
@@ -1775,10 +1896,8 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_to_v_bias: torch.Value,
         attn_norm_q_weight: torch.Value,
         attn_norm_q_eps: float,
-        attn_norm_q_elementwise_affine: bool,
         attn_norm_k_weight: torch.Value,
         attn_norm_k_eps: float,
-        attn_norm_k_elementwise_affine: bool,
         attn_add_q_proj_weight: torch.Value,
         attn_add_q_proj_bias: torch.Value,
         attn_add_k_proj_weight: torch.Value,
@@ -1787,10 +1906,8 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_add_v_proj_bias: torch.Value,
         attn_norm_added_q_weight: torch.Value,
         attn_norm_added_q_eps: float,
-        attn_norm_added_q_elementwise_affine: bool,
         attn_norm_added_k_weight: torch.Value,
         attn_norm_added_k_eps: float,
-        attn_norm_added_k_elementwise_affine: bool,
         attn_to_out_0_weight: torch.Value,
         attn_to_out_0_bias: torch.Value,
         attn_to_out_1_dropout_p: float,
@@ -1801,7 +1918,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # Parameters for norm2 (RMSNorm)
         norm2_weight: torch.Value,
         norm2_eps: float,
-        norm2_elementwise_affine: bool,
         # Parameters for ff (FeedForward)
         ff_dim: int,
         ff_dim_out: int,
@@ -1816,7 +1932,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # Parameters for norm2_context (RMSNorm)
         norm2_context_weight: torch.Value,
         norm2_context_eps: float,
-        norm2_context_elementwise_affine: bool,
         # Parameters for ff_context (FeedForward)
         ff_context_dim: int,
         ff_context_dim_out: int,
@@ -1827,9 +1942,11 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         ff_context_act_fn_proj_bias: torch.Value,
         ff_context_project_out_weight: torch.Value,
         ff_context_project_out_bias: torch.Value,
-        ff_context_activation_fn_type: int,
+        attn_upcast_attention: bool,
+        attn_upcast_softmax: bool,
         _attn_original_encoder_hidden_states_was_none: bool,
         _attn_original_attention_mask_was_none: bool,
+        original_input_onnx_dtype_code:int,
     ) -> Tuple[torch.Value, torch.Value]:
         # Pass all parameters directly to the ONNXScript function
         result = g.onnxscript_op(
@@ -1849,8 +1966,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             norm1_context_epsilon,
             attn_heads_i=attn_heads,
             attn_head_dim_i=attn_head_dim,
-            attn_scale_qk_i=attn_scale_qk,
-            attn_scale_val_f=attn_scale_val,
+            attn_scale_f=attn_scale,
             attn_query_dim_i=attn_query_dim,
             attn_inner_dim_i=attn_inner_dim,
             attn_inner_kv_dim_i=attn_inner_kv_dim,
@@ -1862,10 +1978,8 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_to_v_bias=attn_to_v_bias,
             attn_norm_q_weight=attn_norm_q_weight,
             attn_norm_q_eps_f=attn_norm_q_eps,
-            attn_norm_q_elementwise_affine_i=attn_norm_q_elementwise_affine,
             attn_norm_k_weight=attn_norm_k_weight,
             attn_norm_k_eps_f=attn_norm_k_eps,
-            attn_norm_k_elementwise_affine_i=attn_norm_k_elementwise_affine,
             attn_add_q_proj_weight=attn_add_q_proj_weight,
             attn_add_q_proj_bias=attn_add_q_proj_bias,
             attn_add_k_proj_weight=attn_add_k_proj_weight,
@@ -1874,10 +1988,8 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_add_v_proj_bias=attn_add_v_proj_bias,
             attn_norm_added_q_weight=attn_norm_added_q_weight,
             attn_norm_added_q_eps_f=attn_norm_added_q_eps,
-            attn_norm_added_q_elementwise_affine_i=attn_norm_added_q_elementwise_affine,
             attn_norm_added_k_weight=attn_norm_added_k_weight,
             attn_norm_added_k_eps_f=attn_norm_added_k_eps,
-            attn_norm_added_k_elementwise_affine_i=attn_norm_added_k_elementwise_affine,
             attn_to_out_0_weight=attn_to_out_0_weight,
             attn_to_out_0_bias=attn_to_out_0_bias,
             attn_to_out_1_dropout_p_f=attn_to_out_1_dropout_p,
@@ -1887,7 +1999,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_to_add_out_bias=attn_to_add_out_bias,
             norm2_weight=norm2_weight,
             norm2_eps_f=norm2_eps,
-            norm2_elementwise_affine_i=norm2_elementwise_affine,
             ff_dim_i=ff_dim,
             ff_dim_out_i=ff_dim_out,
             ff_mult_i=ff_mult,
@@ -1900,7 +2011,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             ff_activation_fn_type_i=ff_activation_fn_type,
             norm2_context_weight=norm2_context_weight,
             norm2_context_eps_f=norm2_context_eps,
-            norm2_context_elementwise_affine_i=norm2_context_elementwise_affine,
             ff_context_dim_i=ff_context_dim,
             ff_context_dim_out_i=ff_context_dim_out,
             ff_context_mult_i=ff_context_mult,
@@ -1910,7 +2020,11 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             ff_context_act_fn_proj_bias=ff_context_act_fn_proj_bias,
             ff_context_project_out_weight=ff_context_project_out_weight,
             ff_context_project_out_bias=ff_context_project_out_bias,
-            ff_context_activation_fn_type_i=ff_context_activation_fn_type,
+            attn_upcast_attention_i=attn_upcast_attention,
+            attn_upcast_softmax_i=attn_upcast_softmax,
+            _attn_original_encoder_hidden_states_was_none_i=_attn_original_encoder_hidden_states_was_none,
+            _attn_original_attention_mask_was_none_i=_attn_original_attention_mask_was_none,
+            original_input_onnx_dtype_code_i=original_input_onnx_dtype_code,
         )
         return result
 
@@ -1950,18 +2064,6 @@ class JointTransformerBlockAIC(nn.Module):
 
     def __init__(self, original_module: JointTransformerBlock):
         super().__init__()
-        # Store original fixed parameters
-        self._use_dual_attention = original_module.use_dual_attention  # Should be False
-        self._context_pre_only = original_module.context_pre_only  # Should be False
-        self._chunk_size = original_module._chunk_size  # Should be None
-        self._chunk_dim = original_module._chunk_dim  # Should be 0
-
-        if self._use_dual_attention or self._context_pre_only or self._chunk_size is not None:
-            raise ValueError(
-                "JointTransformerBlockAIC is specialized for "
-                "use_dual_attention=False, context_pre_only=False, _chunk_size=None. "
-                "Found different values."
-            )
 
         # --- Extract parameters for norm1 (AdaLayerNormZero) ---
         self.norm1_linear_weight = original_module.norm1.linear.weight
@@ -1981,8 +2083,7 @@ class JointTransformerBlockAIC(nn.Module):
         # It's better if it's already wrapped in AttentionAIC, but we can extract raw params.
         self.attn_heads = original_module.attn.heads
         self.attn_head_dim = original_module.attn.dim_head
-        self.attn_scale_qk = original_module.attn.scale_qk
-        self.attn_scale_val = original_module.attn.scale
+        self.attn_scale = original_module.attn.scale
         self.attn_query_dim = original_module.attn.query_dim
         self.attn_inner_dim = original_module.attn.inner_dim
         self.attn_inner_kv_dim = original_module.attn.inner_kv_dim
@@ -2163,104 +2264,97 @@ class JointTransformerBlockAIC(nn.Module):
             original_module.ff_context.net[2].bias, torch.zeros(original_module.ff_context.net[2].out_features)
         )
         self.ff_context_activation_fn_type = _get_activation_fn_type_from_module(original_module.ff_context.net[0])
+        self.attn_upcast_attention = original_module.attn.upcast_attention
+        self.attn_upcast_softmax = original_module.attn.upcast_softmax
 
 
-def forward(
-    self,
-    hidden_states: torch.Tensor,
-    encoder_hidden_states: torch.Tensor,
-    temb: torch.Tensor,
-) -> Tuple[torch.Tensor, torch.Tensor]:
-    # --- Handle optional attention_mask for processor if it was None ---
-    # JointAttnProcessor2_0Onnx expects attention_mask, even if zero-sized.
-    # If it's dynamically generated or None, pass an empty tensor.
-    # This wrapper expects attention_mask not to be an input to JTB.
-    # So we assume it's always an empty tensor to the processor.
-    attention_mask_for_attn = torch.empty(0, device=hidden_states.device, dtype=hidden_states.dtype)
-    _attn_original_attention_mask_was_none = True
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        encoder_hidden_states: torch.Tensor,
+        temb: torch.Tensor,
+        joint_attention_kwargs: Optional[dict] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        # --- Handle optional attention_mask for processor if it was None ---
+        # JointAttnProcessor2_0Onnx expects attention_mask, even if zero-sized.
+        # If it's dynamically generated or None, pass an empty tensor.
+        # This wrapper expects attention_mask not to be an input to JTB.
+        # So we assume it's always an empty tensor to the processor.
+        attention_mask_for_attn = torch.empty(0, device=hidden_states.device, dtype=hidden_states.dtype)
+        _attn_original_attention_mask_was_none = True
 
-    # JointAttnProcessor2_0 always expects encoder_hidden_states (not None).
-    # We also pass it as a regular tensor here.
-    _attn_original_encoder_hidden_states_was_none = False
+        # JointAttnProcessor2_0 always expects encoder_hidden_states (not None).
+        # We also pass it as a regular tensor here.
+        _attn_original_encoder_hidden_states_was_none = False
+        original_input_onnx_dtype_code = dtype_map[hidden_states.dtype]
 
-    return JointTransformerBlockFunc.apply(
-        hidden_states,
-        encoder_hidden_states,
-        temb,
-        self._use_dual_attention,
-        self._context_pre_only,
-        self._chunk_size,
-        self._chunk_dim,
-        self.norm1_linear_weight,
-        self.norm1_linear_bias,
-        self.norm1_epsilon,
-        self.norm1_context_linear_weight,
-        self.norm1_context_linear_bias,
-        self.norm1_context_epsilon,
-        self.attn_heads,
-        self.attn_head_dim,
-        self.attn_scale_qk,
-        self.attn_scale_val,
-        self.attn_query_dim,
-        self.attn_inner_dim,
-        self.attn_inner_kv_dim,
-        self.attn_to_q_weight,
-        self.attn_to_q_bias,
-        self.attn_to_k_weight,
-        self.attn_to_k_bias,
-        self.attn_to_v_weight,
-        self.attn_to_v_bias,
-        self.attn_norm_q_weight,
-        self.attn_norm_q_eps,
-        self.attn_norm_q_elementwise_affine,
-        self.attn_norm_k_weight,
-        self.attn_norm_k_eps,
-        self.attn_norm_k_elementwise_affine,
-        self.attn_add_q_proj_weight,
-        self.attn_add_q_proj_bias,
-        self.attn_add_k_proj_weight,
-        self.attn_add_k_proj_bias,
-        self.attn_add_v_proj_weight,
-        self.attn_add_v_proj_bias,
-        self.attn_norm_added_q_weight,
-        self.attn_norm_added_q_eps,
-        self.attn_norm_added_q_elementwise_affine,
-        self.attn_norm_added_k_weight,
-        self.attn_norm_added_k_eps,
-        self.attn_norm_added_k_elementwise_affine,
-        self.attn_to_out_0_weight,
-        self.attn_to_out_0_bias,
-        self.attn_to_out_1_dropout_p,
-        self.attn_context_pre_only_flag,
-        self.attn_added_kv_proj_dim,
-        self.attn_to_add_out_weight,
-        self.attn_to_add_out_bias,
-        self.norm2_weight,
-        self.norm2_eps,
-        self.norm2_elementwise_affine,
-        self.ff_dim,
-        self.ff_dim_out,
-        self.ff_mult,
-        self.ff_dropout_ratio,
-        self.ff_final_dropout,
-        self.ff_act_fn_proj_weight,
-        self.ff_act_fn_proj_bias,
-        self.ff_project_out_weight,
-        self.ff_project_out_bias,
-        self.ff_activation_fn_type,
-        self.norm2_context_weight,
-        self.norm2_context_eps,
-        self.norm2_context_elementwise_affine,
-        self.ff_context_dim,
-        self.ff_context_dim_out,
-        self.ff_context_mult,
-        self.ff_context_dropout_ratio,
-        self.ff_context_final_dropout,
-        self.ff_context_act_fn_proj_weight,
-        self.ff_context_act_fn_proj_bias,
-        self.ff_context_project_out_weight,
-        self.ff_context_project_out_bias,
-        self.ff_context_activation_fn_type,
-        _attn_original_encoder_hidden_states_was_none,
-        _attn_original_attention_mask_was_none,
-    )
+        return JointTransformerBlockFunc.apply(
+            hidden_states,
+            encoder_hidden_states,
+            temb,
+            self.norm1_linear_weight,
+            self.norm1_linear_bias,
+            self.norm1_epsilon,
+            self.norm1_context_linear_weight,
+            self.norm1_context_linear_bias,
+            self.norm1_context_epsilon,
+            self.attn_heads,
+            self.attn_head_dim,
+            self.attn_scale,
+            self.attn_query_dim,
+            self.attn_inner_dim,
+            self.attn_inner_kv_dim,
+            self.attn_to_q_weight,
+            self.attn_to_q_bias,
+            self.attn_to_k_weight,
+            self.attn_to_k_bias,
+            self.attn_to_v_weight,
+            self.attn_to_v_bias,
+            self.attn_norm_q_weight,
+            self.attn_norm_q_eps,
+            self.attn_norm_k_weight,
+            self.attn_norm_k_eps,
+            self.attn_add_q_proj_weight,
+            self.attn_add_q_proj_bias,
+            self.attn_add_k_proj_weight,
+            self.attn_add_k_proj_bias,
+            self.attn_add_v_proj_weight,
+            self.attn_add_v_proj_bias,
+            self.attn_norm_added_q_weight,
+            self.attn_norm_added_q_eps,
+            self.attn_norm_added_k_weight,
+            self.attn_norm_added_k_eps,
+            self.attn_to_out_0_weight,
+            self.attn_to_out_0_bias,
+            self.attn_to_out_1_dropout_p,
+            self.attn_added_kv_proj_dim,
+            self.attn_to_add_out_weight,
+            self.attn_to_add_out_bias,
+            self.norm2_weight,
+            self.norm2_eps,
+            self.ff_dim,
+            self.ff_dim_out,
+            self.ff_mult,
+            self.ff_dropout_ratio,
+            self.ff_final_dropout,
+            self.ff_act_fn_proj_weight,
+            self.ff_act_fn_proj_bias,
+            self.ff_project_out_weight,
+            self.ff_project_out_bias,
+            self.norm2_context_weight,
+            self.norm2_context_eps,
+            self.ff_context_dim,
+            self.ff_context_dim_out,
+            self.ff_context_mult,
+            self.ff_context_dropout_ratio,
+            self.ff_context_final_dropout,
+            self.ff_context_act_fn_proj_weight,
+            self.ff_context_act_fn_proj_bias,
+            self.ff_context_project_out_weight,
+            self.ff_context_project_out_bias,
+            self.attn_upcast_attention,
+            self.attn_upcast_softmax,
+            _attn_original_encoder_hidden_states_was_none,
+            _attn_original_attention_mask_was_none,
+            original_input_onnx_dtype_code,
+        )
