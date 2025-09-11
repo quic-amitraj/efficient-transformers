@@ -80,8 +80,18 @@ class QEFFStableDiffusion3Pipeline(StableDiffusion3Pipeline):
                 Additional arguments that can be passed to the underlying `StableDiffusion3Pipeline.from_pretrained`
                 method.
         """
+        pre_model = cls._hf_auto_class.from_pretrained(
+            pretrained_model_name_or_path,
+            torch_dtype=torch.float32,
+            **kwargs,
+        )
+        pre_model.transformer.config.num_layers=1
+        
+        print("######  Loading Single layer MMdit")
+        
         model = cls._hf_auto_class.from_pretrained(
             pretrained_model_name_or_path,
+            transformer=pre_model.transformer,
             torch_dtype=torch.float32,
             **kwargs,
         )
