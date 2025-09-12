@@ -6,8 +6,17 @@
 # -----------------------------------------------------------------------------
 
 from QEfficient import QEFFStableDiffusion3Pipeline
+import torch
 
 pipeline = QEFFStableDiffusion3Pipeline.from_pretrained("stabilityai/stable-diffusion-3.5-large-turbo")
+
+original_blocks = pipeline.transformer.model.transformer_blocks
+pipeline.transformer.model.transformer_blocks = torch.nn.ModuleList([original_blocks[0]])
+
+# Update num_layers to reflect the change
+pipeline.transformer.model.config.num_layers = 1
+
+
 pipeline.compile(num_devices_text_encoder=1, num_devices_transformer=4, num_devices_vae_decoder=1)
 
 # NOTE: guidance_scale <=1 is not supported
