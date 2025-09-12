@@ -1032,7 +1032,7 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         # This will allow proper `if encoder_hidden_states is not None` logic.
         _original_encoder_hidden_states_was_none: bool,
         _original_attention_mask_was_none: bool,
-        original_input_onnx_dtype_code: int,
+        _original_input_onnx_dtype_code: int,
     ) -> Tuple[torch.Tensor, torch.Tensor]:  # Returns two tensors as per JointAttnProcessor2_0Onnx
         # Replicate PyTorch forward logic for JointAttnProcessor2_0
         residual = hidden_states
@@ -1197,7 +1197,6 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         to_out_0_weight: torch.Value,
         to_out_0_bias: torch.Value,
         to_out_1_dropout_p: float,
-        attn_context_pre_only: bool,
         attn_added_kv_proj_dim: int,
         to_add_out_weight: torch.Value,
         to_add_out_bias: torch.Value,
@@ -1254,6 +1253,13 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         )
         return result
 
+
+
+def get_first_linear_in_features(module):
+    for submodule in module.net:
+        if isinstance(submodule, nn.Linear):
+            return submodule.in_features
+    return None
 
 class JointAttnProcessor2_0AIC(nn.Module):
     """
@@ -1363,8 +1369,7 @@ class JointAttnProcessor2_0AIC(nn.Module):
         )
         self.to_add_out_bias = get_param_or_dummy_zero(attn_module.to_add_out.bias, attn_module.to_add_out.out_features)
 
-    # Override the __call__ method of the parent class
-    def __call__(
+    def forward(
         self,
         hidden_states: torch.FloatTensor,
         encoder_hidden_states: torch.FloatTensor = None,
@@ -1437,6 +1442,8 @@ class JointAttnProcessor2_0AIC(nn.Module):
             self.attn_added_kv_proj_dim,
             self.to_add_out_weight,
             self.to_add_out_bias,
+            self.attn_upcast_attention,
+            self.attn_upcast_softmax,
             _original_encoder_hidden_states_was_none,  # Passed as flag to autograd.Function
             _original_attention_mask_was_none,  # Passed as flag to autograd.Function
             original_input_onnx_dtype_code,
@@ -1735,7 +1742,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_upcast_softmax: bool,
         _attn_original_encoder_hidden_states_was_none: bool,
         _attn_original_attention_mask_was_none: bool,
-        original_input_onnx_dtype_code:int,
+        _original_input_onnx_dtype_code:int,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # --- Replicate PyTorch forward logic for fixed conditions ---
         # use_dual_attention = False, context_pre_only = False, _chunk_size = None
@@ -1775,10 +1782,8 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_to_v_bias,
             attn_norm_q_weight,
             attn_norm_q_eps,
-            # attn_norm_q_elementwise_affine,
             attn_norm_k_weight,
             attn_norm_k_eps,
-            # attn_norm_k_elementwise_affine,
             attn_add_q_proj_weight,
             attn_add_q_proj_bias,
             attn_add_k_proj_weight,
@@ -1787,10 +1792,8 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_add_v_proj_bias,
             attn_norm_added_q_weight,
             attn_norm_added_q_eps,
-            # attn_norm_added_q_elementwise_affine,
             attn_norm_added_k_weight,
             attn_norm_added_k_eps,
-            # attn_norm_added_k_elementwise_affine,
             attn_to_out_0_weight,
             attn_to_out_0_bias,
             attn_to_out_1_dropout_p,
@@ -1801,7 +1804,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_upcast_softmax,
             False,  # _original_encoder_hidden_states_was_none - always false for this case
             _attn_original_attention_mask_was_none,
-            original_input_onnx_dtype_code,
+            # _original_input_onnx_dtype_code,
         )
         # Process attention outputs for the `hidden_states`.
         # Assuming original `hidden_states` (input to this forward) is what is added to.
@@ -2230,11 +2233,14 @@ class JointTransformerBlockAIC(nn.Module):
         self.attn_to_out_1_dropout_p = original_module.attn.to_out[1].p
         self.attn_context_pre_only_flag = original_module.attn.context_pre_only
         self.attn_added_kv_proj_dim = original_module.attn.added_kv_proj_dim
+        
         self.attn_to_add_out_weight = _get_param_or_dummy_zero(
-            original_module.attn.to_add_out.weight, torch.zeros(original_module.attn.to_add_out.out_features)
+            getattr(getattr(original_module.attn, "to_add_out", None), "weight", None)
         )
+
         self.attn_to_add_out_bias = _get_param_or_dummy_zero(
-            original_module.attn.to_add_out.bias, torch.zeros(original_module.attn.to_add_out.out_features)
+            # original_module.attn.to_add_out.bias, torch.zeros(original_module.attn.to_add_out.out_features)
+            getattr(getattr(original_module.attn, "to_add_out", None), "bias", None)
         )
 
         # --- Extract parameters for norm2 (RMSNorm) ---
@@ -2243,7 +2249,7 @@ class JointTransformerBlockAIC(nn.Module):
             torch.zeros(
                 original_module.norm2.weight.shape
                 if hasattr(original_module.norm2, "weight") and original_module.norm2.weight is not None
-                else original_module.norm2.normalized_shape[0]
+                else original_module.norm2.normalized_shape
             ),
         )
         self.norm2_eps = original_module.norm2.eps if hasattr(original_module.norm2, "eps") else 1e-6
@@ -2252,9 +2258,8 @@ class JointTransformerBlockAIC(nn.Module):
         )
 
         # --- Extract parameters for ff (FeedForward) ---
-        breakpoint()
         # Feedforward input and output dimensions
-        self.ff_dim = original_module.ff.net[0].in_features if hasattr(original_module.ff.net[0], "in_features") else None
+        self.ff_dim = original_module.ff.net[0].proj.in_features if hasattr(original_module.ff.net[0].proj, "in_features") else None
         self.ff_dim_out = original_module.ff.net[-1].out_features if hasattr(original_module.ff.net[-1], "out_features") else None
 
         # 'mult' is not a known attribute — fallback or compute manually if needed
@@ -2282,14 +2287,14 @@ class JointTransformerBlockAIC(nn.Module):
         self.ff_activation_fn_type = _get_activation_fn_type_from_module(original_module.ff.net[0])
 
         # --- Extract parameters for norm2_context (RMSNorm) ---
+        
         self.norm2_context_weight = _get_param_or_dummy_zero(
-            original_module.norm2_context.weight,
-            torch.zeros(
-                original_module.norm2_context.weight.shape
-                if hasattr(original_module.norm2_context, "weight") and original_module.norm2_context.weight is not None
-                else original_module.norm2_context.dim
-            ),
+            getattr(getattr(original_module, "norm2_context", None), "weight", None),
+            torch.zeros(getattr(getattr(original_module, "norm2_context", None), "weight", None).shape 
+                        if getattr(getattr(original_module, "norm2_context", None), "weight", None) is not None 
+                        else getattr(getattr(original_module, "norm2_context", None), "normalized_shape", (1,)))
         )
+
         self.norm2_context_eps = (
             original_module.norm2_context.eps if hasattr(original_module.norm2_context, "eps") else 1e-6
         )
@@ -2300,26 +2305,27 @@ class JointTransformerBlockAIC(nn.Module):
         )
 
         # --- Extract parameters for ff_context (FeedForward) ---
-        self.ff_context_dim = original_module.ff_context.dim
-        self.ff_context_dim_out = original_module.ff_context.dim_out
-        self.ff_context_mult = original_module.ff_context.mult
-        self.ff_context_dropout_ratio = original_module.ff_context.dropout
-        self.ff_context_final_dropout = original_module.ff_context.final_dropout
-        self.ff_context_act_fn_proj_weight = original_module.ff_context.net[0].proj.weight
-        self.ff_context_act_fn_proj_bias = _get_param_or_dummy_zero(
-            original_module.ff_context.net[0].proj.bias,
-            torch.zeros(original_module.ff_context.net[0].proj.out_features),
-        )
-        self.ff_context_project_out_weight = original_module.ff_context.net[2].weight
-        self.ff_context_project_out_bias = _get_param_or_dummy_zero(
-            original_module.ff_context.net[2].bias, torch.zeros(original_module.ff_context.net[2].out_features)
-        )
-        self.ff_context_activation_fn_type = _get_activation_fn_type_from_module(original_module.ff_context.net[0])
+        if hasattr(original_module, "ff_context") and original_module.ff_context is not None:
+            self.ff_context_dim = original_module.ff_context.net[0].proj.in_features
+            self.ff_context_dim_out = original_module.ff_context.net[-1].out_features
+            self.ff_context_mult = 4
+            self.ff_context_dropout_ratio = original_module.ff_context.net[1].p
+            self.ff_context_final_dropout = None
+            self.ff_context_act_fn_proj_weight = original_module.ff_context.net[0].proj.weight
+            self.ff_context_act_fn_proj_bias = _get_param_or_dummy_zero(
+                original_module.ff_context.net[0].proj.bias,
+                torch.zeros(original_module.ff_context.net[0].proj.out_features),
+            )
+            self.ff_context_project_out_weight = original_module.ff_context.net[2].weight
+            self.ff_context_project_out_bias = _get_param_or_dummy_zero(
+                original_module.ff_context.net[2].bias, torch.zeros(original_module.ff_context.net[2].out_features)
+            )
+            self.ff_context_activation_fn_type = _get_activation_fn_type_from_module(original_module.ff_context.net[0])
         self.attn_upcast_attention = original_module.attn.upcast_attention
         self.attn_upcast_softmax = original_module.attn.upcast_softmax
 
 
-    def __forward__(
+    def forward(
         self,
         hidden_states: torch.Tensor,
         encoder_hidden_states: torch.Tensor,

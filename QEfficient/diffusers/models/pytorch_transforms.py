@@ -24,24 +24,31 @@ from QEfficient.diffusers.models.attention_processor import (
 )
 
 class SD3TransformerBlockTransform:
+    
+    MODULE_REPLACEMENTS = {
+        JointTransformerBlock: JointTransformerBlockAIC,
+        # JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
+        # Add more mappings here as needed
+    }
+
     @classmethod
     def apply(cls, model: nn.Module) -> Tuple[nn.Module, bool]:
         transformed = False
         
-
         # Iterate through the named children to allow direct replacement via setattr
         # This will handle the top level of `model`. For nested modules, we recurse.
         # This is essentially what `model.named_modules()` provides in a more controlled way for replacement.
         for name, child_module in model.named_children():
             # Check if the child_module is a JointTransformerBlock
-            if isinstance(child_module, JointTransformerBlock):
-                # Create a NEW instance of JointTransformerBlockAIC
-                # This explicitly calls JointTransformerBlockAIC.__init__(original_module=child_module)
-                new_block = JointTransformerBlockAIC(original_module=child_module)
-                
-                # Replace the old instance with the new one in the parent module (`model`)
-                setattr(model, name, new_block)
-                transformed = True
+            for original_cls, replacement_cls in cls.MODULE_REPLACEMENTS.items():
+                if isinstance(child_module, original_cls):
+                    # Initialize the replacement with the original module
+                    # breakpoint()
+                    new_module = replacement_cls(original_module=child_module)
+                    setattr(model, name, new_module)
+                    transformed = True
+                    break
+        
             else:
                 # If the child module is not the one we want to replace at this level,
                 # recurse into its children to find JointTransformerBlocks deeper in the hierarchy.
@@ -54,7 +61,7 @@ class SD3TransformerBlockTransform:
     
 class CustomOpsTransform(ModuleMappingTransform):
     _module_mapping = {RMSNorm: CustomRMSNormAIC,
-                       JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
+                    #    JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
                     #    JointTransformerBlock: JointTransformerBlockAIC,
                     #    Attention: CustomAttentionAIC,
                     }
