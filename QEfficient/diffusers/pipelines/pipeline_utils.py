@@ -13,7 +13,7 @@ import torch.nn as nn
 
 from QEfficient.base.modeling_qeff import QEFFBaseModel
 from QEfficient.base.onnx_transforms import FP16ClipTransform, SplitTensorsTransform
-from QEfficient.diffusers.models.pytorch_transforms import AttentionTransform, CustomOpsTransform
+from QEfficient.diffusers.models.pytorch_transforms import AttentionTransform, CustomOpsTransform, SD3TransformerBlockTransform
 from QEfficient.transformers.models.pytorch_transforms import (
     T5ModelTransform,
 )
@@ -336,7 +336,7 @@ class QEffSafetyChecker(QEFFBaseModel):
 
 
 class QEffSD3Transformer2DModel(QEFFBaseModel):
-    _pytorch_transforms = [AttentionTransform, CustomOpsTransform]
+    _pytorch_transforms = [AttentionTransform, CustomOpsTransform, SD3TransformerBlockTransform]
     _onnx_transforms = [FP16ClipTransform, SplitTensorsTransform]
 
     """
