@@ -6,7 +6,6 @@
 # ----------------------------------------------------------------------------
 from types import MethodType
 from typing import Callable, Dict, Tuple, Type
-
 from torch import nn
 
 from QEfficient.utils.logging_utils import logger
@@ -60,6 +59,7 @@ class ModuleMappingTransform(PytorchTransform):
         cls._module_mapping[from_module] = to_module
 
 
+    
 class ModuleMutatorTransform(PytorchTransform):
     """Serves as base class for any transform that mutates pytorch module in any way.
     Mutate here mean, we initialize a new pytorch module object using info from original module and

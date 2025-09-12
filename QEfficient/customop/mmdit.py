@@ -3,7 +3,7 @@ import torch
 import onnx 
 import torch.nn as nn
 import math
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 import torch.nn.functional as F
 from onnx import TensorProto
 # from onnxscript import int_literal
@@ -1268,7 +1268,6 @@ class JointAttnProcessor2_0AIC(nn.Module):
 
         # Store a reference to the `Attention` module to extract its parameters
         self.attn = original_attn_module
-
         # Extract all parameters needed by JointAttnProcessor2_0Func.apply()
         self._extract_parameters(original_attn_module)
 
@@ -1367,7 +1366,6 @@ class JointAttnProcessor2_0AIC(nn.Module):
     # Override the __call__ method of the parent class
     def __call__(
         self,
-        attn_context: Attention,
         hidden_states: torch.FloatTensor,
         encoder_hidden_states: torch.FloatTensor = None,
         attention_mask: Optional[torch.FloatTensor] = None,
@@ -1418,7 +1416,6 @@ class JointAttnProcessor2_0AIC(nn.Module):
             self.to_v_bias,
             self.norm_q_weight,
             self.norm_q_eps,
-            # self.norm_q_elementwise_affine,
             self.norm_k_weight,
             self.norm_k_eps,
             # self.norm_k_elementwise_affine,
@@ -2038,7 +2035,46 @@ def _get_param_or_dummy_zero(param, default_tensor_if_none: Optional[torch.Tenso
             return default_tensor_if_none
         return torch.tensor(0.0)  # Scalar zero for non-tensor defaults
     return param
+# Robust helper for safely extracting parameters or creating defaults
+def _get_param_or_default(param_or_attr, default_val=0.0, is_weight=False, expected_shape=None):
+    if isinstance(param_or_attr, nn.Parameter):
+        return param_or_attr
+    elif isinstance(param_or_attr, torch.Tensor):
+        return param_or_attr
+    elif param_or_attr is None:
+        if is_weight: # Default for weights is often 1.0 (identity) for affine, or None if truly optional
+            if expected_shape is not None:
+                return torch.ones(expected_shape)
+            # Cannot create tensor without shape if it's a weight, returning None implies it's handled by caller
+            return None
+        # Default for bias/other is often 0.0, or None if truly optional
+        if expected_shape is not None:
+            return torch.zeros(expected_shape)
+        return torch.tensor(float(default_val))
+    # For scalar types (int, float, bool)
+    return param_or_attr
 
+def _extract_param(obj, path, is_weight=False, expected_shape=None):
+    current_obj = obj
+    parts = path.split('.')
+    for part in parts:
+        try:
+            # Handle list/tuple indices (e.g., 'to_out.0.weight')
+            if part.isdigit():
+                current_obj = current_obj[int(part)]
+            else:
+                current_obj = getattr(current_obj, part)
+        except (AttributeError, TypeError, IndexError):
+            # If a part of the path is missing (e.g., optional module not present),
+            # or it's an unexpected type, return default
+            return _get_param_or_default(None, is_weight=is_weight, expected_shape=expected_shape)
+    
+    # If it's a scalar (int, float, bool), return directly
+    if not isinstance(current_obj, (nn.Parameter, torch.Tensor)):
+        return current_obj
+    
+    # For tensors/parameters, apply the _get_param_or_default logic
+    return _get_param_or_default(current_obj, is_weight=is_weight, expected_shape=expected_shape)
 
 def _get_activation_fn_type_from_module(act_fn_module: nn.Module) -> int:
     # Based on the original FeedForward's activation_fn logic
@@ -2064,8 +2100,9 @@ class JointTransformerBlockAIC(nn.Module):
 
     def __init__(self, original_module: JointTransformerBlock):
         super().__init__()
-
         # --- Extract parameters for norm1 (AdaLayerNormZero) ---
+        self.norm1_linear_weight = _extract_param(original_module, 'norm1.linear.weight', is_weight=True)
+       
         self.norm1_linear_weight = original_module.norm1.linear.weight
         self.norm1_linear_bias = _get_param_or_dummy_zero(
             original_module.norm1.linear.bias, torch.zeros(original_module.norm1.linear.out_features)
@@ -2082,7 +2119,7 @@ class JointTransformerBlockAIC(nn.Module):
         # Assuming original_module.attn is an Attention instance.
         # It's better if it's already wrapped in AttentionAIC, but we can extract raw params.
         self.attn_heads = original_module.attn.heads
-        self.attn_head_dim = original_module.attn.dim_head
+        self.attn_head_dim = original_module.attn.inner_dim // original_module.attn.heads
         self.attn_scale = original_module.attn.scale
         self.attn_query_dim = original_module.attn.query_dim
         self.attn_inner_dim = original_module.attn.inner_dim
@@ -2206,7 +2243,7 @@ class JointTransformerBlockAIC(nn.Module):
             torch.zeros(
                 original_module.norm2.weight.shape
                 if hasattr(original_module.norm2, "weight") and original_module.norm2.weight is not None
-                else original_module.norm2.dim
+                else original_module.norm2.normalized_shape[0]
             ),
         )
         self.norm2_eps = original_module.norm2.eps if hasattr(original_module.norm2, "eps") else 1e-6
@@ -2215,15 +2252,29 @@ class JointTransformerBlockAIC(nn.Module):
         )
 
         # --- Extract parameters for ff (FeedForward) ---
-        self.ff_dim = original_module.ff.dim
-        self.ff_dim_out = original_module.ff.dim_out
-        self.ff_mult = original_module.ff.mult
-        self.ff_dropout_ratio = original_module.ff.dropout
-        self.ff_final_dropout = original_module.ff.final_dropout
-        self.ff_act_fn_proj_weight = original_module.ff.net[0].proj.weight
-        self.ff_act_fn_proj_bias = _get_param_or_dummy_zero(
-            original_module.ff.net[0].proj.bias, torch.zeros(original_module.ff.net[0].proj.out_features)
-        )
+        breakpoint()
+        # Feedforward input and output dimensions
+        self.ff_dim = original_module.ff.net[0].in_features if hasattr(original_module.ff.net[0], "in_features") else None
+        self.ff_dim_out = original_module.ff.net[-1].out_features if hasattr(original_module.ff.net[-1], "out_features") else None
+
+        # 'mult' is not a known attribute — fallback or compute manually if needed
+        self.ff_mult = getattr(original_module.ff, "mult", None)  # or set to a default like 4 if known
+
+        # Dropout values — check if they exist and are float or nn.Dropout
+        self.ff_dropout_ratio = getattr(original_module.ff, "dropout", None)
+        self.ff_final_dropout = getattr(original_module.ff, "final_dropout", None)
+
+        # Activation projection weights and bias — check if 'proj' exists inside net[0]
+        if hasattr(original_module.ff.net[0], "proj"):
+            self.ff_act_fn_proj_weight = original_module.ff.net[0].proj.weight
+            self.ff_act_fn_proj_bias = _get_param_or_dummy_zero(
+                original_module.ff.net[0].proj.bias,
+                torch.zeros(original_module.ff.net[0].proj.out_features)
+            )
+        else:
+            self.ff_act_fn_proj_weight = None
+            self.ff_act_fn_proj_bias = None
+
         self.ff_project_out_weight = original_module.ff.net[2].weight
         self.ff_project_out_bias = _get_param_or_dummy_zero(
             original_module.ff.net[2].bias, torch.zeros(original_module.ff.net[2].out_features)
@@ -2268,7 +2319,7 @@ class JointTransformerBlockAIC(nn.Module):
         self.attn_upcast_softmax = original_module.attn.upcast_softmax
 
 
-    def forward(
+    def __forward__(
         self,
         hidden_states: torch.Tensor,
         encoder_hidden_states: torch.Tensor,
@@ -2284,7 +2335,6 @@ class JointTransformerBlockAIC(nn.Module):
         _attn_original_attention_mask_was_none = True
 
         # JointAttnProcessor2_0 always expects encoder_hidden_states (not None).
-        # We also pass it as a regular tensor here.
         _attn_original_encoder_hidden_states_was_none = False
         original_input_onnx_dtype_code = dtype_map[hidden_states.dtype]
 
