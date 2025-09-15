@@ -7,7 +7,7 @@ from onnx import TensorProto
 from diffusers.models.activations import GELU
 
 from diffusers.models.attention import JointTransformerBlock
-from QEfficient.customop.mmdit_attn import AttentionFunc
+from QEfficient.customop.mmdit_attn import AttentionFunc, AttentionOnnx
 from QEfficient.customop.mmdit_feedforward import FeedForwardOnnx, FeedForwardFunc
 from QEfficient.customop.mmdit_adaLN import AdaLayerNormZeroOnnx, AdaLayerNormZeroFunc
 from QEfficient.customop.mmdit_attn_processor import JointAttnProcessor2_0Onnx
@@ -68,7 +68,6 @@ def JointTransformerBlockOnnx(
     attn_to_out_0_bias: onnxscript.FLOAT,
     attn_to_out_1_dropout_p: float,
     # attn_context_pre_only_flag: bool,  # This needs to be set to False for this export
-    attn_added_kv_proj_dim: int,
     attn_to_add_out_weight: onnxscript.FLOAT,
     attn_to_add_out_bias: onnxscript.FLOAT,
     # Weights and parameters for norm2 (RMSNormOnnx)
@@ -99,7 +98,6 @@ def JointTransformerBlockOnnx(
     attn_upcast_softmax: bool,
     _attn_original_encoder_hidden_states_was_none: bool,
     _attn_original_attention_mask_was_none: bool,
-    _original_input_onnx_dtype_code: int,
 ):
     # Fixed conditions: use_dual_attention = False, context_pre_only = False, _chunk_size = None
 
@@ -121,7 +119,7 @@ def JointTransformerBlockOnnx(
     # 3. Attention
     # ----------------------------------------------------------------------
     # JointAttnProcessor2_0Onnx returns (hidden_states_out, encoder_hidden_states_out)
-    attn_output, context_attn_output = JointAttnProcessor2_0Onnx(
+    attn_output, context_attn_output = AttentionOnnx(
         hidden_states=norm_hidden_states,
         encoder_hidden_states=norm_encoder_hidden_states,
         attention_mask=ops.Constant(value_float=0.0),  # Assuming attention_mask is handled externally or not dynamic
@@ -158,14 +156,12 @@ def JointTransformerBlockOnnx(
         to_out_0_weight=attn_to_out_0_weight,
         to_out_0_bias=attn_to_out_0_bias,
         to_out_1_dropout_p=attn_to_out_1_dropout_p,
-        attn_added_kv_proj_dim=attn_added_kv_proj_dim,
         to_add_out_weight=attn_to_add_out_weight,
         to_add_out_bias=attn_to_add_out_bias,
         attn_upcast_attention=attn_upcast_attention, # NEW
         attn_upcast_softmax=attn_upcast_softmax,  
         _attn_original_attention_mask_was_none=_attn_original_attention_mask_was_none,
         _attn_original_encoder_hidden_states_was_none=_attn_original_encoder_hidden_states_was_none,
-        _original_input_onnx_dtype_code=_original_input_onnx_dtype_code,
         
     )
     # Process attention outputs for the `hidden_states`.
@@ -284,7 +280,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_to_out_0_weight: torch.Tensor,
         attn_to_out_0_bias: torch.Tensor,
         attn_to_out_1_dropout_p: float,
-        attn_added_kv_proj_dim: int,
         attn_to_add_out_weight: torch.Tensor,
         attn_to_add_out_bias: torch.Tensor,
         # --- Parameters for norm2 (RMSNorm) ---
@@ -313,7 +308,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_upcast_softmax: bool,
         _attn_original_encoder_hidden_states_was_none: bool,
         _attn_original_attention_mask_was_none: bool,
-        _original_input_onnx_dtype_code:int,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # --- Replicate PyTorch forward logic for fixed conditions ---
         # use_dual_attention = False, context_pre_only = False, _chunk_size = None
@@ -368,14 +362,12 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_to_out_0_weight,
             attn_to_out_0_bias,
             attn_to_out_1_dropout_p,
-            attn_added_kv_proj_dim,
             attn_to_add_out_weight,
             attn_to_add_out_bias,
             attn_upcast_attention,
             attn_upcast_softmax,
             False,  # _original_encoder_hidden_states_was_none - always false for this case
             _attn_original_attention_mask_was_none,
-            _original_input_onnx_dtype_code,
         )
         # Process attention outputs for the `hidden_states`.
         # Assuming original `hidden_states` (input to this forward) is what is added to.
@@ -482,7 +474,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_to_out_0_weight: torch.Value,
         attn_to_out_0_bias: torch.Value,
         attn_to_out_1_dropout_p: torch.Value,
-        attn_added_kv_proj_dim: int,
         attn_to_add_out_weight: torch.Value,
         attn_to_add_out_bias: torch.Value,
         # Parameters for norm2 (RMSNorm)
@@ -515,7 +506,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_upcast_softmax: bool,
         _attn_original_encoder_hidden_states_was_none: bool,
         _attn_original_attention_mask_was_none: bool,
-        _original_input_onnx_dtype_code:int,
     ) -> Tuple[torch.Value, torch.Value]:
         # Pass all parameters directly to the ONNXScript function
         result = g.onnxscript_op(
@@ -562,7 +552,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_to_out_0_weight=attn_to_out_0_weight,
             attn_to_out_0_bias=attn_to_out_0_bias,
             attn_to_out_1_dropout_p_f=attn_to_out_1_dropout_p,
-            attn_added_kv_proj_dim_i=attn_added_kv_proj_dim,
             attn_to_add_out_weight=attn_to_add_out_weight,
             attn_to_add_out_bias=attn_to_add_out_bias,
             norm2_weight=norm2_weight,
@@ -591,7 +580,6 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_upcast_softmax_i=attn_upcast_softmax,
             _attn_original_encoder_hidden_states_was_none_b=_attn_original_encoder_hidden_states_was_none,
             _attn_original_attention_mask_was_none_b=_attn_original_attention_mask_was_none,
-            _original_input_onnx_dtype_code_i=_original_input_onnx_dtype_code,
         )
         return result
 
@@ -799,7 +787,6 @@ class JointTransformerBlockAIC(nn.Module):
         )
         self.attn_to_out_1_dropout_p = getattr(original_module.attn.to_out[1], "p", 0.0) if getattr(original_module.attn, "to_out", None) and len(original_module.attn.to_out) > 1 else 0.0
         self.attn_context_pre_only_flag = original_module.attn.context_pre_only
-        self.attn_added_kv_proj_dim = original_module.attn.added_kv_proj_dim
         
         self.attn_to_add_out_weight = _get_param_or_dummy_zero(
             getattr(getattr(original_module.attn, "to_add_out", None), "weight", None)
@@ -909,7 +896,7 @@ class JointTransformerBlockAIC(nn.Module):
 
         # JointAttnProcessor2_0 always expects encoder_hidden_states (not None).
         _attn_original_encoder_hidden_states_was_none = False
-        _original_input_onnx_dtype_code = dtype_map[hidden_states.dtype]
+        # _original_input_onnx_dtype_code = dtype_map[hidden_states.dtype]
 
         return JointTransformerBlockFunc.apply(
             hidden_states,
@@ -950,7 +937,6 @@ class JointTransformerBlockAIC(nn.Module):
             self.attn_to_out_0_weight,
             self.attn_to_out_0_bias,
             self.attn_to_out_1_dropout_p,
-            self.attn_added_kv_proj_dim,
             self.attn_to_add_out_weight,
             self.attn_to_add_out_bias,
             self.norm2_weight,
@@ -979,5 +965,4 @@ class JointTransformerBlockAIC(nn.Module):
             self.attn_upcast_softmax,
             _attn_original_encoder_hidden_states_was_none,
             _attn_original_attention_mask_was_none,
-            _original_input_onnx_dtype_code,
         )

@@ -21,7 +21,6 @@ def QEffAttentionGetScoresOnnx(
     self_upcast_attention: bool,     # Corresponds to `self.upcast_attention`
     self_upcast_softmax: bool,       # Corresponds to `self.upcast_softmax`
     self_scale: float,               # Corresponds to `self.scale`
-    _original_input_dtype_code: int,  # ONNX data type code of the original `query` input
 ):
     # 1. upcast_attention
     if self_upcast_attention:
@@ -79,7 +78,7 @@ def QEffAttentionGetScoresOnnx(
     attention_probs = ops.Softmax(attention_scores, axis=-1)
 
     # 6. Cast back to original dtype
-    attention_probs = ops.Cast(attention_probs, to=_original_input_dtype_code)
+    attention_probs = ops.CastLike(attention_probs, query)
 
     return attention_probs
 
@@ -149,7 +148,6 @@ def JointAttnProcessor2_0Onnx(
     attn_upcast_softmax: bool,
     _attn_original_attention_mask_was_none: bool,
     _attn_original_encoder_hidden_states_was_none: bool,
-    _original_input_onnx_dtype_code: int,
 ):
     residual = hidden_states
     batch_size = ops.Shape(hidden_states)[0]
@@ -270,7 +268,6 @@ def JointAttnProcessor2_0Onnx(
     self_upcast_attention=attn_upcast_attention,
     self_upcast_softmax=attn_upcast_softmax,
     self_scale=attn_scale,
-    _original_input_dtype_code=_original_input_onnx_dtype_code,
 )
     final_combined_hidden_states = ops.Bmm(attention_probs, value) # torch.bmm
 
@@ -371,7 +368,6 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         to_out_0_bias: torch.Tensor,
         to_out_1_dropout_p: float,
         # Other flags
-        attn_added_kv_proj_dim: int,
         to_add_out_weight: torch.Tensor,
         to_add_out_bias: torch.Tensor,
         attn_upcast_attention: bool,
@@ -382,7 +378,6 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         # This will allow proper `if encoder_hidden_states is not None` logic.
         _original_encoder_hidden_states_was_none: bool,
         _original_attention_mask_was_none: bool,
-        _original_input_onnx_dtype_code: int,
     ) -> Tuple[torch.Tensor, torch.Tensor]:  # Returns two tensors as per JointAttnProcessor2_0Onnx
         # Replicate PyTorch forward logic for JointAttnProcessor2_0
         residual = hidden_states
@@ -558,7 +553,6 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         attn_upcast_softmax: bool,
         _original_encoder_hidden_states_was_none: bool,  # From ctx
         _original_attention_mask_was_none: bool,  # From ctx
-        _original_input_onnx_dtype_code: int,
     ) -> Tuple[torch.Value, torch.Value]:
         # Pass all relevant parameters to the ONNXScript function.
         # The ONNXScript function will handle the conditional logic based on
@@ -605,7 +599,6 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
             attn_upcast_softmax_i=attn_upcast_softmax,
             _attn_original_attention_mask_was_none_b=_original_attention_mask_was_none,
             _attn_original_encoder_hidden_states_was_none_b=_original_encoder_hidden_states_was_none,
-            _original_input_onnx_dtype_code_i=_original_input_onnx_dtype_code,
         )
         return result
 
@@ -695,7 +688,6 @@ class JointAttnProcessor2_0AIC(nn.Module):
             self.norm_q_eps,
             self.norm_k_weight,
             self.norm_k_eps,
-            # self.norm_k_elementwise_affine,
             self.add_q_proj_weight,
             self.add_q_proj_bias,
             self.add_k_proj_weight,
