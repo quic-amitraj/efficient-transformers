@@ -673,7 +673,7 @@ def QEffAttentionGetScoresOnnx(
     self_upcast_attention: bool,     # Corresponds to `self.upcast_attention`
     self_upcast_softmax: bool,       # Corresponds to `self.upcast_softmax`
     self_scale: float,               # Corresponds to `self.scale`
-    original_input_dtype_code: int,  # ONNX data type code of the original `query` input
+    _original_input_dtype_code: int,  # ONNX data type code of the original `query` input
 ):
     # 1. upcast_attention
     if self_upcast_attention:
@@ -731,7 +731,7 @@ def QEffAttentionGetScoresOnnx(
     attention_probs = ops.Softmax(attention_scores, axis=-1)
 
     # 6. Cast back to original dtype
-    attention_probs = ops.Cast(attention_probs, to=original_input_dtype_code)
+    attention_probs = ops.Cast(attention_probs, to=_original_input_dtype_code)
 
     return attention_probs
 
@@ -799,8 +799,8 @@ def JointAttnProcessor2_0Onnx(
     to_add_out_bias: onnxscript.FLOAT,
     attn_upcast_attention: bool,
     attn_upcast_softmax: bool,
-    _attn_original_attention_mask_was_none_: bool,
-    _attn_original_encoder_hidden_states_was_none_: bool,
+    _attn_original_attention_mask_was_none: bool,
+    _attn_original_encoder_hidden_states_was_none: bool,
     _original_input_onnx_dtype_code: int,
 ):
     residual = hidden_states
@@ -922,7 +922,7 @@ def JointAttnProcessor2_0Onnx(
     self_upcast_attention=attn_upcast_attention,
     self_upcast_softmax=attn_upcast_softmax,
     self_scale=attn_scale,
-    original_input_dtype_code=_original_input_onnx_dtype_code,
+    _original_input_dtype_code=_original_input_onnx_dtype_code,
 )
     final_combined_hidden_states = ops.Bmm(attention_probs, value) # torch.bmm
 
@@ -1532,8 +1532,8 @@ def JointTransformerBlockOnnx(
     ff_context_project_out_bias: onnxscript.FLOAT,
     attn_upcast_attention: bool,
     attn_upcast_softmax: bool,
-    _attn_original_encoder_hidden_states_was_none_b: bool,
-    _attn_original_attention_mask_was_none_b: bool,
+    _attn_original_encoder_hidden_states_was_none: bool,
+    _attn_original_attention_mask_was_none: bool,
     _original_input_onnx_dtype_code: int,
 ):
     # Fixed conditions: use_dual_attention = False, context_pre_only = False, _chunk_size = None
@@ -1598,8 +1598,8 @@ def JointTransformerBlockOnnx(
         to_add_out_bias=attn_to_add_out_bias,
         attn_upcast_attention=attn_upcast_attention, # NEW
         attn_upcast_softmax=attn_upcast_softmax,  
-        _attn_original_attention_mask_was_none_=_attn_original_attention_mask_was_none_b,
-        _attn_original_encoder_hidden_states_was_none_=_attn_original_encoder_hidden_states_was_none_b,
+        _attn_original_attention_mask_was_none=_attn_original_attention_mask_was_none,
+        _attn_original_encoder_hidden_states_was_none=_attn_original_encoder_hidden_states_was_none,
         _original_input_onnx_dtype_code=_original_input_onnx_dtype_code,
         
     )
@@ -1882,15 +1882,15 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # Parameters for norm1 (AdaLayerNormZero)
         norm1_linear_weight: torch.Value,
         norm1_linear_bias: torch.Value,
-        norm1_epsilon: float,
+        norm1_epsilon: torch.Value,
         # Parameters for norm1_context (AdaLayerNormZero)
         norm1_context_linear_weight: torch.Value,
         norm1_context_linear_bias: torch.Value,
-        norm1_context_epsilon: float,
+        norm1_context_epsilon: torch.Value,
         # Parameters for attn (JointAttnProcessor2_0)
         attn_heads: int,
         attn_head_dim: int,
-        attn_scale: float,
+        attn_scale: torch.Value,
         attn_query_dim: int,
         attn_inner_dim: int,
         attn_inner_kv_dim: int,
@@ -1901,9 +1901,9 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_to_v_weight: torch.Value,
         attn_to_v_bias: torch.Value,
         attn_norm_q_weight: torch.Value,
-        attn_norm_q_eps: float,
+        attn_norm_q_eps: torch.Value,
         attn_norm_k_weight: torch.Value,
-        attn_norm_k_eps: float,
+        attn_norm_k_eps: torch.Value,
         attn_add_q_proj_weight: torch.Value,
         attn_add_q_proj_bias: torch.Value,
         attn_add_k_proj_weight: torch.Value,
@@ -1911,23 +1911,23 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_add_v_proj_weight: torch.Value,
         attn_add_v_proj_bias: torch.Value,
         attn_norm_added_q_weight: torch.Value,
-        attn_norm_added_q_eps: float,
+        attn_norm_added_q_eps: torch.Value,
         attn_norm_added_k_weight: torch.Value,
-        attn_norm_added_k_eps: float,
+        attn_norm_added_k_eps: torch.Value,
         attn_to_out_0_weight: torch.Value,
         attn_to_out_0_bias: torch.Value,
-        attn_to_out_1_dropout_p: float,
+        attn_to_out_1_dropout_p: torch.Value,
         attn_added_kv_proj_dim: int,
         attn_to_add_out_weight: torch.Value,
         attn_to_add_out_bias: torch.Value,
         # Parameters for norm2 (RMSNorm)
         norm2_weight: torch.Value,
-        norm2_eps: float,
+        norm2_eps: torch.Value,
         # Parameters for ff (FeedForward)
         ff_dim: int,
         ff_dim_out: int,
         ff_mult: int,
-        ff_dropout_ratio: float,
+        ff_dropout_ratio: torch.Value,
         ff_final_dropout: bool,
         ff_act_fn_proj_weight: torch.Value,
         ff_act_fn_proj_bias: torch.Value,
@@ -1935,12 +1935,12 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         ff_project_out_bias: torch.Value,
         # Parameters for norm2_context (RMSNorm)
         norm2_context_weight: torch.Value,
-        norm2_context_eps: float,
+        norm2_context_eps: torch.Value,
         # Parameters for ff_context (FeedForward)
         ff_context_dim: int,
         ff_context_dim_out: int,
         ff_context_mult: int,
-        ff_context_dropout_ratio: float,
+        ff_context_dropout_ratio: torch.Value,
         ff_context_final_dropout: bool,
         ff_context_act_fn_proj_weight: torch.Value,
         ff_context_act_fn_proj_bias: torch.Value,
@@ -1964,10 +1964,10 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             # If JointTransformerBlockOnnx were generic, these would be passed.
             norm1_linear_weight,
             norm1_linear_bias,
-            norm1_epsilon,
             norm1_context_linear_weight,
             norm1_context_linear_bias,
-            norm1_context_epsilon,
+            norm1_context_epsilon_f=norm1_context_epsilon,
+            norm1_epsilon_f=norm1_epsilon,
             attn_heads_i=attn_heads,
             attn_head_dim_i=attn_head_dim,
             attn_scale_f=attn_scale,
