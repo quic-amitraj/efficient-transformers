@@ -13,10 +13,12 @@ from torch import nn
 
 from QEfficient.base.pytorch_transforms import ModuleMappingTransform
 from QEfficient.customop.rms_norm import CustomRMSNormAIC
-from QEfficient.customop.mmdit import (
+from QEfficient.customop.mmdit_attn_processor import (
     JointAttnProcessor2_0AIC,
-    JointTransformerBlockAIC,
+    
 )
+from QEfficient.customop.mmdit_transformer_block import JointTransformerBlockAIC
+from QEfficient.customop.mmdit_attn import AttentionAIC
 from QEfficient.diffusers.models.attention import QEffJointTransformerBlock
 from QEfficient.diffusers.models.attention_processor import (
     QEffAttention,
@@ -26,8 +28,9 @@ from QEfficient.diffusers.models.attention_processor import (
 class SD3TransformerBlockTransform:
     
     MODULE_REPLACEMENTS = {
-        JointTransformerBlock: JointTransformerBlockAIC,
-        # JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
+        # JointTransformerBlock: JointTransformerBlockAIC,
+        Attention: AttentionAIC,
+        JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
         # Add more mappings here as needed
     }
 
@@ -53,6 +56,7 @@ class SD3TransformerBlockTransform:
                 # If the child module is not the one we want to replace at this level,
                 # recurse into its children to find JointTransformerBlocks deeper in the hierarchy.
                 # This handles cases where JTB is inside ModuleList or other containers.
+                # breakpoint()
                 _, child_transformed = cls.apply(child_module)
                 if child_transformed:
                     transformed = True
