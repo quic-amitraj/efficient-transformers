@@ -1530,11 +1530,11 @@ def JointTransformerBlockOnnx(
     ff_context_act_fn_proj_bias: onnxscript.FLOAT,
     ff_context_project_out_weight: onnxscript.FLOAT,
     ff_context_project_out_bias: onnxscript.FLOAT,
-    attn_upcast_attention: bool, 
+    attn_upcast_attention: bool,
     attn_upcast_softmax: bool,
-    _attn_original_encoder_hidden_states_was_none: bool,
-    _attn_original_attention_mask_was_none: bool,
-    _original_input_onnx_dtype_code:int,
+    _attn_original_encoder_hidden_states_was_none_b: bool,
+    _attn_original_attention_mask_was_none_b: bool,
+    _original_input_onnx_dtype_code: int,
 ):
     # Fixed conditions: use_dual_attention = False, context_pre_only = False, _chunk_size = None
 
@@ -1598,9 +1598,10 @@ def JointTransformerBlockOnnx(
         to_add_out_bias=attn_to_add_out_bias,
         attn_upcast_attention=attn_upcast_attention, # NEW
         attn_upcast_softmax=attn_upcast_softmax,  
-        _attn_original_attention_mask_was_none_b=_attn_original_attention_mask_was_none,
-        _attn_original_encoder_hidden_states_was_none_b=_attn_original_encoder_hidden_states_was_none,
+        _attn_original_attention_mask_was_none_=_attn_original_attention_mask_was_none_b,
+        _attn_original_encoder_hidden_states_was_none_=_attn_original_encoder_hidden_states_was_none_b,
         _original_input_onnx_dtype_code=_original_input_onnx_dtype_code,
+        
     )
     # Process attention outputs for the `hidden_states`.
     attn_output = ops.Mul(ops.Unsqueeze(gate_msa, axes=[1]), attn_output)

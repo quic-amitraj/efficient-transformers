@@ -51,7 +51,6 @@ class QEFFBaseModel(ABC):
         self.onnx_path: Optional[str] = None
         self.qpc_path: Optional[str] = None
         self.qpc_session: Optional[QAICInferenceSession] = None
-        breakpoint()
         # Apply the transformations
         any_transformed = False
         for transform in self._pytorch_transforms:
