@@ -28,7 +28,7 @@ from QEfficient.diffusers.models.attention_processor import (
 class SD3TransformerBlockTransform:
     
     MODULE_REPLACEMENTS = {
-        # JointTransformerBlock: JointTransformerBlockAIC,
+        JointTransformerBlock: JointTransformerBlockAIC,
         Attention: AttentionAIC,
         JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
         # Add more mappings here as needed

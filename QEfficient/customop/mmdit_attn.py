@@ -1,27 +1,107 @@
 import torch
 import torch.nn as nn
-import inspect
 from typing import Optional, Tuple, Dict, Any
-import onnx
-import torch
-import torch.nn as nn
-import inspect
-from typing import Optional, Tuple, Dict, Any
+import onnxscript
 from diffusers.models.attention_processor import Attention
-from QEfficient.customop.mmdit import JointAttnProcessor2_0Func
+from QEfficient.customop.mmdit_attn_processor import JointAttnProcessor2_0Func, JointAttnProcessor2_0Onnx
 
+CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
+# Import the ONNX Script opset for version 13
+ops = getattr(onnxscript, "opset" + str(13))
+
+@onnxscript.script(CUSTOM_OPSET)
+def AttentionOnnx(
+    hidden_states:  onnxscript.FLOAT,
+    encoder_hidden_states_to_pass: onnxscript.FLOAT,
+    attention_mask_to_pass: onnxscript.FLOAT,
+    attn_heads: int,
+    attn_head_dim: int,
+    attn_scale: float,
+    attn_query_dim: int,
+    attn_inner_dim: int,
+    attn_inner_kv_dim: int,
+    to_q_weight: onnxscript.FLOAT,
+    to_q_bias: onnxscript.FLOAT,
+    to_k_weight: onnxscript.FLOAT,
+    to_k_bias: onnxscript.FLOAT,
+    to_v_weight: onnxscript.FLOAT,
+    to_v_bias: onnxscript.FLOAT,
+    norm_q_weight: onnxscript.FLOAT,
+    norm_q_eps: float,
+    norm_k_weight: onnxscript.FLOAT,
+    norm_k_eps: float,
+    add_q_proj_weight: onnxscript.FLOAT,
+    add_q_proj_bias: onnxscript.FLOAT,
+    add_k_proj_weight: onnxscript.FLOAT,
+    add_k_proj_bias: onnxscript.FLOAT,
+    add_v_proj_weight: onnxscript.FLOAT,
+    add_v_proj_bias: onnxscript.FLOAT,
+    norm_added_q_weight: onnxscript.FLOAT,
+    norm_added_q_eps: float,
+    norm_added_k_weight: onnxscript.FLOAT,
+    norm_added_k_eps: float,
+    to_out_0_weight: onnxscript.FLOAT,
+    to_out_0_bias: onnxscript.FLOAT,
+    to_out_1_dropout_p: float,
+    attn_added_kv_proj_dim: int,
+    to_add_out_weight: onnxscript.FLOAT,
+    to_add_out_bias: onnxscript.FLOAT,
+    attn_upcast_attention: bool,
+    attn_upcast_softmax: bool,
+    _original_encoder_hidden_states_was_none: bool,
+    _original_attention_mask_was_none: bool,
+    _original_input_onnx_dtype_code: int,                
+):
+    return JointAttnProcessor2_0Onnx(
+        hidden_states,
+        encoder_hidden_states_to_pass, # Prepared dummy or actual
+        attention_mask_to_pass,        # Prepared dummy or actual
+        attn_heads,
+        attn_head_dim,
+        attn_scale,
+        attn_query_dim,
+        attn_inner_dim,
+        attn_inner_kv_dim,
+        to_q_weight,
+        to_q_bias,
+        to_k_weight,
+        to_k_bias,
+        to_v_weight,
+        to_v_bias,    
+        norm_q_weight,
+        norm_q_eps,
+        norm_k_weight,
+        norm_k_eps,
+        add_q_proj_weight,
+        add_q_proj_bias,
+        add_k_proj_weight,
+        add_k_proj_bias,
+        add_v_proj_weight,
+        add_v_proj_bias,
+        norm_added_q_weight,
+        norm_added_q_eps,
+        norm_added_k_weight,
+        norm_added_k_eps,
+        to_out_0_weight,
+        to_out_0_bias,
+        to_out_1_dropout_p,
+        attn_added_kv_proj_dim,
+        to_add_out_weight,
+        to_add_out_bias,
+        attn_upcast_attention,
+        attn_upcast_softmax,
+        _original_encoder_hidden_states_was_none,
+        _original_attention_mask_was_none,
+        _original_input_onnx_dtype_code,                
+    )
+    
 # This class will house the autograd.Function for the Attention block
 class AttentionFunc(torch.autograd.Function):
     @staticmethod
     def forward(
-        # Inputs from the Attention module's forward
         hidden_states: torch.Tensor,
         encoder_hidden_states_to_pass: torch.Tensor, # Prepared dummy or actual
         attention_mask_to_pass: torch.Tensor,        # Prepared dummy or actual
-        # Flags
-        _original_encoder_hidden_states_was_none: bool,
-        _original_attention_mask_was_none: bool,
-        original_input_onnx_dtype_code: int,
         # All parameters from JointAttnProcessor2_0Func (assuming 'self' from Attention)
         attn_heads: int,
         attn_head_dim: int,
@@ -57,6 +137,9 @@ class AttentionFunc(torch.autograd.Function):
         to_add_out_bias: torch.Tensor,
         attn_upcast_attention: bool,
         attn_upcast_softmax: bool,
+        _original_encoder_hidden_states_was_none: bool,
+        _original_attention_mask_was_none: bool,
+        _original_input_onnx_dtype_code: int,
     ) -> torch.Tensor:
 
         # Call the lower-level processor's apply method
@@ -102,7 +185,7 @@ class AttentionFunc(torch.autograd.Function):
             attn_upcast_softmax,
             _original_encoder_hidden_states_was_none,
             _original_attention_mask_was_none,
-            original_input_onnx_dtype_code,
+            _original_input_onnx_dtype_code,
         )
         return attn_output
 
@@ -112,9 +195,6 @@ class AttentionFunc(torch.autograd.Function):
         hidden_states: torch.Value,
         encoder_hidden_states_to_pass: torch.Value,
         attention_mask_to_pass: torch.Value,
-        _original_encoder_hidden_states_was_none: bool,
-        _original_attention_mask_was_none: bool,
-        original_input_onnx_dtype_code: int,
         attn_heads: int,
         attn_head_dim: int,
         attn_scale: float,
@@ -149,12 +229,14 @@ class AttentionFunc(torch.autograd.Function):
         to_add_out_bias: torch.Value,
         attn_upcast_attention: bool,
         attn_upcast_softmax: bool,
+        _original_encoder_hidden_states_was_none: bool,
+        _original_attention_mask_was_none: bool,
+        _original_input_onnx_dtype_code: int,
         # Add elementwise_affine parameters here if they are part of your real signature
     ) -> torch.Value:
         # Here we call the symbolic method of the underlying processor (JointAttnProcessor2_0Func)
         # This will construct the ONNX graph for the attention operation.
-        attn_output, context_attn_output = JointAttnProcessor2_0Func.symbolic(
-            g, # The graph builder
+        attn_output, context_attn_output = g.onnxscript_op(AttentionOnnx,
             hidden_states,
             encoder_hidden_states_to_pass,
             attention_mask_to_pass,
@@ -194,7 +276,7 @@ class AttentionFunc(torch.autograd.Function):
             attn_upcast_softmax,
             _original_encoder_hidden_states_was_none,
             _original_attention_mask_was_none,
-            original_input_onnx_dtype_code,
+            _original_input_onnx_dtype_code,
         )
         return attn_output
     
@@ -206,73 +288,7 @@ class AttentionAIC(nn.Module):
     """
     def __init__(self, original_module: Attention):
         super().__init__()
-        self.attn = original_module
-        self._extract_parameters(original_module)
-
-    def _extract_parameters(self, attn_module: Attention):
-        def get_param_or_dummy_zero(param, default_shape_dim=None, device=None, dtype=None):
-            if isinstance(param, nn.Parameter): return param
-            if param is None:
-                if device is None: device = torch.device("cpu")
-                if dtype is None: dtype = torch.float32
-                if default_shape_dim is not None:
-                    if isinstance(default_shape_dim, int):
-                        return nn.Parameter(torch.zeros(default_shape_dim, device=device, dtype=dtype))
-                    if isinstance(default_shape_dim, tuple):
-                        return nn.Parameter(torch.zeros(default_shape_dim, device=device, dtype=dtype))
-                return nn.Parameter(torch.tensor(0.0, device=device, dtype=dtype)) 
-            return param
-
-        device = attn_module.to_q.weight.device
-        dtype = attn_module.to_q.weight.dtype
-
-        # Store all parameters that AttentionFuncAIC expects
-        self.attn_heads = attn_module.heads
-        self.attn_head_dim = attn_module.inner_dim // attn_module.heads
-        self.attn_scale = attn_module.scale
-        self.attn_query_dim = attn_module.query_dim
-        self.attn_inner_dim = attn_module.inner_dim
-        self.attn_inner_kv_dim = attn_module.inner_kv_dim
-        self.attn_upcast_attention = attn_module.upcast_attention
-        self.attn_upcast_softmax = attn_module.upcast_softmax
-        self.attn_added_kv_proj_dim = attn_module.added_kv_proj_dim
-
-        self.to_q_weight = attn_module.to_q.weight
-        self.to_q_bias = get_param_or_dummy_zero(attn_module.to_q.bias, attn_module.to_q.out_features, device, dtype)
-        self.to_k_weight = attn_module.to_k.weight
-        self.to_k_bias = get_param_or_dummy_zero(attn_module.to_k.bias, attn_module.to_k.out_features, device, dtype)
-        self.to_v_weight = attn_module.to_v.weight
-        self.to_v_bias = get_param_or_dummy_zero(attn_module.to_v.bias, attn_module.to_v.out_features, device, dtype)
-
-        self.norm_q_weight = get_param_or_dummy_zero(attn_module.norm_q.weight, (self.attn_head_dim,), device, dtype)
-        self.norm_q_eps = attn_module.norm_q.eps if hasattr(attn_module.norm_q, "eps") else 1e-6
-        self.norm_q_elementwise_affine = attn_module.norm_q.elementwise_affine if hasattr(attn_module.norm_q, "elementwise_affine") else False
-        self.norm_k_weight = get_param_or_dummy_zero(attn_module.norm_k.weight, (self.attn_head_dim,), device, dtype)
-        self.norm_k_eps = attn_module.norm_k.eps if hasattr(attn_module.norm_k, "eps") else 1e-6
-        self.norm_k_elementwise_affine = attn_module.norm_k.elementwise_affine if hasattr(attn_module.norm_k, "elementwise_affine") else False
-
-        self.add_q_proj_weight = get_param_or_dummy_zero(attn_module.add_q_proj.weight, attn_module.add_q_proj.out_features, device, dtype)
-        self.add_q_proj_bias = get_param_or_dummy_zero(attn_module.add_q_proj.bias, attn_module.add_q_proj.out_features, device, dtype)
-        self.add_k_proj_weight = get_param_or_dummy_zero(attn_module.add_k_proj.weight, attn_module.add_k_proj.out_features, device, dtype)
-        self.add_k_proj_bias = get_param_or_dummy_zero(attn_module.add_k_proj.bias, attn_module.add_k_proj.out_features, device, dtype)
-        self.add_v_proj_weight = get_param_or_dummy_zero(attn_module.add_v_proj.weight, attn_module.add_v_proj.out_features, device, dtype)
-        self.add_v_proj_bias = get_param_or_dummy_zero(attn_module.add_v_proj.bias, attn_module.add_v_proj.out_features, device, dtype)
-
-        self.norm_added_q_weight = get_param_or_dummy_zero(attn_module.norm_added_q.weight, (self.attn_head_dim,), device, dtype)
-        self.norm_added_q_eps = attn_module.norm_added_q.eps if hasattr(attn_module.norm_added_q, "eps") else 1e-6
-        self.norm_added_q_elementwise_affine = attn_module.norm_added_q.elementwise_affine if hasattr(attn_module.norm_added_q, "elementwise_affine") else False
-        self.norm_added_k_weight = get_param_or_dummy_zero(attn_module.norm_added_k.weight, (self.attn_head_dim,), device, dtype)
-        self.norm_added_k_eps = attn_module.norm_added_k.eps if hasattr(attn_module.norm_added_k, "eps") else 1e-6
-        self.norm_added_k_elementwise_affine = attn_module.norm_added_k.elementwise_affine if hasattr(attn_module.norm_added_k, "elementwise_affine") else False
-
-        self.to_out_0_weight = attn_module.to_out[0].weight
-        self.to_out_0_bias = get_param_or_dummy_zero(attn_module.to_out[0].bias, attn_module.to_out[0].out_features, device, dtype)
-        self.to_out_1_dropout_p = attn_module.to_out[1].p
-
-        self.to_add_out_weight = None#get_param_or_dummy_zero(attn_module.to_add_out.weight, attn_module.to_add_out.out_features, device, dtype)
-       
-        self.to_add_out_bias = None#get_param_or_dummy_zero(attn_module.to_add_out.bias, attn_module.to_add_out.out_features, device, dtype)
-        
+    
     def forward(
         self,
         hidden_states: torch.FloatTensor,
@@ -312,81 +328,57 @@ class AttentionAIC(nn.Module):
         to_add_out_bias: torch.Tensor,
         attn_upcast_attention: bool,
         attn_upcast_softmax: bool,
-        *args,
-        **kwargs,
+        _original_encoder_hidden_states_was_none: bool,
+        _original_attention_mask_was_none: bool,
+        _original_input_onnx_dtype_code: int,
     ) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
 
-        _original_encoder_hidden_states_was_none = (encoder_hidden_states is None) or (
-            encoder_hidden_states.numel() == 0
-        )
-        _original_attention_mask_was_none = (attention_mask is None) or (
-            attention_mask.numel() == 0
-        )
-
-        device = hidden_states.device
-        dtype = hidden_states.dtype
-        _original_input_onnx_dtype_code = (
-            onnx.TensorProto.FLOAT if dtype == torch.float32 else onnx.TensorProto.UNDEFINED
-        )
-
-        encoder_hidden_states_to_pass = encoder_hidden_states
-        if _original_encoder_hidden_states_was_none:
-            encoder_hidden_states_to_pass = torch.empty(0, device=device, dtype=dtype)
-
-        attention_mask_to_pass = attention_mask
-        if _original_attention_mask_was_none:
-            attention_mask_to_pass = torch.empty(0, device=device, dtype=dtype)
-        
         # Convert float parameters to torch.Tensor for the autograd.Function call
-        norm_q_eps_tensor = torch.tensor(self.norm_q_eps, dtype=dtype, device=device)
-        norm_k_eps_tensor = torch.tensor(self.norm_k_eps, dtype=dtype, device=device)
-        norm_added_q_eps_tensor = torch.tensor(self.norm_added_q_eps, dtype=dtype, device=device)
-        norm_added_k_eps_tensor = torch.tensor(self.norm_added_k_eps, dtype=dtype, device=device)
-        to_out_1_dropout_p_tensor = torch.tensor(self.to_out_1_dropout_p, dtype=dtype, device=device)
+        # norm_q_eps_tensor = torch.tensor(self.norm_q_eps, dtype=dtype, device=device)
+        # norm_k_eps_tensor = torch.tensor(self.norm_k_eps, dtype=dtype, device=device)
+        # norm_added_q_eps_tensor = torch.tensor(self.norm_added_q_eps, dtype=dtype, device=device)
+        # norm_added_k_eps_tensor = torch.tensor(self.norm_added_k_eps, dtype=dtype, device=device)
+        # to_out_1_dropout_p_tensor = torch.tensor(self.to_out_1_dropout_p, dtype=dtype, device=device)
 
         # Call the higher-level AttentionFuncAIC.apply
         return AttentionFunc.apply(
             hidden_states,
-            encoder_hidden_states_to_pass,
-            attention_mask_to_pass,
-            self.attn_heads,
-            self.attn_head_dim,
-            self.attn_scale,
-            self.attn_query_dim,
-            self.attn_inner_dim,
-            self.attn_inner_kv_dim,
-            self.attn_added_kv_proj_dim,
-            self.attn_upcast_attention,
-            self.attn_upcast_softmax,
-            self.to_q_weight,
-            self.to_q_bias,
-            self.to_k_weight,
-            self.to_k_bias,
-            self.to_v_weight,
-            self.to_v_bias,
-            self.norm_q_weight,
-            norm_q_eps_tensor,
-            self.norm_q_elementwise_affine,
-            self.norm_k_weight,
-            norm_k_eps_tensor,
-            self.norm_k_elementwise_affine,
-            self.add_q_proj_weight,
-            self.add_q_proj_bias,
-            self.add_k_proj_weight,
-            self.add_k_proj_bias,
-            self.add_v_proj_weight,
-            self.add_v_proj_bias,
-            self.norm_added_q_weight,
-            norm_added_q_eps_tensor,
-            self.norm_added_q_elementwise_affine,
-            self.norm_added_k_weight,
-            norm_added_k_eps_tensor,
-            self.norm_added_k_elementwise_affine,
-            self.to_out_0_weight,
-            self.to_out_0_bias,
-            to_out_1_dropout_p_tensor,
-            self.to_add_out_weight,
-            self.to_add_out_bias,
+            encoder_hidden_states,
+            attention_mask,
+            attn_heads,
+            attn_head_dim,
+            attn_scale,
+            attn_query_dim,
+            attn_inner_dim,
+            attn_inner_kv_dim,
+            to_q_weight,
+            to_q_bias,
+            to_k_weight,
+            to_k_bias,
+            to_v_weight,
+            to_v_bias,
+            norm_q_weight,
+            norm_q_eps,
+            norm_k_weight,
+            norm_k_eps,
+            add_q_proj_weight,
+            add_q_proj_bias,
+            add_k_proj_weight,
+            add_k_proj_bias,
+            add_v_proj_weight,
+            add_v_proj_bias,
+            norm_added_q_weight,
+            norm_added_q_eps,
+            norm_added_k_weight,
+            norm_added_k_eps,
+            to_out_0_weight,
+            to_out_0_bias,
+            to_out_1_dropout_p,
+            attn_added_kv_proj_dim,
+            to_add_out_weight,
+            to_add_out_bias,
+            attn_upcast_attention,
+            attn_upcast_softmax,
             _original_encoder_hidden_states_was_none,
             _original_attention_mask_was_none,
             _original_input_onnx_dtype_code,
