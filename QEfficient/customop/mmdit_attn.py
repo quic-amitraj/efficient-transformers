@@ -99,6 +99,7 @@ def AttentionOnnx(
 class AttentionFunc(torch.autograd.Function):
     @staticmethod
     def forward(
+        ctx,
         hidden_states: torch.Tensor,
         encoder_hidden_states_to_pass: torch.Tensor, # Prepared dummy or actual
         attention_mask_to_pass: torch.Tensor,        # Prepared dummy or actual
