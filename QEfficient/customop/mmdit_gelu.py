@@ -44,25 +44,21 @@ def GELUOnnx(
 class GELUFunc(torch.autograd.Function):
     @staticmethod
     def forward(
-        ctx,  # ctx is still required
         hidden_states: torch.Tensor,
         proj_weight: torch.Tensor,
         proj_bias: torch.Tensor,
-        approximate_type: str,  # "none" or "tanh"
     ) -> torch.Tensor:
         # 1. Apply the Linear Projection (self.proj(hidden_states))
         projected_states = F.linear(hidden_states, proj_weight, proj_bias)
 
         # 2. Apply the GELU activation using F.gelu
-        # Handle MPS specific logic if it's relevant for your deployment
-        # For general PyTorch/ONNX export, we mostly rely on F.gelu's CPU/CUDA behavior.
-        if projected_states.device.type == "mps" and projected_states.dtype == torch.float16:
-            # Replicate mps: gelu is not implemented for float16
-            output = F.gelu(projected_states.to(dtype=torch.float32), approximate=approximate_type).to(
-                dtype=projected_states.dtype
-            )
-        else:
-            output = F.gelu(projected_states, approximate=approximate_type)
+    #    if projected_states.dtype == torch.float16:
+        #     # Replicate mps: gelu is not implemented for float16
+        #     output = F.gelu(projected_states.to(dtype=torch.float32), approximate='tanh').to(
+        #         dtype=projected_states.dtype
+        #     )
+        # else:
+        output = F.gelu(projected_states, approximate='tanh')
 
         return output
 
@@ -80,16 +76,15 @@ class GELUFunc(torch.autograd.Function):
         hidden_states: torch.Value,
         proj_weight: torch.Value,
         proj_bias: torch.Value,
-        approximate_type: str,  # Passed as Python string
     ) -> torch.Value:
         # Call the corresponding ONNXScript function based on approximate_type
-        if approximate_type == "tanh":
-            result = g.onnxscript_op(
-                GELUOnnx,
-                hidden_states,
-                proj_weight,
-                proj_bias,
-            )
+        
+        result = g.onnxscript_op(
+            GELUOnnx,
+            hidden_states,
+            proj_weight,
+            proj_bias,
+        )
         return result
 
 
@@ -106,9 +101,6 @@ class GELUAIC(nn.Module):
         # Handle bias being None if original_module.proj.bias was False
         self.proj_bias = original_module.proj.bias if original_module.proj.bias is not None else None
 
-        # Extract the approximate type string
-        self.approximate_type = original_module.approximate
-
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
         # Ensure bias tensor is handled correctly (e.g., pass a zero tensor if None)
         # The ONNXScript function expects a bias tensor even if it's all zeros.
@@ -124,6 +116,5 @@ class GELUAIC(nn.Module):
             hidden_states,
             self.proj_weight,
             proj_bias_to_pass,
-            self.approximate_type,
         )
 

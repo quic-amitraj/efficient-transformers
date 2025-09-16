@@ -2,22 +2,21 @@ import onnxscript
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import math
 from diffusers.models.attention import FeedForward
+
 
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
 ops = getattr(onnxscript, "opset" + str(13))
 
-from QEfficient.customop.mmdit_gelu import GELUOnnx
+SQRT_2_DIV_PI = float(math.sqrt(2.0 / math.pi))
+GELU_APPROX_COEFF = 0.044715
+
 # ff_context #ff
 @onnxscript.script(CUSTOM_OPSET)
 def FeedForwardOnnx(
     hidden_states: onnxscript.FLOAT,
-    dim: int,
-    dim_out: int,  # `dim_out` from FeedForward init (output dimension of the block)
-    mult: int,  # `mult` from FeedForward init (used to calculate inner_dim)
     dropout_ratio: float,  # `dropout` for nn.Dropout
-    final_dropout: bool,  # `final_dropout` bool
     act_fn_proj_weight: onnxscript.FLOAT,
     act_fn_proj_bias: onnxscript.FLOAT,
     project_out_weight: onnxscript.FLOAT,
@@ -25,14 +24,33 @@ def FeedForwardOnnx(
 ):
     # Calculate inner_dim as in PyTorch FeedForward.__init__
     # inner_dim = int(dim * mult)
-    inner_dim_val = ops.Cast(ops.Mul(dim, mult), to=6)  # 6 is ONNX INT64
+    # inner_dim_val = ops.Cast(ops.Mul(dim, mult), to=6)  # 6 is ONNX INT64
     # 1. Apply act_fn (which is GELUOnnx here)
-    ff_output = GELUOnnx(
-        hidden_states,
-        act_fn_proj_weight,
-        act_fn_proj_bias,
-    )
+    # Linear projection part:
+    projected_states = ops.MatMul(hidden_states, ops.Transpose(act_fn_proj_weight, perm=[1, 0]))
+    projected_states = ops.Add(projected_states, act_fn_proj_bias)
 
+    # GELU(approximate="tanh") part:
+    x = projected_states
+    x_cubed = ops.Pow(x, ops.Constant(value_float=3.0))
+    
+    term_x_plus_044715_x_cubed = ops.Add(x, ops.Mul(ops.Constant(value_float=GELU_APPROX_COEFF), x_cubed))
+    
+    argument_for_tanh = ops.Mul(ops.Constant(value_float=SQRT_2_DIV_PI), term_x_plus_044715_x_cubed)
+    
+    tanh_val = ops.Tanh(argument_for_tanh)
+    one_plus_tanh_val = ops.Add(ops.Constant(value_float=1.0), tanh_val)
+    ff_output_after_gelu = ops.Mul(ops.Mul(ops.Constant(value_float=0.5), x), one_plus_tanh_val)
+    
+    # --- 2. Apply Dropout ---
+    dropout_ratio_tensor = ops.Constant(value_float=dropout_ratio)
+    
+    # Using value_int=0 for training_mode=False (inference)
+    output_after_dropout, _ = ops.Dropout(ff_output_after_gelu, dropout_ratio_tensor, ops.Constant(value_int=0))
+
+    # --- 3. Apply the final output projection (Linear layer) ---
+    final_output = ops.MatMul(output_after_dropout, ops.Transpose(project_out_weight, perm=[1, 0]))
+    ff_output = ops.Add(final_output, project_out_bias)
     # 2. Apply first Dropout
 
     ff_output = ops.Dropout(ff_output, ratio=dropout_ratio)
@@ -43,8 +61,8 @@ def FeedForwardOnnx(
     ff_output = ops.Add(ff_output, project_out_bias)
 
     # 4. Apply final Dropout (if final_dropout is True)
-    if final_dropout:
-        ff_output = ops.Dropout(ff_output, ratio=dropout_ratio)
+    # if final_dropout:
+    #     ff_output = ops.Dropout(ff_output, ratio=dropout_ratio)
 
     return ff_output
 
@@ -53,12 +71,7 @@ class FeedForwardFunc(torch.autograd.Function):
     @staticmethod
     def forward(
         hidden_states: torch.Tensor,
-        # Parameters derived from FeedForward __init__
-        dim: int,
-        dim_out: int,
-        mult: int,
         dropout_ratio: float,
-        final_dropout: bool,
         # Only parameters for 'gelu-approximate' act_fn
         act_fn_proj_weight: torch.Tensor,
         act_fn_proj_bias: torch.Tensor,  # Passed if bias=True
@@ -69,12 +82,9 @@ class FeedForwardFunc(torch.autograd.Function):
         # Replicate PyTorch forward logic for 'gelu-approximate' only
 
         # 1. Apply act_fn (GELU with approximate="tanh")
-        # Corresponds to: `hidden_states = GELU(dim, inner_dim, approximate="tanh", bias=bias)(hidden_states)`
-        # GELU's internal linear projection
         projected_gelu_input = F.linear(hidden_states, act_fn_proj_weight, act_fn_proj_bias)
         # Apply GELU activation with approximate="tanh"
         ff_output = F.gelu(projected_gelu_input, approximate="tanh")
-
         # 2. Apply first Dropout
         ff_output = F.dropout(ff_output, p=dropout_ratio, training=False)  # For inference, training=False
 
@@ -82,8 +92,8 @@ class FeedForwardFunc(torch.autograd.Function):
         ff_output = F.linear(ff_output, project_out_weight, project_out_bias)
 
         # 4. Apply final Dropout (if final_dropout is True)
-        if final_dropout:
-            ff_output = F.dropout(ff_output, p=dropout_ratio, training=False)  # For inference, training=False
+        # if final_dropout:
+        #     ff_output = F.dropout(ff_output, p=dropout_ratio, training=False)  # For inference, training=False
 
         return ff_output
 
@@ -99,11 +109,7 @@ class FeedForwardFunc(torch.autograd.Function):
     def symbolic(
         g: torch.Graph,
         hidden_states: torch.Value,
-        dim: int,
-        dim_out: int,
-        mult: int,
-        dropout_ratio: float,
-        final_dropout: bool,
+        dropout_ratio: torch.Value,
         act_fn_proj_weight: torch.Value,
         act_fn_proj_bias: torch.Value,
         project_out_weight: torch.Value,
@@ -116,15 +122,11 @@ class FeedForwardFunc(torch.autograd.Function):
         result = g.onnxscript_op(
             FeedForwardOnnx,
             hidden_states,
-            dim=dim,
-            dim_out=dim_out,
-            mult_i=mult,
+            act_fn_proj_weight,
+            act_fn_proj_bias,
+            project_out_weight,
+            project_out_bias,
             dropout_ratio_f=dropout_ratio,
-            final_dropout_f=final_dropout,
-            act_fn_proj_weight=act_fn_proj_weight,
-            act_fn_proj_bias=act_fn_proj_bias,
-            project_out_weight=project_out_weight,
-            project_out_bias=project_out_bias,
         )
         return result
 
@@ -136,34 +138,28 @@ class FeedForwardAIC(nn.Module):
     This version is specialized for 'gelu-approximate' activation.
     """
 
-    def __init__(self, original_module: "FeedForward"):  # Use 'FeedForward' string for forward reference
+    def __init__(self, original_module: FeedForward):  # Use 'FeedForward' string for forward reference
         super().__init__()
         # Store essential configuration parameters
-        self.dim = original_module.dim
-        self.dim_out = original_module.dim_out if original_module.dim_out is not None else original_module.dim
-        self.mult = original_module.mult
-        self.dropout_ratio = original_module.dropout
-        self.final_dropout = original_module.final_dropout
-        self.bias = original_module.bias  # Indicates if original linear layers had bias
+        self.dropout_ratio = original_module.net[1].p
+        
+        # if len(original_module.net) > 3 and isinstance(original_module.net[3], torch.nn.Dropout):
+        #     self.final_dropout = True
+        # else:
+        #     self.final_dropout = False  # default if absent
 
-        # # Validate that the original module actually uses 'gelu-approximate'
-        # if not (isinstance(original_module.net[0], GELU) and hasattr(original_module.net[0], 'approximate') and original_module.net[0].approximate == "tanh"):
-        #     raise ValueError(
-        #         "FeedForwardAIC (gelu-approximate only) can only wrap FeedForward modules "
-        #         "with activation_fn='gelu-approximate'. Found: "
-        #         f"type={type(original_module.net[0])}, approximate={getattr(original_module.net[0], 'approximate', 'N/A')}"
-        #     )
+
         # Extract weights and biases from the original FeedForward's `net`
         # Assumed structure: [act_fn (GELU), Dropout, Linear, (Dropout)]
 
         # It's a GELU module, which has an internal 'proj' Linear layer
         self.act_fn_proj_weight = original_module.net[0].proj.weight
         # Handle bias being None if original_module.bias was False
-        self.act_fn_proj_bias = original_module.net[0].proj.bias if original_module.bias else None
+        self.act_fn_proj_bias = original_module.net[0].proj.bias 
 
-        # project_out is original_module.net[2] (skipping the first Dropout)
+        # project_out is original_module.net[2] 
         self.project_out_weight = original_module.net[2].weight
-        self.project_out_bias = original_module.net[2].bias if original_module.bias else None
+        self.project_out_bias = original_module.net[2].bias 
 
     def forward(
         self,
@@ -190,11 +186,7 @@ class FeedForwardAIC(nn.Module):
             )  # Use proper shape
         return FeedForwardFunc.apply(
             hidden_states,
-            self.dim,
-            self.dim_out,
-            self.mult,
             self.dropout_ratio,
-            self.final_dropout,
             self.act_fn_proj_weight,
             act_fn_proj_bias_to_pass,
             self.project_out_weight,

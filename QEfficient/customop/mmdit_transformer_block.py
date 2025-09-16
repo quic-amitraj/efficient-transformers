@@ -181,10 +181,7 @@ def JointTransformerBlockOnnx(
     ff_output = FeedForwardOnnx(
         norm_hidden_states_mlp,
         ff_dim,
-        ff_dim_out,
-        ff_mult,
         ff_dropout_ratio,
-        ff_final_dropout,
         ff_act_fn_proj_weight,
         ff_act_fn_proj_bias,
         ff_project_out_weight,
@@ -216,10 +213,7 @@ def JointTransformerBlockOnnx(
     context_ff_output = FeedForwardOnnx(
         norm_encoder_hidden_states_mlp,
         ff_context_dim,
-        ff_context_dim_out,
-        ff_context_mult,
         ff_context_dropout_ratio,
-        ff_context_final_dropout,
         ff_context_act_fn_proj_weight,
         ff_context_act_fn_proj_bias,
         ff_context_project_out_weight,
@@ -383,11 +377,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # Assuming FeedForwardFunc.apply exists
         ff_output = FeedForwardFunc.apply(
             norm_hidden_states_mlp,
-            ff_dim,
-            ff_dim_out,
-            ff_mult,
             ff_dropout_ratio,
-            ff_final_dropout,
             ff_act_fn_proj_weight,
             ff_act_fn_proj_bias,
             ff_project_out_weight,
@@ -412,11 +402,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # Note: `if self._chunk_size is not None` block is skipped.
         context_ff_output = FeedForwardFunc.apply(
             norm_encoder_hidden_states_mlp,
-            ff_context_dim,
-            ff_context_dim_out,
-            ff_context_mult,
             ff_context_dropout_ratio,
-            ff_context_final_dropout,
             ff_context_act_fn_proj_weight,
             ff_context_act_fn_proj_bias,
             ff_context_project_out_weight,
@@ -437,13 +423,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         encoder_hidden_states: torch.Value,
         temb: torch.Value,
         # Parameters for norm1 (AdaLayerNormZero)
-        norm1_linear_weight: torch.Value,
-        norm1_linear_bias: torch.Value,
-        norm1_epsilon: torch.Value,
         # Parameters for norm1_context (AdaLayerNormZero)
-        norm1_context_linear_weight: torch.Value,
-        norm1_context_linear_bias: torch.Value,
-        norm1_context_epsilon: torch.Value,
         # Parameters for attn (JointAttnProcessor2_0)
         attn_heads: int,
         attn_head_dim: int,
@@ -480,28 +460,11 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         norm2_weight: torch.Value,
         norm2_eps: torch.Value,
         # Parameters for ff (FeedForward)
-        ff_dim: int,
-        ff_dim_out: int,
-        ff_mult: int,
-        ff_dropout_ratio: torch.Value,
-        ff_final_dropout: bool,
-        ff_act_fn_proj_weight: torch.Value,
-        ff_act_fn_proj_bias: torch.Value,
-        ff_project_out_weight: torch.Value,
-        ff_project_out_bias: torch.Value,
         # Parameters for norm2_context (RMSNorm)
         norm2_context_weight: torch.Value,
         norm2_context_eps: torch.Value,
         # Parameters for ff_context (FeedForward)
-        ff_context_dim: int,
-        ff_context_dim_out: int,
-        ff_context_mult: int,
-        ff_context_dropout_ratio: torch.Value,
-        ff_context_final_dropout: bool,
-        ff_context_act_fn_proj_weight: torch.Value,
-        ff_context_act_fn_proj_bias: torch.Value,
-        ff_context_project_out_weight: torch.Value,
-        ff_context_project_out_bias: torch.Value,
+       
         attn_upcast_attention: bool,
         attn_upcast_softmax: bool,
         _attn_original_encoder_hidden_states_was_none: bool,
