@@ -48,6 +48,7 @@ def AttentionOnnx(
     to_add_out_bias: onnxscript.FLOAT,
     attn_upcast_attention: bool,
     attn_upcast_softmax: bool,
+    query_block_size: int,  # Block size for block attention
     _original_encoder_hidden_states_was_none: bool,
     _original_attention_mask_was_none: bool,
     _original_input_onnx_dtype_code: int,                
@@ -90,6 +91,7 @@ def AttentionOnnx(
         to_add_out_bias,
         attn_upcast_attention,
         attn_upcast_softmax,
+        query_block_size,  # Block size for block attention
         _original_encoder_hidden_states_was_none,
         _original_attention_mask_was_none,
         _original_input_onnx_dtype_code,                
@@ -188,7 +190,7 @@ class AttentionFunc(torch.autograd.Function):
             _original_attention_mask_was_none,
             _original_input_onnx_dtype_code,
         )
-        return attn_output
+        return attn_output, context_attn_output
 
     @staticmethod
     def symbolic(
@@ -275,6 +277,7 @@ class AttentionFunc(torch.autograd.Function):
             to_add_out_bias,
             attn_upcast_attention,
             attn_upcast_softmax,
+            64,  # query_block_size - Default block size matching QEffJointAttnProcessor2_0
             _original_encoder_hidden_states_was_none,
             _original_attention_mask_was_none,
             _original_input_onnx_dtype_code,

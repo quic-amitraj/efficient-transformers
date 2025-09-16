@@ -85,22 +85,41 @@ def QEffAttentionGetScoresOnnx(
 
 @onnxscript.script(CUSTOM_OPSET)
 def BatchToHeadDimOnnx(hidden_states: onnxscript.FLOAT, heads: int) -> onnxscript.FLOAT:
+    """
+    Reshape the tensor from `[batch_size * heads, seq_len, head_dim]` to `[batch_size, seq_len, dim * heads]`. 
+    `heads` is the number of heads initialized while constructing the `Attention` class.
+    """
     input_shape = ops.Shape(hidden_states)
     batch_heads = input_shape[0]
     seq_len = input_shape[1]
     head_dim = input_shape[2]
 
     batch_size = ops.Div(batch_heads, ops.Constant(value_int=heads))
-    inner_dim = ops.Mul(ops.Constant(value_int=heads), head_dim)
+    heads_tensor = ops.Constant(value_int=heads)
     
-    output_shape = ops.Concat(
+    # Reshape to [batch_size, heads, seq_len, head_dim]
+    intermediate_shape = ops.Concat(
+        ops.Reshape(batch_size, ops.Constant(value_ints=[1])),
+        ops.Reshape(heads_tensor, ops.Constant(value_ints=[1])),
+        ops.Reshape(seq_len, ops.Constant(value_ints=[1])),
+        ops.Reshape(head_dim, ops.Constant(value_ints=[1])),
+        axis=0
+    )
+    tensor = ops.Reshape(hidden_states, intermediate_shape)
+    
+    # Permute to [batch_size, seq_len, heads, head_dim]
+    tensor = ops.Transpose(tensor, perm=[0, 2, 1, 3])
+    
+    # Final reshape to [batch_size, seq_len, heads * head_dim]
+    inner_dim = ops.Mul(heads_tensor, head_dim)
+    final_shape = ops.Concat(
         ops.Reshape(batch_size, ops.Constant(value_ints=[1])),
         ops.Reshape(seq_len, ops.Constant(value_ints=[1])),
         ops.Reshape(inner_dim, ops.Constant(value_ints=[1])),
         axis=0
     )
     
-    return ops.Reshape(hidden_states, output_shape)
+    return ops.Reshape(tensor, final_shape)
 @onnxscript.script(CUSTOM_OPSET)
 def JointAttnProcessor2_0Onnx(
     hidden_states: onnxscript.FLOAT,
@@ -147,6 +166,7 @@ def JointAttnProcessor2_0Onnx(
     to_add_out_bias: onnxscript.FLOAT,
     attn_upcast_attention: bool,
     attn_upcast_softmax: bool,
+    query_block_size: int,  # Block size for block attention
     _attn_original_attention_mask_was_none: bool,
     _attn_original_encoder_hidden_states_was_none: bool,
     _original_input_onnx_dtype_code: int,
@@ -265,37 +285,76 @@ def JointAttnProcessor2_0Onnx(
     ))
     key = ops.Transpose(key, perm=[0, 2, 1]) # key.transpose(-1, -2)
 
-    # Always use the eager attention path
-    attention_probs = QEffAttentionGetScoresOnnx(query, key, attention_mask, 
-    self_upcast_attention=attn_upcast_attention,
-    self_upcast_softmax=attn_upcast_softmax,
-    self_scale=attn_scale,
-    _original_input_dtype_code=_original_input_onnx_dtype_code,
-)
-    final_combined_hidden_states = ops.Bmm(attention_probs, value) # torch.bmm
+    # QKV attention with block attention logic (matching QEffJointAttnProcessor2_0)
+    query_seq_len = ops.Shape(query)[1]
+    value_seq_len = ops.Shape(value)[1]
+    
+    # Check if cross-attention or self-attention
+    is_cross_attention = ops.Not(ops.Equal(query_seq_len, value_seq_len))
+    
+    if is_cross_attention:
+        # Cross-attention: use regular attention (single block)
+        attention_probs = QEffAttentionGetScoresOnnx(query, key, attention_mask, 
+            self_upcast_attention=attn_upcast_attention,
+            self_upcast_softmax=attn_upcast_softmax,
+            self_scale=attn_scale,
+            _original_input_dtype_code=_original_input_onnx_dtype_code,
+        )
+        final_combined_hidden_states = ops.Bmm(attention_probs, value)
+    else:
+        # Self-attention: use block attention
+        query_block_size_tensor = ops.Constant(value_int=query_block_size)
+        num_blocks = ops.Div(
+            ops.Add(query_seq_len, ops.Sub(query_block_size_tensor, ops.Constant(value_int=1))),
+            query_block_size_tensor
+        )
+        
+        # Initialize output tensor with zeros
+        batch_heads = ops.Shape(query)[0]
+        head_dim = ops.Shape(query)[2]
+        output_shape = ops.Concat(
+            ops.Reshape(batch_heads, ops.Constant(value_ints=[1])),
+            ops.Reshape(query_seq_len, ops.Constant(value_ints=[1])),
+            ops.Reshape(head_dim, ops.Constant(value_ints=[1])),
+            axis=0
+        )
+        final_combined_hidden_states = ops.ConstantOfShape(output_shape, value=0.0)
+        
+        # Process blocks sequentially (ONNX doesn't support dynamic loops well, so we'll use a simplified approach)
+        # For ONNX compatibility, we'll fall back to single block processing
+        # In a real implementation, you might need to unroll the loop or use other ONNX constructs
+        attention_probs = QEffAttentionGetScoresOnnx(query, key, attention_mask, 
+            self_upcast_attention=attn_upcast_attention,
+            self_upcast_softmax=attn_upcast_softmax,
+            self_scale=attn_scale,
+            _original_input_dtype_code=_original_input_onnx_dtype_code,
+        )
+        final_combined_hidden_states = ops.Bmm(attention_probs, value)
 
-    final_combined_hidden_states = BatchToHeadDimOnnx(final_combined_hidden_states, attn_heads)
+    # Convert from head dimension back to batch dimension (matching reference)
+    hidden_states = BatchToHeadDimOnnx(final_combined_hidden_states, attn_heads)
 
-    final_hidden_states_out = ops.Constant(value_float=0.0)
     final_encoder_hidden_states_out = ops.Constant(value_float=0.0)
 
     if encoder_is_not_none:
+        # Split the attention outputs (matching reference logic)
         sample_output_len = ops.Shape(residual)[1]
         
-        final_hidden_states_out = ops.Slice(
-            final_combined_hidden_states,
+        # Split hidden_states into sample and encoder parts
+        hidden_states_sample = ops.Slice(
+            hidden_states,
             starts=ops.Constant(value_ints=[0, 0, 0]),
             ends=ops.Concat(
-                ops.Reshape(ops.Shape(final_combined_hidden_states)[0], ops.Constant(value_ints=[1])),
+                ops.Reshape(ops.Shape(hidden_states)[0], ops.Constant(value_ints=[1])),
                 ops.Reshape(sample_output_len, ops.Constant(value_ints=[1])),
-                ops.Reshape(ops.Shape(final_combined_hidden_states)[2], ops.Constant(value_ints=[1])),
+                ops.Reshape(ops.Shape(hidden_states)[2], ops.Constant(value_ints=[1])),
                 axis=0
             ),
             axes=ops.Constant(value_ints=[0, 1, 2])
         )
 
         final_encoder_hidden_states_out = ops.Slice(
-            final_combined_hidden_states,
+            hidden_states,
             starts=ops.Concat(
                 ops.Reshape(ops.Constant(value_int=0), ops.Constant(value_ints=[1])),
                 ops.Reshape(sample_output_len, ops.Constant(value_ints=[1])),
@@ -303,30 +362,31 @@ def JointAttnProcessor2_0Onnx(
                 axis=0
             ),
             ends=ops.Concat(
-                ops.Reshape(ops.Shape(final_combined_hidden_states)[0], ops.Constant(value_ints=[1])),
-                ops.Reshape(ops.Shape(final_combined_hidden_states)[1], ops.Constant(value_ints=[1])),
-                ops.Reshape(ops.Shape(final_combined_hidden_states)[2], ops.Constant(value_ints=[1])),
+                ops.Reshape(ops.Shape(hidden_states)[0], ops.Constant(value_ints=[1])),
+                ops.Reshape(ops.Shape(hidden_states)[1], ops.Constant(value_ints=[1])),
+                ops.Reshape(ops.Shape(hidden_states)[2], ops.Constant(value_ints=[1])),
                 axis=0
-                ),
+            ),
             axes=ops.Constant(value_ints=[0, 1, 2])
         )
 
+        # Apply to_add_out (matching reference logic)
         final_encoder_hidden_states_out = ops.Add(ops.MatMul(final_encoder_hidden_states_out, ops.Transpose(to_add_out_weight, perm=[1,0])), to_add_out_bias)
+        
+        # Update hidden_states to be the sample part
+        hidden_states = hidden_states_sample
     else:
-        final_hidden_states_out = final_combined_hidden_states
         final_encoder_hidden_states_out = encoder_hidden_states # Remains original empty/dummy tensor
 
-    # Apply attn.to_out[0] (Linear proj)
-    final_hidden_states_out = ops.Add(
-        ops.MatMul(final_hidden_states_out, ops.Transpose(to_out_0_weight, perm=[1, 0])), to_out_0_bias
+    # linear proj (matching reference)
+    hidden_states = ops.Add(
+        ops.MatMul(hidden_states, ops.Transpose(to_out_0_weight, perm=[1, 0])), to_out_0_bias
     )
 
-    # Apply attn.to_out[1] (Dropout)
-    final_hidden_states_out = ops.Dropout(final_hidden_states_out, ratio=to_out_1_dropout_p)
-    # Return based on whether encoder_hidden_states was provided in the input
-    # The output signature must be consistent for ONNX `If` operators.
-    # So both outputs are always returned.
-    return final_hidden_states_out, final_encoder_hidden_states_out
+    # dropout (matching reference)
+    hidden_states = ops.Dropout(hidden_states, ratio=to_out_1_dropout_p)
+    
+    return hidden_states, final_encoder_hidden_states_out
 
 
 class JointAttnProcessor2_0Func(torch.autograd.Function):
@@ -428,13 +488,16 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
             attention_probs = attention_scores.softmax(dim=-1)
             attention_probs = attention_probs.to(dtype)
             return attention_probs
-        def batch_to_head_dim_pytorch(h_states, heads_val):
-            input_shape = h_states.shape
-            batch_heads = input_shape[0]
-            seq_len = input_shape[1]
-            head_dim = input_shape[2]
+        def batch_to_head_dim_pytorch(tensor, heads_val):
+            """
+            Reshape the tensor from `[batch_size * heads, seq_len, head_dim]` to `[batch_size, seq_len, dim * heads]`. 
+            `heads` is the number of heads initialized while constructing the `Attention` class.
+            """
+            batch_heads, seq_len, head_dim = tensor.shape
             batch_size = batch_heads // heads_val
-            return h_states.view(batch_size, seq_len, heads_val * head_dim)
+            tensor = tensor.reshape(batch_size, heads_val, seq_len, head_dim)
+            tensor = tensor.permute(0, 2, 1, 3).reshape(batch_size, seq_len, head_dim * heads_val)
+            return tensor
 
         # --- Sample Projections ---
         query = F.linear(hidden_states, to_q_weight, to_q_bias)
@@ -487,29 +550,47 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
 
         key = key.transpose(-1, -2) # (..., head_dim, seq_len)
 
-        # Eager Attention (single block for both self and cross-attention)
-        attention_probs = get_attention_scores_pytorch(query, key, actual_attention_mask)
-        combined_hidden_states = torch.bmm(attention_probs, value) # torch.bmm
+        # QKV attention with block attention logic (matching QEffJointAttnProcessor2_0)
+        if query.size(-2) != value.size(-2):  # cross-attention, use regular attention
+            # QKV done in single block
+            attention_probs = get_attention_scores_pytorch(query, key, actual_attention_mask)
+            combined_hidden_states = torch.bmm(attention_probs, value)
+        else:  # self-attention, use blocked attention
+            # QKV done with block-attention (a la FlashAttentionV2)
+            query_block_size = 64  # Default block size from QEffJointAttnProcessor2_0
+            query_seq_len = query.size(-2)
+            num_blocks = (query_seq_len + query_block_size - 1) // query_block_size
+            for qidx in range(num_blocks):
+                query_block = query[:, qidx * query_block_size : (qidx + 1) * query_block_size, :]
+                attention_probs = get_attention_scores_pytorch(query_block, key, actual_attention_mask)
+                hidden_states_block = torch.bmm(attention_probs, value)
+                if qidx == 0:
+                    combined_hidden_states = hidden_states_block
+                else:
+                    combined_hidden_states = torch.cat((combined_hidden_states, hidden_states_block), -2)
         
-        combined_hidden_states = batch_to_head_dim_pytorch(combined_hidden_states, attn_heads)
+        hidden_states = batch_to_head_dim_pytorch(combined_hidden_states, attn_heads)
 
         final_encoder_hidden_states = None
         # --- Split attention outputs if actual_encoder_hidden_states was present ---
         if actual_encoder_hidden_states is not None:
-            split_size = residual.shape[1]
-            combined_hidden_states, final_encoder_hidden_states = (
-                combined_hidden_states[:, :split_size],
-                combined_hidden_states[:, split_size:],
+            # Split the attention outputs.
+            hidden_states, final_encoder_hidden_states = (
+                hidden_states[:, : residual.shape[1]],
+                hidden_states[:, residual.shape[1] :],
             )
+            # Apply to_add_out only if not context_pre_only (assuming context_pre_only is False for this implementation)
             final_encoder_hidden_states = F.linear(final_encoder_hidden_states, to_add_out_weight, to_add_out_bias)
         
-        combined_hidden_states = F.linear(combined_hidden_states, to_out_0_weight, to_out_0_bias)
-        combined_hidden_states = F.dropout(combined_hidden_states, p=to_out_1_dropout_p, training=False)
+        # linear proj
+        hidden_states = F.linear(hidden_states, to_out_0_weight, to_out_0_bias)
+        # dropout
+        hidden_states = F.dropout(hidden_states, p=to_out_1_dropout_p, training=False)
 
         if final_encoder_hidden_states is None:
             final_encoder_hidden_states = torch.empty(0, device=hidden_states.device, dtype=hidden_states.dtype)
 
-        return combined_hidden_states, final_encoder_hidden_states
+        return hidden_states, final_encoder_hidden_states
         
     @staticmethod
     def setup_context(ctx, inputs, outputs):
@@ -603,6 +684,7 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
             to_add_out_bias=to_add_out_bias,
             attn_upcast_attention_i=attn_upcast_attention,
             attn_upcast_softmax_i=attn_upcast_softmax,
+            query_block_size_i=64,  # Default block size matching QEffJointAttnProcessor2_0
             _attn_original_attention_mask_was_none_b=_original_attention_mask_was_none,
             _attn_original_encoder_hidden_states_was_none_b=_original_encoder_hidden_states_was_none,
             _original_input_onnx_dtype_code_i=_original_input_onnx_dtype_code,
@@ -719,5 +801,3 @@ class JointAttnProcessor2_0AIC(nn.Module):
             _original_attention_mask_was_none,  # Passed as flag to autograd.Function
             original_input_onnx_dtype_code,
         )
-
-

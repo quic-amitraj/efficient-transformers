@@ -353,15 +353,15 @@ class QEffSD3Transformer2DModel(QEFFBaseModel):
 
     def get_onnx_config(self):
         example_inputs = {
-            "hidden_states": torch.randn(
+            "hidden_states": torch.ones(
                 2,
                 self.model.config.in_channels,
                 self.model.config.sample_size,
                 self.model.config.sample_size,
             ),
-            "encoder_hidden_states": torch.randn(2, 333, self.model.config.joint_attention_dim),
-            "pooled_projections": torch.randn(2, self.model.config.pooled_projection_dim),
-            "timestep": torch.randint(0, 20, (2,), dtype=torch.int64),
+            "encoder_hidden_states": torch.ones(2, 333, self.model.config.joint_attention_dim),
+            "pooled_projections": torch.ones(2, self.model.config.pooled_projection_dim),
+            "timestep": torch.tensor([10, 10], dtype=torch.int64),
         }
 
         output_names = ["output"]
