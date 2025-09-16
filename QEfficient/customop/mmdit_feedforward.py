@@ -6,7 +6,6 @@ import torch.nn.functional as F
 from diffusers.models.attention import FeedForward
 
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
-# Import the ONNX Script opset for version 13
 ops = getattr(onnxscript, "opset" + str(13))
 
 from QEfficient.customop.mmdit_gelu import GELUOnnx
@@ -110,8 +109,7 @@ class FeedForwardFunc(torch.autograd.Function):
         project_out_weight: torch.Value,
         project_out_bias: torch.Value,
     ) -> torch.Value:
-        # Call the corresponding ONNXScript FeedForwardOnnx function
-        # Note: If FeedForwardOnnx itself has branches, ensure it's configured
+        # If FeedForwardOnnx itself has branches, ensure it's configured
         # to take the 'gelu-approximate' path by constant inputs during symbolic export.
         # Alternatively, if FeedForwardOnnx is also simplified to only call GELUOnnx_ApproximateTanh directly,
         # that simplifies things further.
@@ -120,9 +118,9 @@ class FeedForwardFunc(torch.autograd.Function):
             hidden_states,
             dim=dim,
             dim_out=dim_out,
-            mult=mult,
-            dropout_ratio=dropout_ratio,
-            final_dropout=final_dropout,
+            mult_i=mult,
+            dropout_ratio_f=dropout_ratio,
+            final_dropout_f=final_dropout,
             act_fn_proj_weight=act_fn_proj_weight,
             act_fn_proj_bias=act_fn_proj_bias,
             project_out_weight=project_out_weight,
@@ -158,7 +156,6 @@ class FeedForwardAIC(nn.Module):
         # Extract weights and biases from the original FeedForward's `net`
         # Assumed structure: [act_fn (GELU), Dropout, Linear, (Dropout)]
 
-        # act_fn is original_module.net[0]
         # It's a GELU module, which has an internal 'proj' Linear layer
         self.act_fn_proj_weight = original_module.net[0].proj.weight
         # Handle bias being None if original_module.bias was False

@@ -1,13 +1,12 @@
 import onnxscript
 import torch
 import torch.nn as nn
-from typing import Optional, Tuple, Any
+from typing import Optional, Tuple
 import torch.nn.functional as F
 
 from diffusers.models.normalization import AdaLayerNormZero
 
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
-# Import the ONNX Script opset for version 13
 ops = getattr(onnxscript, "opset" + str(13))
 
 class AdaLayerNormZeroFunc(torch.autograd.Function):
@@ -37,11 +36,7 @@ class AdaLayerNormZeroFunc(torch.autograd.Function):
         # This can be left as `pass` if no backward context is needed
         pass
 
-    @staticmethod
-    def backward(ctx, *grad_outputs):
-        # For inference-only, raise NotImplementedError or return None for all inputs.
-        raise NotImplementedError("AdaLayerNormZeroFunc backward not implemented for inference-only.")
-
+   
     @staticmethod
     def symbolic(
         g: torch.Graph,
@@ -49,19 +44,21 @@ class AdaLayerNormZeroFunc(torch.autograd.Function):
         emb: torch.Value,
         linear_weight: torch.Value,
         linear_bias: torch.Value,
-        norm_epsilon: float,  # Pass as Python float if it's a constant
+        norm_epsilon: torch.Value,  
     ) -> Tuple[torch.Value, ...]:
         # Call the corresponding ONNXScript function
         # g.onnxscript_op automatically handles packing/unpacking inputs/outputs
-        result = g.onnxscript_op(
+        
+        scaled_shifted_x, gate_msa, shift_mlp, scale_mlp, gate_mlp = g.onnxscript_op(
             AdaLayerNormZeroOnnx,  # Your ONNXScript function
             x,
             emb,
             linear_weight,
             linear_bias,
-            norm_epsilon,
+            norm_epsilon_f=norm_epsilon, 
+            outputs=5
         )
-        return result
+        return scaled_shifted_x, gate_msa, shift_mlp, scale_mlp, gate_mlp
 
 
 @onnxscript.script(CUSTOM_OPSET)

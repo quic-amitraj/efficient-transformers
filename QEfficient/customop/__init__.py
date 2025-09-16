@@ -17,7 +17,7 @@ from QEfficient.customop.mmdit_attn_processor import (
     
 )
 from QEfficient.customop.mmdit_attn import AttentionAIC
-from QEfficient.customop.mmdit_transformer_block import JointTransformerBlockAIC
+# from QEfficient.customop.mmdit_transformer_block import JointTransformerBlockAIC
 from QEfficient.customop.rms_norm import CustomRMSNormAIC, GemmaCustomRMSNormAIC
 
 __all__ = [
@@ -28,7 +28,7 @@ __all__ = [
     "CustomRMSNormAIC",
     "AttentionAIC",
     "JointAttnProcessor2_0AIC",
-    "JointTransformerBlockAIC",
+    # "JointTransformerBlockAIC",
     "GemmaCustomRMSNormAIC",
     "CtxGatherFuncCB",
     "CtxScatterFuncCB",

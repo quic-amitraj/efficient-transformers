@@ -47,8 +47,8 @@ def AttentionOnnx(
     to_add_out_bias: onnxscript.FLOAT,
     attn_upcast_attention: bool,
     attn_upcast_softmax: bool,
-    _original_encoder_hidden_states_was_none: bool,
-    _original_attention_mask_was_none: bool,
+    _attn_original_encoder_hidden_states_was_none: bool,
+    _attn_original_attention_mask_was_none: bool,
 ):
     return JointAttnProcessor2_0Onnx(
         hidden_states,
@@ -87,15 +87,14 @@ def AttentionOnnx(
         to_add_out_bias,
         attn_upcast_attention,
         attn_upcast_softmax,
-        _original_encoder_hidden_states_was_none,
-        _original_attention_mask_was_none,
+        _attn_original_encoder_hidden_states_was_none,
+        _attn_original_attention_mask_was_none,
     )
     
 # This class will house the autograd.Function for the Attention block
 class AttentionFunc(torch.autograd.Function):
     @staticmethod
     def forward(
-        ctx,
         hidden_states: torch.Tensor,
         encoder_hidden_states_to_pass: torch.Tensor, # Prepared dummy or actual
         attention_mask_to_pass: torch.Tensor,        # Prepared dummy or actual
@@ -133,8 +132,8 @@ class AttentionFunc(torch.autograd.Function):
         to_add_out_bias: torch.Tensor,
         attn_upcast_attention: bool,
         attn_upcast_softmax: bool,
-        _original_encoder_hidden_states_was_none: bool,
-        _original_attention_mask_was_none: bool,
+        _attn_original_encoder_hidden_states_was_none: bool,
+        _attn_original_attention_mask_was_none: bool,
     ) -> torch.Tensor:
 
         # Call the lower-level processor's apply method
@@ -177,8 +176,8 @@ class AttentionFunc(torch.autograd.Function):
             to_add_out_bias,
             attn_upcast_attention,
             attn_upcast_softmax,
-            _original_encoder_hidden_states_was_none,
-            _original_attention_mask_was_none,
+            _attn_original_encoder_hidden_states_was_none,
+            _attn_original_attention_mask_was_none,
         )
         return attn_output
 
@@ -225,8 +224,8 @@ class AttentionFunc(torch.autograd.Function):
         to_add_out_bias: torch.Value,
         attn_upcast_attention: bool,
         attn_upcast_softmax: bool,
-        _original_encoder_hidden_states_was_none: bool,
-        _original_attention_mask_was_none: bool,
+        _attn_original_encoder_hidden_states_was_none: bool,
+        _attn_original_attention_mask_was_none: bool,
         # Add elementwise_affine parameters here if they are part of your real signature
     ) -> torch.Value:
         # Here we call the symbolic method of the underlying processor (JointAttnProcessor2_0Func)
@@ -268,8 +267,8 @@ class AttentionFunc(torch.autograd.Function):
             to_add_out_bias,
             attn_upcast_attention,
             attn_upcast_softmax,
-            _original_encoder_hidden_states_was_none,
-            _original_attention_mask_was_none,
+            _attn_original_encoder_hidden_states_was_none,
+            _attn_original_attention_mask_was_none,
         )
         return attn_output
     
@@ -320,8 +319,8 @@ class AttentionAIC(nn.Module):
         to_add_out_bias: torch.Tensor,
         attn_upcast_attention: bool,
         attn_upcast_softmax: bool,
-        _original_encoder_hidden_states_was_none: bool,
-        _original_attention_mask_was_none: bool,
+        _attn_original_encoder_hidden_states_was_none: bool,
+        _attn_original_attention_mask_was_none: bool,
     ) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
 
         # Convert float parameters to torch.Tensor for the autograd.Function call
@@ -369,6 +368,6 @@ class AttentionAIC(nn.Module):
             to_add_out_bias,
             attn_upcast_attention,
             attn_upcast_softmax,
-            _original_encoder_hidden_states_was_none,
-            _original_attention_mask_was_none,
+            _attn_original_encoder_hidden_states_was_none,
+            _attn_original_attention_mask_was_none,
         )

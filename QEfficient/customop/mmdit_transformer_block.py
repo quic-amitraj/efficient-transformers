@@ -137,10 +137,8 @@ def JointTransformerBlockOnnx(
         to_v_bias=attn_to_v_bias,
         norm_q_weight=attn_norm_q_weight,
         norm_q_eps=attn_norm_q_eps,
-        # norm_q_elementwise_affine=attn_norm_q_elementwise_affine,
         norm_k_weight=attn_norm_k_weight,
         norm_k_eps=attn_norm_k_eps,
-        # norm_k_elementwise_affine=attn_norm_k_elementwise_affine,
         add_q_proj_weight=attn_add_q_proj_weight,
         add_q_proj_bias=attn_add_q_proj_bias,
         add_k_proj_weight=attn_add_k_proj_weight,
@@ -149,16 +147,14 @@ def JointTransformerBlockOnnx(
         add_v_proj_bias=attn_add_v_proj_bias,
         norm_added_q_weight=attn_norm_added_q_weight,
         norm_added_q_eps=attn_norm_added_q_eps,
-        # norm_added_q_elementwise_affine=attn_norm_added_q_elementwise_affine,
         norm_added_k_weight=attn_norm_added_k_weight,
         norm_added_k_eps=attn_norm_added_k_eps,
-        # norm_added_k_elementwise_affine=attn_norm_added_k_elementwise_affine,
         to_out_0_weight=attn_to_out_0_weight,
         to_out_0_bias=attn_to_out_0_bias,
         to_out_1_dropout_p=attn_to_out_1_dropout_p,
         to_add_out_weight=attn_to_add_out_weight,
         to_add_out_bias=attn_to_add_out_bias,
-        attn_upcast_attention=attn_upcast_attention, # NEW
+        attn_upcast_attention=attn_upcast_attention, 
         attn_upcast_softmax=attn_upcast_softmax,  
         _attn_original_attention_mask_was_none=_attn_original_attention_mask_was_none,
         _attn_original_encoder_hidden_states_was_none=_attn_original_encoder_hidden_states_was_none,
@@ -309,11 +305,9 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         _attn_original_encoder_hidden_states_was_none: bool,
         _attn_original_attention_mask_was_none: bool,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        # --- Replicate PyTorch forward logic for fixed conditions ---
         # use_dual_attention = False, context_pre_only = False, _chunk_size = None
 
         # 1. Norm1 (AdaLayerNormZero)
-        # Assuming AdaLayerNormZeroFunc.apply exists and works (from previous steps)
         norm_hidden_states, gate_msa, shift_mlp, scale_mlp, gate_mlp = AdaLayerNormZeroFunc.apply(
             hidden_states, temb, norm1_linear_weight, norm1_linear_bias, norm1_epsilon
         )
@@ -323,7 +317,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             encoder_hidden_states, temb, norm1_context_linear_weight, norm1_context_linear_bias, norm1_context_epsilon
         )
 
-        # 3. Attention (JointAttnProcessor2_0)
+        # 3. Attention (AttentionFunc-JointAttnProcessor2_0)
         # Prepare dummy attention_mask for processor if it was None
         attention_mask_for_attn = None
         if not _attn_original_attention_mask_was_none:
@@ -332,7 +326,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         attn_output, context_attn_output = AttentionFunc.apply(
             norm_hidden_states,
             norm_encoder_hidden_states,  # Pass non-None to processor
-            attention_mask_for_attn,  # Pass non-None to processor (potentially empty)
+            attention_mask_for_attn,  # Pass non-None to processor
             attn_heads,
             attn_head_dim,
             attn_scale,
@@ -366,7 +360,7 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             attn_to_add_out_bias,
             attn_upcast_attention,
             attn_upcast_softmax,
-            False,  # _original_encoder_hidden_states_was_none - always false for this case
+            _attn_original_encoder_hidden_states_was_none,  # _original_encoder_hidden_states_was_none - always false for this case
             _attn_original_attention_mask_was_none,
         )
         # Process attention outputs for the `hidden_states`.
@@ -578,8 +572,8 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             ff_context_project_out_bias=ff_context_project_out_bias,
             attn_upcast_attention_i=attn_upcast_attention,
             attn_upcast_softmax_i=attn_upcast_softmax,
-            _attn_original_encoder_hidden_states_was_none_b=_attn_original_encoder_hidden_states_was_none,
-            _attn_original_attention_mask_was_none_b=_attn_original_attention_mask_was_none,
+            _attn_original_encoder_hidden_states_was_none_i=_attn_original_encoder_hidden_states_was_none,
+            _attn_original_attention_mask_was_none_i=_attn_original_attention_mask_was_none,
         )
         return result
 
@@ -896,7 +890,6 @@ class JointTransformerBlockAIC(nn.Module):
 
         # JointAttnProcessor2_0 always expects encoder_hidden_states (not None).
         _attn_original_encoder_hidden_states_was_none = False
-        # _original_input_onnx_dtype_code = dtype_map[hidden_states.dtype]
 
         return JointTransformerBlockFunc.apply(
             hidden_states,

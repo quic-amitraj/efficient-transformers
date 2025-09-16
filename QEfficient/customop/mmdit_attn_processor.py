@@ -141,7 +141,6 @@ def JointAttnProcessor2_0Onnx(
     to_out_0_bias: onnxscript.FLOAT,
     to_out_1_dropout_p: float,  # Dropout ratio for self.to_out[1]
     # Other flags
-    attn_added_kv_proj_dim: int,  # From attn.added_kv_proj_dim (to determine if add_q_proj etc. exist)
     to_add_out_weight: onnxscript.FLOAT,  # For attn.to_add_out
     to_add_out_bias: onnxscript.FLOAT,
     attn_upcast_attention: bool,

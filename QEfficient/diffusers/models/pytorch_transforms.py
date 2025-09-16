@@ -6,20 +6,20 @@
 # -----------------------------------------------------------------------------
 from typing import Tuple
 
-from diffusers.models.attention import JointTransformerBlock
+from diffusers.models.attention import FeedForward, JointTransformerBlock
+from diffusers.models.normalization import AdaLayerNormZero
 from diffusers.models.attention_processor import Attention, JointAttnProcessor2_0
 from diffusers.models.normalization import RMSNorm
 from torch import nn
 
 from QEfficient.base.pytorch_transforms import ModuleMappingTransform
 from QEfficient.customop.rms_norm import CustomRMSNormAIC
-from QEfficient.customop.mmdit_attn_processor import (
-    JointAttnProcessor2_0AIC,
-    
-)
-from QEfficient.customop.mmdit_transformer_block import JointTransformerBlockAIC
-from QEfficient.customop.mmdit_attn import AttentionAIC
-from QEfficient.diffusers.models.attention import QEffJointTransformerBlock
+# from QEfficient.customop.mmdit_attn_processor import JointAttnProcessor2_0AIC
+from QEfficient.customop.mmdit_adaLN import AdaLayerNormZeroAIC
+# from QEfficient.customop.mmdit_transformer_block import JointTransformerBlockAIC
+# from QEfficient.customop.mmdit_attn import AttentionAIC
+# from QEfficient.diffusers.models.attention import QEffJointTransformerBlock
+from QEfficient.customop.mmdit_feedforward import FeedForwardAIC
 from QEfficient.diffusers.models.attention_processor import (
     QEffAttention,
     QEffJointAttnProcessor2_0,
@@ -28,9 +28,13 @@ from QEfficient.diffusers.models.attention_processor import (
 class SD3TransformerBlockTransform:
     
     MODULE_REPLACEMENTS = {
-        JointTransformerBlock: JointTransformerBlockAIC,
-        Attention: AttentionAIC,
-        JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
+        
+        FeedForward:FeedForwardAIC,
+        AdaLayerNormZero: AdaLayerNormZeroAIC,
+        
+        # JointTransformerBlock: JointTransformerBlockAIC,
+        # Attention: AttentionAIC,
+        # JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
         # Add more mappings here as needed
     }
 
