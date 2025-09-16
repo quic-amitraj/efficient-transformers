@@ -5,13 +5,14 @@ import torch.nn as nn
 from typing import Optional, Tuple, Any
 from onnx import TensorProto
 from diffusers.models.activations import GELU
+import torch.nn.functional as F
 
 from diffusers.models.attention import JointTransformerBlock
 from QEfficient.customop.mmdit_attn import AttentionFunc, AttentionOnnx
 from QEfficient.customop.mmdit_feedforward import FeedForwardOnnx, FeedForwardFunc
 from QEfficient.customop.mmdit_adaLN import AdaLayerNormZeroOnnx, AdaLayerNormZeroFunc
 from QEfficient.customop.mmdit_attn_processor import JointAttnProcessor2_0Onnx
-from QEfficient.customop.rms_norm import CustomRMSNorm, CustomRMSNormFunc
+from QEfficient.customop.rms_norm import CustomRMSNorm, CustomRMSNormFunc, CustomLayerNorm, CustomLayerNormFunc
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
 # Import the ONNX Script opset for version 13
 ops = getattr(onnxscript, "opset" + str(13))
@@ -162,22 +163,23 @@ def JointTransformerBlockOnnx(
     )
     # Process attention outputs for the `hidden_states`.
     attn_output = ops.Mul(ops.Unsqueeze(gate_msa, axes=[1]), attn_output)
-    hidden_states = ops.Add(hidden_states, attn_output)
+    current_hidden_states = ops.Add(hidden_states, attn_output)
 
     # Note: `if self.use_dual_attention` block is skipped (fixed to False)
 
     # ----------------------------------------------------------------------
     # 4. MLP for hidden_states
     # ----------------------------------------------------------------------
-    norm_hidden_states = CustomRMSNorm(hidden_states, norm2_weight, norm2_eps)
-    norm_hidden_states = ops.Add(
-        ops.Mul(norm_hidden_states, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(scale_mlp, axes=[1]))),
+    # Use CustomLayerNorm instead of CustomRMSNorm to match F.layer_norm in forward method
+    norm_hidden_states_mlp = CustomLayerNorm(current_hidden_states, norm2_weight, norm2_eps)
+    norm_hidden_states_mlp = ops.Add(
+        ops.Mul(norm_hidden_states_mlp, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(scale_mlp, axes=[1]))),
         ops.Unsqueeze(shift_mlp, axes=[1]),
     )
 
     # Note: `if self._chunk_size is not None` block is skipped (fixed to None)
     ff_output = FeedForwardOnnx(
-        norm_hidden_states,
+        norm_hidden_states_mlp,
         ff_dim,
         ff_dim_out,
         ff_mult,
@@ -189,28 +191,30 @@ def JointTransformerBlockOnnx(
         ff_project_out_bias,
     )
     ff_output = ops.Mul(ops.Unsqueeze(gate_mlp, axes=[1]), ff_output)
-    hidden_states = ops.Add(hidden_states, ff_output)
+    current_hidden_states = ops.Add(current_hidden_states, ff_output)
+    
     # ----------------------------------------------------------------------
     # 5. Process attention outputs for the `encoder_hidden_states`.
     # ----------------------------------------------------------------------
     # Note: `if self.context_pre_only` block is skipped (fixed to False)
 
     context_attn_output = ops.Mul(ops.Unsqueeze(c_gate_msa, axes=[1]), context_attn_output)
-    encoder_hidden_states = ops.Add(encoder_hidden_states, context_attn_output)
+    current_encoder_hidden_states = ops.Add(encoder_hidden_states, context_attn_output)
 
-    norm_encoder_hidden_states = CustomRMSNorm(
-        encoder_hidden_states, norm2_context_weight, norm2_context_eps, 
+    # Use CustomLayerNorm instead of CustomRMSNorm to match F.layer_norm in forward method
+    norm_encoder_hidden_states_mlp = CustomLayerNorm(
+        current_encoder_hidden_states, norm2_context_weight, norm2_context_eps
     )
-    norm_encoder_hidden_states = ops.Add(
+    norm_encoder_hidden_states_mlp = ops.Add(
         ops.Mul(
-            norm_encoder_hidden_states, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(c_scale_mlp, axes=[1]))
+            norm_encoder_hidden_states_mlp, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(c_scale_mlp, axes=[1]))
         ),
         ops.Unsqueeze(c_shift_mlp, axes=[1]),
     )
 
     # Note: `if self._chunk_size is not None` block is skipped (fixed to None)
     context_ff_output = FeedForwardOnnx(
-        norm_encoder_hidden_states,
+        norm_encoder_hidden_states_mlp,
         ff_context_dim,
         ff_context_dim_out,
         ff_context_mult,
@@ -221,11 +225,11 @@ def JointTransformerBlockOnnx(
         ff_context_project_out_weight,
         ff_context_project_out_bias,
     )
-    encoder_hidden_states = ops.Add(
-        encoder_hidden_states, ops.Mul(ops.Unsqueeze(c_gate_mlp, axes=[1]), context_ff_output)
+    current_encoder_hidden_states = ops.Add(
+        current_encoder_hidden_states, ops.Mul(ops.Unsqueeze(c_gate_mlp, axes=[1]), context_ff_output)
     )
 
-    return encoder_hidden_states, hidden_states
+    return current_encoder_hidden_states, current_hidden_states
 
 
 class JointTransformerBlockFunc(torch.autograd.Function):
@@ -370,10 +374,9 @@ class JointTransformerBlockFunc(torch.autograd.Function):
         # Note: `if self.use_dual_attention` block is skipped.
 
         # 4. MLP for hidden_states
-        # Assuming RMSNormFunc.apply exists
-        norm_hidden_states_mlp = CustomRMSNormFunc.apply(
-            current_hidden_states, norm2_weight, norm2_eps
-        )
+        # Use the correct dimension for hidden states normalization
+        norm_hidden_states_mlp = F.layer_norm(input=current_hidden_states, normalized_shape=(ff_dim,), eps=norm2_eps)
+        
         norm_hidden_states_mlp = norm_hidden_states_mlp * (1 + scale_mlp.unsqueeze(1)) + shift_mlp.unsqueeze(1)
 
         # Note: `if self._chunk_size is not None` block is skipped.
@@ -390,15 +393,18 @@ class JointTransformerBlockFunc(torch.autograd.Function):
             ff_project_out_weight,
             ff_project_out_bias,
         )
-        current_hidden_states = current_hidden_states + gate_mlp.unsqueeze(1) * ff_output
+        ff_output = gate_mlp.unsqueeze(1) * ff_output
 
+        current_hidden_states=current_hidden_states+ff_output
         # 5. Process attention outputs for the `encoder_hidden_states`.
         # Note: `if self.context_pre_only` block is skipped.
+        
+        
         current_encoder_hidden_states = encoder_hidden_states + c_gate_msa.unsqueeze(1) * context_attn_output
 
-        norm_encoder_hidden_states_mlp = CustomRMSNormFunc.apply(
-            current_encoder_hidden_states, norm2_context_weight, norm2_context_eps
-        )
+        
+        norm_encoder_hidden_states_mlp=F.layer_norm(input=current_encoder_hidden_states,  normalized_shape=(ff_context_dim,), eps=norm2_context_eps)
+
         norm_encoder_hidden_states_mlp = norm_encoder_hidden_states_mlp * (
             1 + c_scale_mlp.unsqueeze(1)
         ) + c_shift_mlp.unsqueeze(1)
