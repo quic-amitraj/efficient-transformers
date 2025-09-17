@@ -267,15 +267,8 @@ class AttentionFunc(torch.autograd.Function):
             to_add_out_bias,
             attn_upcast_attention,
             attn_upcast_softmax,
-<<<<<<< HEAD
             _attn_original_encoder_hidden_states_was_none,
             _attn_original_attention_mask_was_none,
-=======
-            64,  # query_block_size - Default block size matching QEffJointAttnProcessor2_0
-            _original_encoder_hidden_states_was_none,
-            _original_attention_mask_was_none,
-            _original_input_onnx_dtype_code,
->>>>>>> 0e35cb7 (Fixed full transformer block at pytorch autograd level)
         )
         return attn_output
     
@@ -375,13 +368,6 @@ class AttentionAIC(nn.Module):
             to_add_out_bias,
             attn_upcast_attention,
             attn_upcast_softmax,
-<<<<<<< HEAD
             _attn_original_encoder_hidden_states_was_none,
             _attn_original_attention_mask_was_none,
         )
-=======
-            _original_encoder_hidden_states_was_none,
-            _original_attention_mask_was_none,
-            _original_input_onnx_dtype_code,
-        )
->>>>>>> 0e35cb7 (Fixed full transformer block at pytorch autograd level)
