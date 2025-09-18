@@ -12,6 +12,12 @@ from QEfficient.customop.ctx_scatter_gather_cb import (
     CtxScatterFuncCB,
     CtxScatterFuncCB3D,
 )
+from QEfficient.customop.mmdit_attn_processor import (
+    JointAttnProcessor2_0AIC
+    
+)
+from QEfficient.customop.mmdit_attn import AttentionAIC
+# from QEfficient.customop.mmdit_transformer_block import JointTransformerBlockAIC
 from QEfficient.customop.rms_norm import CustomRMSNormAIC, GemmaCustomRMSNormAIC
 
 __all__ = [
@@ -20,6 +26,9 @@ __all__ = [
     "CtxGatherFunc3D",
     "CtxScatterFunc3D",
     "CustomRMSNormAIC",
+    "AttentionAIC",
+    "JointAttnProcessor2_0AIC",
+    # "JointTransformerBlockAIC",
     "GemmaCustomRMSNormAIC",
     "CtxGatherFuncCB",
     "CtxScatterFuncCB",

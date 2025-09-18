@@ -827,23 +827,40 @@ class QEFFStableDiffusion3Pipeline(StableDiffusion3Pipeline):
 
                 timestep = np.array([t], dtype=np.int64)
 
-                # noise_pred_torch = self.transformer.model(
-                #     hidden_states=latent_model_input,
-                #     timestep=torch.tensor(timestep),
-                #     encoder_hidden_states=prompt_embeds,
-                #     pooled_projections=pooled_prompt_embeds,
-                #     joint_attention_kwargs=self.joint_attention_kwargs,
-                #     return_dict=False,
-                # )[0]
+                noise_pred_torch = self.transformer.model(
+                    hidden_states=latent_model_input,
+                    timestep=torch.tensor(timestep),
+                    encoder_hidden_states=prompt_embeds,
+                    pooled_projections=pooled_prompt_embeds,
+                    joint_attention_kwargs=self.joint_attention_kwargs,
+                    return_dict=False,
+                )[0]
 
-                noise_pred = self.transformer.qpc_session.run(
-                    {
-                        "encoder_hidden_states": prompt_embeds.detach().numpy(),
-                        "pooled_projections": pooled_prompt_embeds.numpy(),
-                        "timestep": timestep,
-                        "hidden_states": latent_model_input.numpy(),
-                    }
-                )
+                # noise_pred = self.transformer.qpc_session.run(
+                #     {
+                #         "encoder_hidden_states": prompt_embeds.detach().numpy(),
+                #         "pooled_projections": pooled_prompt_embeds.numpy(),
+                #         "timestep": timestep,
+                #         "hidden_states": latent_model_input.numpy(),
+                #     }
+                # )
+                
+                #### Testing onnx with pytorch ####
+                import onnxruntime as ort
+                ort_model = ort.InferenceSession(self.transformer.onnx_path)
+                ort_inputs = {
+                    "encoder_hidden_states": prompt_embeds.detach().numpy(),
+                    "pooled_projections": pooled_prompt_embeds.numpy(),
+                    "timestep": timestep,
+                    "hidden_states": latent_model_input.numpy(),
+                }
+                ort_outputs = ort_model.run(None, ort_inputs)
+                noise_pred_onnx = ort_outputs[0]
+
+                # Calculate MAD between PyTorch and ONNX outputs
+                mad_onnx_vs_pytorch = np.mean(np.abs(noise_pred_torch.detach().numpy() - noise_pred_onnx))
+                print(f"ONNX vs PyTorch transformer MAD: {mad_onnx_vs_pytorch}")
+                ### End testing ONNX and Pytorch ###
 
                 # ###### ACCURACY TESTING #######
                 # mad=np.mean(np.abs(noise_pred_torch.detach().numpy()-noise_pred['output']))
