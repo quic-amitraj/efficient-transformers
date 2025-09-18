@@ -560,7 +560,7 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         # The ONNXScript function will handle the conditional logic based on
         # whether encoder_hidden_states/attention_mask are zero-sized/empty tensors.
 
-        result = g.onnxscript_op(
+        combined_hidden_states, final_encoder_hidden_states  = g.onnxscript_op(
             JointAttnProcessor2_0Onnx,
             hidden_states,
             encoder_hidden_states,  # Pass the (potentially dummy) tensor
@@ -601,8 +601,9 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
             attn_upcast_softmax_i=attn_upcast_softmax,
             _attn_original_attention_mask_was_none_b=_original_attention_mask_was_none,
             _attn_original_encoder_hidden_states_was_none_b=_original_encoder_hidden_states_was_none,
+            outputs=2
         )
-        return result
+        return combined_hidden_states, final_encoder_hidden_states
 
 
 
