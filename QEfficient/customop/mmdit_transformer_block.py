@@ -176,7 +176,6 @@ def JointTransformerBlockOnnx(
     # Note: `if self._chunk_size is not None` block is skipped (fixed to None)
     ff_output = FeedForwardOnnx(
         norm_hidden_states_mlp,
-        ff_dim,
         ff_dropout_ratio,
         ff_act_fn_proj_weight,
         ff_act_fn_proj_bias,
@@ -208,7 +207,6 @@ def JointTransformerBlockOnnx(
     # Note: `if self._chunk_size is not None` block is skipped (fixed to None)
     context_ff_output = FeedForwardOnnx(
         norm_encoder_hidden_states_mlp,
-        ff_context_dim,
         ff_context_dropout_ratio,
         ff_context_act_fn_proj_weight,
         ff_context_act_fn_proj_bias,

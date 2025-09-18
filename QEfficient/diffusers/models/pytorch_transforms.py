@@ -30,9 +30,9 @@ class SD3TransformerBlockTransform:
     MODULE_REPLACEMENTS = {
         FeedForward:FeedForwardAIC,
         AdaLayerNormZero: AdaLayerNormZeroAIC,
-        JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
-        JointTransformerBlock: JointTransformerBlockAIC,
-        Attention: AttentionAIC,
+        # JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
+        # JointTransformerBlock: JointTransformerBlockAIC,
+        # Attention: AttentionAIC,
        
         # Add more mappings here as needed
     }
