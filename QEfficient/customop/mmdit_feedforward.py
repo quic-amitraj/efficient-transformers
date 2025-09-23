@@ -62,7 +62,7 @@ def FeedForwardOnnx(
     # ff_output = ops.Add(ff_output, project_out_bias)
 
     # Optional final Dropout (if needed for inference)
-    ff_output, _ = ops.Dropout(ff_output, dropout_ratio_tensor, ops.Constant(value=False))
+    # ff_output, _ = ops.Dropout(ff_output, dropout_ratio_tensor, ops.Constant(value=False))
 
     # 4. Apply final Dropout (if final_dropout is True)
     # if final_dropout:
