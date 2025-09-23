@@ -285,21 +285,21 @@ class QEFFStableDiffusion3Pipeline(StableDiffusion3Pipeline):
             **compiler_options,
         )
 
-        # transformer
-        specializations_transformer = self.transformer.get_specializations(batch_size, 333)
+        # # transformer
+        # specializations_transformer = self.transformer.get_specializations(batch_size, 333)
 
-        compiler_options = {"mos": 1, "ols": 2}
-        self.trasformers_compile_path = self.transformer._compile(
-            onnx_path,
-            compile_dir,
-            compile_only=True,
-            specializations=specializations_transformer,
-            convert_to_fp16=True,
-            mxfp6_matmul=mxfp6_matmul,
-            mdp_ts_num_devices=num_devices_transformer,
-            aic_num_cores=num_cores,
-            **compiler_options,
-        )
+        # compiler_options = {"mos": 1, "ols": 2}
+        # self.trasformers_compile_path = self.transformer._compile(
+        #     onnx_path,
+        #     compile_dir,
+        #     compile_only=True,
+        #     specializations=specializations_transformer,
+        #     convert_to_fp16=True,
+        #     mxfp6_matmul=mxfp6_matmul,
+        #     mdp_ts_num_devices=num_devices_transformer,
+        #     aic_num_cores=num_cores,
+        #     **compiler_options,
+        # )
 
         # vae
         specializations_vae = self.vae_decode.get_specializations(batch_size)
@@ -807,16 +807,16 @@ class QEFFStableDiffusion3Pipeline(StableDiffusion3Pipeline):
         )
 
         ###### AIC related changes of transformers ######
-        if self.transformer.qpc_session is None:
-            self.transformer.qpc_session = QAICInferenceSession(str(self.transformer.qpc_path))
+        # if self.transformer.qpc_session is None:
+        #     self.transformer.qpc_session = QAICInferenceSession(str(self.transformer.qpc_path))
 
-            output_buffer = {
-                "output": np.random.rand(
-                    2 * batch_size, num_channels_latents, self.default_sample_size, self.default_sample_size
-                ).astype(np.int32),
-            }
+        #     output_buffer = {
+        #         "output": np.random.rand(
+        #             2 * batch_size, num_channels_latents, self.default_sample_size, self.default_sample_size
+        #         ).astype(np.int32),
+        #     }
 
-            self.transformer.qpc_session.set_buffers(output_buffer)
+        #     self.transformer.qpc_session.set_buffers(output_buffer)
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
                 if self.interrupt:

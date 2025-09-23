@@ -7,7 +7,7 @@ from diffusers.models.attention import FeedForward
 
 
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
-ops = getattr(onnxscript, "opset" + str(13))
+ops = getattr(onnxscript, "opset" + str(17))
 
 SQRT_2_DIV_PI = float(math.sqrt(2.0 / math.pi))
 GELU_APPROX_COEFF = 0.044715

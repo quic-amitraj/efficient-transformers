@@ -9,7 +9,7 @@ from diffusers.models.normalization import AdaLayerNormZero
 from torch._dynamo.comptime import comptime
 
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
-ops = getattr(onnxscript, "opset" + str(13))
+ops = getattr(onnxscript, "opset" + str(17))
 
 class AdaLayerNormZeroFunc(torch.autograd.Function):
     @staticmethod
@@ -74,6 +74,7 @@ def AdaLayerNormZeroOnnx(
     # 1. `emb = self.linear(self.silu(emb))`
     silu_emb = ops.Mul(emb, ops.Sigmoid(emb))  # Equivalent to nn.SiLU()
 
+    print(f"Using ONNX opset version: {ops.__name__}")
     linear_out = ops.MatMul(silu_emb, ops.Transpose(linear_weight, perm=[1, 0]))
     linear_out = ops.Add(linear_out, linear_bias)
 
@@ -96,14 +97,14 @@ def AdaLayerNormZeroOnnx(
     # The `reps` argument for ops.Tile needs to be a 1D tensor.
     reps_1d = ops.Reshape(num_chunks, ops.Constant(value_ints=[1]))
     split_sizes_tensor = ops.Tile(chunk_size_1d, reps_1d) # split_sizes_tensor has a shape of [6]
-    split_outputs = ops.Split(linear_out, split_sizes_tensor, axis=1)
+    split_outputs_1, split_outputs_2, split_outputs_3, split_outputs_4, split_outputs_5, split_outputs_6 = ops.Split(linear_out, split_sizes_tensor, axis=1)
 
-    shift_msa = split_outputs[0]
-    scale_msa = split_outputs[1]
-    gate_msa = split_outputs[2]
-    shift_mlp = split_outputs[3]
-    scale_mlp = split_outputs[4]
-    gate_mlp = split_outputs[5]
+    shift_msa = split_outputs_1
+    scale_msa = split_outputs_2
+    gate_msa = split_outputs_3
+    shift_mlp = split_outputs_4
+    scale_mlp = split_outputs_5
+    gate_mlp = split_outputs_6
 
     # 3. `x = self.norm(x) * (1 + scale_msa[:, None]) + shift_msa[:, None]`
     # norm_x = ops.LayerNormalization(
@@ -137,7 +138,7 @@ def AdaLayerNormZeroOnnx(
     # Apply the scaling and shifting: `norm_x * (1 + scale_msa[:, None]) + shift_msa[:, None]`
     # Use ops.Unsqueeze for `[:, None]`
     scaled_shifted_x = ops.Add(
-        ops.Mul(norm_x, ops.Add(ops.Constant(value_float=1.0), ops.Unsqueeze(scale_msa, axes=[1]))),
+        ops.Mul(norm_x[0], ops.Add(ops.Constant(value_float=1.0 ), ops.Unsqueeze(scale_msa, axes=[1]))),
         ops.Unsqueeze(shift_msa, axes=[1]),
     )
 
