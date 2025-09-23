@@ -50,7 +50,7 @@ def AttentionOnnx(
     _attn_original_encoder_hidden_states_was_none: bool,
     _attn_original_attention_mask_was_none: bool,
 ):
-    return JointAttnProcessor2_0Onnx(
+    attn_output, context_attn_output = JointAttnProcessor2_0Onnx(
         hidden_states,
         encoder_hidden_states_to_pass, # Prepared dummy or actual
         attention_mask_to_pass,        # Prepared dummy or actual
@@ -91,6 +91,8 @@ def AttentionOnnx(
         _attn_original_attention_mask_was_none,
     )
     
+    return attn_output, context_attn_output
+
 # This class will house the autograd.Function for the Attention block
 class AttentionFunc(torch.autograd.Function):
     @staticmethod
@@ -191,12 +193,12 @@ class AttentionFunc(torch.autograd.Function):
         hidden_states: torch.Value,
         encoder_hidden_states_to_pass: torch.Value,
         attention_mask_to_pass: torch.Value,
-        attn_heads: int,
-        attn_head_dim: int,
-        attn_scale: float,
-        attn_query_dim: int,
-        attn_inner_dim: int,
-        attn_inner_kv_dim: int,
+        attn_heads: torch.Value,
+        attn_head_dim: torch.Value,
+        attn_scale: torch.Value,
+        attn_query_dim: torch.Value,
+        attn_inner_dim: torch.Value,
+        attn_inner_kv_dim: torch.Value,
         to_q_weight: torch.Value,
         to_q_bias: torch.Value,
         to_k_weight: torch.Value,
@@ -234,43 +236,44 @@ class AttentionFunc(torch.autograd.Function):
             hidden_states,
             encoder_hidden_states_to_pass,
             attention_mask_to_pass,
-            attn_heads,
-            attn_head_dim,
-            attn_scale,
-            attn_query_dim,
-            attn_inner_dim,
-            attn_inner_kv_dim,
-            to_q_weight,
-            to_q_bias,
-            to_k_weight,
-            to_k_bias,
-            to_v_weight,
-            to_v_bias,
-            norm_q_weight,
-            norm_q_eps, # Pass the torch.Value here
-            norm_k_weight,
-            norm_k_eps, # Pass the torch.Value here
-            add_q_proj_weight,
-            add_q_proj_bias,
-            add_k_proj_weight,
-            add_k_proj_bias,
-            add_v_proj_weight,
-            add_v_proj_bias,
-            norm_added_q_weight,
-            norm_added_q_eps, # Pass the torch.Value here
-            norm_added_k_weight,
-            norm_added_k_eps, # Pass the torch.Value here
-            to_out_0_weight,
-            to_out_0_bias,
-            to_out_1_dropout_p, # Pass the torch.Value here
-            to_add_out_weight,
-            to_add_out_bias,
-            attn_upcast_attention,
-            attn_upcast_softmax,
-            _attn_original_encoder_hidden_states_was_none,
-            _attn_original_attention_mask_was_none,
+            attn_heads_i = attn_heads, # Pass the torch.Value here
+            attn_head_dim_i = attn_head_dim, # Pass the torch.Value here
+            attn_scale_f = attn_scale, # Pass the torch.Value here
+            attn_query_dim_i = attn_query_dim, # Pass the torch.Value here
+            attn_inner_dim_i = attn_inner_dim, # Pass the torch.Value here
+            attn_inner_kv_dim_i = attn_inner_kv_dim, # Pass the torch.Value here
+            to_q_weight=to_q_weight,
+            to_q_bias=to_q_bias,
+            to_k_weight=to_k_weight,
+            to_k_bias=to_k_bias,
+            to_v_weight=to_v_weight,
+            to_v_bias=to_v_bias,
+            norm_q_weight=norm_q_weight,
+            norm_q_eps_f=norm_q_eps, # Pass the torch.Value here
+            norm_k_weight=norm_k_weight,
+            norm_k_eps_f=norm_k_eps, # Pass the torch.Value here
+            add_q_proj_weight=add_q_proj_weight,
+            add_q_proj_bias=add_q_proj_bias,
+            add_k_proj_weight=add_k_proj_weight,
+            add_k_proj_bias=add_k_proj_bias,
+            add_v_proj_weight=add_v_proj_weight,
+            add_v_proj_bias=add_v_proj_bias,
+            norm_added_q_weight=norm_added_q_weight,
+            norm_added_q_eps_f=norm_added_q_eps, # Pass the torch.Value here
+            norm_added_k_weight=norm_added_k_weight,
+            norm_added_k_eps_f=norm_added_k_eps, # Pass the torch.Value here
+            to_out_0_weight=to_out_0_weight,
+            to_out_0_bias=to_out_0_bias,
+            to_out_1_dropout_p_f=to_out_1_dropout_p, # Pass the torch.Value here
+            to_add_out_weight=to_add_out_weight,
+            to_add_out_bias=to_add_out_bias,
+            attn_upcast_attention=attn_upcast_attention,
+            attn_upcast_softmax=attn_upcast_softmax,
+            _attn_original_encoder_hidden_states_was_none=_attn_original_encoder_hidden_states_was_none,
+            _attn_original_attention_mask_was_none=_attn_original_attention_mask_was_none,
+            outputs=2
         )
-        return attn_output
+        return attn_output, context_attn_output
     
 def _get_param_or_dummy_zero(param, default_tensor_if_none: Optional[torch.Tensor] = None):
     if isinstance(param, nn.Parameter):

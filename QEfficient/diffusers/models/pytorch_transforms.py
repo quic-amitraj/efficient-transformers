@@ -30,9 +30,10 @@ class SD3TransformerBlockTransform:
     MODULE_REPLACEMENTS = {
         FeedForward:FeedForwardAIC,
         AdaLayerNormZero: AdaLayerNormZeroAIC,
-        # JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
+        Attention: AttentionAIC,
+        JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
         # JointTransformerBlock: JointTransformerBlockAIC,
-        # Attention: AttentionAIC,
+        
        
         # Add more mappings here as needed
     }
@@ -47,7 +48,7 @@ class SD3TransformerBlockTransform:
         for name, child_module in model.named_children():
             # Check if the child_module is a JointTransformerBlock
             for original_cls, replacement_cls in cls.MODULE_REPLACEMENTS.items():
-                if isinstance(child_module, original_cls):
+                if isinstance(child_module, original_cls) and original_cls.__name__ == "Attention":
                     # Initialize the replacement with the original module
                     # breakpoint()
                     new_module = replacement_cls(original_module=child_module)
