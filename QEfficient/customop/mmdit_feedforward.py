@@ -25,6 +25,7 @@ def FeedForwardOnnx(
     # Calculate inner_dim as in PyTorch FeedForward.__init__
     # inner_dim = int(dim * mult)
     # inner_dim_val = ops.Cast(ops.Mul(dim, mult), to=6)  # 6 is ONNX INT64
+
     # 1. Apply act_fn (which is GELUOnnx here)
     # Linear projection part:
     projected_states = ops.MatMul(hidden_states, ops.Transpose(act_fn_proj_weight, perm=[1, 0]))
@@ -45,27 +46,29 @@ def FeedForwardOnnx(
     # --- 2. Apply Dropout ---
     dropout_ratio_tensor = ops.Constant(value_float=dropout_ratio)
     
-    # Using value_int=0 for training_mode=False (inference)
-    output_after_dropout, _ = ops.Dropout(ff_output_after_gelu, dropout_ratio_tensor, ops.Constant(value_int=0))
+    # Incorrect: Using value_int=0 creates tensor(int64), which is invalid for training_mode
+    # output_after_dropout, _ = ops.Dropout(ff_output_after_gelu, dropout_ratio_tensor, ops.Constant(value_int=0))
+
+    # Correct: Use value=False to create tensor(bool) for training_mode
+    output_after_dropout, _ = ops.Dropout(ff_output_after_gelu, dropout_ratio_tensor, ops.Constant(value=False))
 
     # --- 3. Apply the final output projection (Linear layer) ---
     final_output = ops.MatMul(output_after_dropout, ops.Transpose(project_out_weight, perm=[1, 0]))
     ff_output = ops.Add(final_output, project_out_bias)
-    # 2. Apply first Dropout
 
-    ff_output = ops.Dropout(ff_output, ratio=dropout_ratio)
+    # Redundant second Dropout and projection — causes shape/type errors
+    # ff_output = ops.Dropout(ff_output, ratio=dropout_ratio)
+    # ff_output = ops.MatMul(ff_output, ops.Transpose(project_out_weight, perm=[1, 0]))
+    # ff_output = ops.Add(ff_output, project_out_bias)
 
-    # 3. Apply project out (final Linear layer)
-
-    ff_output = ops.MatMul(ff_output, ops.Transpose(project_out_weight, perm=[1, 0]))
-    ff_output = ops.Add(ff_output, project_out_bias)
+    # Optional final Dropout (if needed for inference)
+    ff_output, _ = ops.Dropout(ff_output, dropout_ratio_tensor, ops.Constant(value=False))
 
     # 4. Apply final Dropout (if final_dropout is True)
     # if final_dropout:
     #     ff_output = ops.Dropout(ff_output, ratio=dropout_ratio)
 
     return ff_output
-
 
 class FeedForwardFunc(torch.autograd.Function):
     @staticmethod

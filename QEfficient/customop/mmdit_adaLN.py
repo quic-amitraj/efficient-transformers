@@ -6,6 +6,8 @@ import torch.nn.functional as F
 
 from diffusers.models.normalization import AdaLayerNormZero
 
+from torch._dynamo.comptime import comptime
+
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
 ops = getattr(onnxscript, "opset" + str(13))
 
@@ -19,6 +21,7 @@ class AdaLayerNormZeroFunc(torch.autograd.Function):
         linear_bias: torch.Tensor,
         norm_epsilon: float,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        # import pdb; pdb.set_trace()
         # PyTorch forward logic (identical to previous version)
         silu_emb = F.silu(emb)
         linear_out = F.linear(silu_emb, linear_weight, linear_bias)
@@ -48,7 +51,7 @@ class AdaLayerNormZeroFunc(torch.autograd.Function):
     ) -> Tuple[torch.Value, ...]:
         # Call the corresponding ONNXScript function
         # g.onnxscript_op automatically handles packing/unpacking inputs/outputs
-        
+        # import pdb; pdb.set_trace()
         scaled_shifted_x, gate_msa, shift_mlp, scale_mlp, gate_mlp = g.onnxscript_op(
             AdaLayerNormZeroOnnx,  # Your ONNXScript function
             x,
@@ -59,7 +62,6 @@ class AdaLayerNormZeroFunc(torch.autograd.Function):
             outputs=5
         )
         return scaled_shifted_x, gate_msa, shift_mlp, scale_mlp, gate_mlp
-
 
 @onnxscript.script(CUSTOM_OPSET)
 def AdaLayerNormZeroOnnx(
@@ -82,7 +84,7 @@ def AdaLayerNormZeroOnnx(
     # Calculate chunk_size dynamically (as an ONNX symbolic tensor)
     # Cast output_dim_linear to a float for division, then back to INT64 for chunk_size
     # (Since output_dim_linear is a symbolic tensor, it's already an integer value type usually)
-    chunk_size = ops.Cast(ops.Div(output_dim_linear, ops.Constant(value_int=6)), to=6) # 6 is ONNX INT64
+    chunk_size = ops.Div(output_dim_linear, ops.Constant(value_int=6))
 
     # Create a 1D tensor of `chunk_size` repeated 6 times for ops.Split's split_size input.
     num_chunks = ops.Constant(value_int=6) # Scalar ONNX integer for number of chunks
@@ -117,15 +119,13 @@ def AdaLayerNormZeroOnnx(
     # Create 1D constant tensors for scale (all ones) and bias (all zeros)
     # The `shape` argument to ops.ConstantOfShape needs to be a 1D tensor representing the output shape.
     scale_shape_tensor = ops.Reshape(embedding_dim, ops.Constant(value_ints=[1])) # Reshape scalar `embedding_dim` to a 1D tensor `[embedding_dim]`
-
-    scale_tensor = ops.ConstantOfShape(
-        scale_shape_tensor,
-        value=1.0  # Value to fill with
-    )
-    bias_tensor = ops.ConstantOfShape(
-        scale_shape_tensor, # Same shape as scale
-        value=0.0 
-    )
+    one_scalar = ops.Constant(value_floats=[1.0])
+    zero_scaler = ops.Constant(value_floats=[0.0])
+    # Expand it to the desired shape
+    scale_tensor = ops.Expand(one_scalar, scale_shape_tensor)
+    bias_tensor = ops.Expand(zero_scaler, scale_shape_tensor)
+    # scale_tensor = ops.ConstantOfShape(scale_shape_tensor, value=1.0)
+    # bias_tensor = ops.ConstantOfShape(scale_shape_tensor, value=0.0)
 
     norm_x = ops.LayerNormalization(
         x,           # Input tensor (X)
@@ -142,7 +142,6 @@ def AdaLayerNormZeroOnnx(
     )
 
     return scaled_shifted_x, gate_msa, shift_mlp, scale_mlp, gate_mlp
-
 
 class AdaLayerNormZeroAIC(nn.Module):
     """
@@ -198,4 +197,3 @@ class AdaLayerNormZeroAIC(nn.Module):
             self.linear_bias,
             self.norm_epsilon,
         )
-
