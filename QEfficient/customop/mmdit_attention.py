@@ -5,6 +5,7 @@ from typing import Optional, Tuple, Any
 import torch.nn.functional as F
 from onnx import TensorProto
 # from onnxscript import int_literal
+from diffusers.models.attention_processor import Attention
 from diffusers.models.attention_processor import JointAttnProcessor2_0
 from QEfficient.customop.rms_norm import CustomRMSNorm,CustomRMSNormFunc
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
@@ -101,17 +102,10 @@ def BatchToHeadDimOnnx(hidden_states: onnxscript.FLOAT, heads: int) -> onnxscrip
     
     return ops.Reshape(hidden_states, output_shape)
 @onnxscript.script(CUSTOM_OPSET)
-def JointAttnProcessor2_0Onnx(
+def AttentionOnnx(
     hidden_states: onnxscript.FLOAT,
     encoder_hidden_states: onnxscript.FLOAT,  # This can conceptually be an empty tensor for None
     attention_mask: onnxscript.FLOAT,
-    # Parameters from `Attention` module
-    attn_heads: int,
-    attn_head_dim: int,
-    attn_scale: float,  # self.scale
-    attn_query_dim: int,  # self.query_dim (input dim to to_q, to_out[0])
-    attn_inner_dim: int,  # output dim of to_q
-    attn_inner_kv_dim: int,  # output dim of to_k, to_v
     # Weights and Biases for Attention Projections (`attn.to_q`, `attn.to_k`, `attn.to_v`)
     to_q_weight: onnxscript.FLOAT,
     to_q_bias: onnxscript.FLOAT,
@@ -122,9 +116,7 @@ def JointAttnProcessor2_0Onnx(
     # RMSNorm parameters (`attn.norm_q`, `attn.norm_k`, `attn.norm_added_q`, `attn.norm_added_k`)
     # Pass weight and epsilon for each
     norm_q_weight: onnxscript.FLOAT,
-    norm_q_eps: float,
     norm_k_weight: onnxscript.FLOAT,
-    norm_k_eps: float,
     # Weights and Biases for Cross-Attention Projections (`attn.add_q_proj`, `attn.add_k_proj`, `attn.add_v_proj`)
     add_q_proj_weight: onnxscript.FLOAT,
     add_q_proj_bias: onnxscript.FLOAT,
@@ -133,16 +125,26 @@ def JointAttnProcessor2_0Onnx(
     add_v_proj_weight: onnxscript.FLOAT,
     add_v_proj_bias: onnxscript.FLOAT,
     norm_added_q_weight: onnxscript.FLOAT,
-    norm_added_q_eps: float,
     norm_added_k_weight: onnxscript.FLOAT,
-    norm_added_k_eps: float,
     # Weights and Biases for Output Projections (`attn.to_out[0]`, `attn.to_out[1]`)
     to_out_0_weight: onnxscript.FLOAT,
     to_out_0_bias: onnxscript.FLOAT,
-    to_out_1_dropout_p: float,  # Dropout ratio for self.to_out[1]
     # Other flags
     to_add_out_weight: onnxscript.FLOAT,  # For attn.to_add_out
     to_add_out_bias: onnxscript.FLOAT,
+     # Parameters from `Attention` module
+    attn_heads: int,
+    attn_head_dim: int,
+    attn_scale: float,  # self.scale
+    attn_query_dim: int,  # self.query_dim (input dim to to_q, to_out[0])
+    attn_inner_dim: int,  # output dim of to_q
+    attn_inner_kv_dim: int,  # output dim of to_k, to_v
+    norm_q_eps: float,
+    norm_k_eps: float,
+    norm_added_q_eps: float,
+    norm_added_k_eps: float,
+    to_out_1_dropout_p: float,  # Dropout ratio for self.to_out[1]
+    
     attn_upcast_attention: bool,
     attn_upcast_softmax: bool,
     _attn_original_attention_mask_was_none: bool,
@@ -159,7 +161,8 @@ def JointAttnProcessor2_0Onnx(
     # Check if encoder_hidden_states is "None" (represented by empty tensor)
     # This conditional handling for ONNX `If` is tricky. I'll use Python `if` for tracing.
     # A true ONNX graph might trace both paths if this is a dynamic input.
-    encoder_is_not_none = ops.Cast(ops.Size(encoder_hidden_states) > 0, to=9)  # to BOOL
+    encoder_size = ops.Size(encoder_hidden_states)
+    encoder_is_not_none = ops.Cast(ops.Greater(encoder_size, ops.Constant(value_int=0)), to=9)  # to BOOL
 
     # --- Sample Projections (Query, Key, Value from hidden_states) ---
     query = ops.Add(ops.MatMul(hidden_states, ops.Transpose(to_q_weight, perm=[1, 0])), to_q_bias)
@@ -325,19 +328,12 @@ def JointAttnProcessor2_0Onnx(
     return final_hidden_states_out, final_encoder_hidden_states_out
 
 
-class JointAttnProcessor2_0Func(torch.autograd.Function):
+class AttentionFunc(torch.autograd.Function):
     @staticmethod
     def forward(
         hidden_states: torch.Tensor,
         encoder_hidden_states: torch.Tensor,  # Will be a dummy zero tensor if original was None
         attention_mask: torch.Tensor,  # Will be a dummy zero tensor if original was None
-        # Parameters from `Attention` module (passed as separate arguments)
-        attn_heads: int,
-        attn_head_dim: int,
-        attn_scale: float,
-        attn_query_dim: int,
-        attn_inner_dim: int,
-        attn_inner_kv_dim: int,
         # Weights and Biases for Attention Projections (`attn.to_q`, `attn.to_k`, `attn.to_v`)
         to_q_weight: torch.Tensor,
         to_q_bias: torch.Tensor,
@@ -348,9 +344,7 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         # RMSNorm parameters (`attn.norm_q`, `attn.norm_k`, `attn.norm_added_q`, `attn.norm_added_k`)
         # Use a consistent structure for weights and epsilons
         norm_q_weight: torch.Tensor,
-        norm_q_eps: float,
         norm_k_weight: torch.Tensor,
-        norm_k_eps: float,
         # Weights and Biases for Cross-Attention Projections (`attn.add_q_proj`, etc.)
         add_q_proj_weight: torch.Tensor,
         add_q_proj_bias: torch.Tensor,
@@ -359,36 +353,46 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         add_v_proj_weight: torch.Tensor,
         add_v_proj_bias: torch.Tensor,
         norm_added_q_weight: torch.Tensor,
-        norm_added_q_eps: float,
         norm_added_k_weight: torch.Tensor,
-        norm_added_k_eps: float,
         # Weights and Biases for Output Projections (`attn.to_out[0]`, `attn.to_out[1]`)
         to_out_0_weight: torch.Tensor,
         to_out_0_bias: torch.Tensor,
-        to_out_1_dropout_p: float,
         # Other flags
         to_add_out_weight: torch.Tensor,
         to_add_out_bias: torch.Tensor,
+        # Parameters from `Attention` module (passed as separate arguments)
+        attn_heads: int,
+        attn_head_dim: int,
+        attn_scale: float,
+        attn_query_dim: int,
+        attn_inner_dim: int,
+        attn_inner_kv_dim: int,
+        norm_q_eps: float,
+        norm_k_eps: float,
+        norm_added_q_eps: float,
+        norm_added_k_eps: float,
+        to_out_1_dropout_p: float,
+        
         attn_upcast_attention: bool,
         attn_upcast_softmax: bool,
         
         # --- Internal flags for the autograd.Function to replicate exact behavior ---
         # Indicates if `encoder_hidden_states` was originally None.
         # This will allow proper `if encoder_hidden_states is not None` logic.
-        _original_encoder_hidden_states_was_none: bool,
-        _original_attention_mask_was_none: bool,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:  # Returns two tensors as per JointAttnProcessor2_0Onnx
+        _attn_original_encoder_hidden_states_was_none: bool,
+        _attn_original_attention_mask_was_none: bool,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:  
         # Replicate PyTorch forward logic for JointAttnProcessor2_0
         residual = hidden_states
         batch_size = hidden_states.shape[0]
         # Use the internal flag to control conditional logic for PyTorch execution
         # (This differs from ONNXScript where a dummy tensor would be passed)
         actual_encoder_hidden_states = None
-        if not _original_encoder_hidden_states_was_none:
+        if not _attn_original_encoder_hidden_states_was_none:
             actual_encoder_hidden_states = encoder_hidden_states  # Use the passed non-None tensor
 
         actual_attention_mask = None
-        if not _original_attention_mask_was_none:
+        if not _attn_original_attention_mask_was_none:
             actual_attention_mask = attention_mask  # Use the passed non-None tensor
         def get_attention_scores_pytorch(query_input, key_input, mask_input):
             dtype = query_input.dtype
@@ -490,7 +494,7 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         
         combined_hidden_states = batch_to_head_dim_pytorch(combined_hidden_states, attn_heads)
 
-        final_encoder_hidden_states = None
+        # final_encoder_hidden_states = None
         # --- Split attention outputs if actual_encoder_hidden_states was present ---
         if actual_encoder_hidden_states is not None:
             split_size = residual.shape[1]
@@ -503,8 +507,8 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         combined_hidden_states = F.linear(combined_hidden_states, to_out_0_weight, to_out_0_bias)
         combined_hidden_states = F.dropout(combined_hidden_states, p=to_out_1_dropout_p, training=False)
 
-        if final_encoder_hidden_states is None:
-            final_encoder_hidden_states = torch.empty(0, device=hidden_states.device, dtype=hidden_states.dtype)
+        # if final_encoder_hidden_states is None:
+        #     final_encoder_hidden_states = torch.empty(0, device=hidden_states.device, dtype=hidden_states.dtype)
 
         return combined_hidden_states, final_encoder_hidden_states
         
@@ -519,12 +523,6 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         hidden_states: torch.Value,
         encoder_hidden_states: torch.Value,
         attention_mask: torch.Value,
-        attn_heads: int,
-        attn_head_dim: int,
-        attn_scale: float,
-        attn_query_dim: int,
-        attn_inner_dim: int,
-        attn_inner_kv_dim: int,
         to_q_weight: torch.Value,
         to_q_bias: torch.Value,
         to_k_weight: torch.Value,
@@ -532,9 +530,7 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         to_v_weight: torch.Value,
         to_v_bias: torch.Value,
         norm_q_weight: torch.Value,
-        norm_q_eps: float,
         norm_k_weight: torch.Value,
-        norm_k_eps: float,
         add_q_proj_weight: torch.Value,
         add_q_proj_bias: torch.Value,
         add_k_proj_weight: torch.Value,
@@ -542,145 +538,215 @@ class JointAttnProcessor2_0Func(torch.autograd.Function):
         add_v_proj_weight: torch.Value,
         add_v_proj_bias: torch.Value,
         norm_added_q_weight: torch.Value,
-        norm_added_q_eps: float,
         norm_added_k_weight: torch.Value,
-        norm_added_k_eps: float,
         to_out_0_weight: torch.Value,
         to_out_0_bias: torch.Value,
-        to_out_1_dropout_p: float,
-        attn_added_kv_proj_dim: int,
         to_add_out_weight: torch.Value,
         to_add_out_bias: torch.Value,
-        attn_upcast_attention: bool,
-        attn_upcast_softmax: bool,
-        _original_encoder_hidden_states_was_none: bool,  # From ctx
-        _original_attention_mask_was_none: bool,  # From ctx
+        attn_heads: torch.Value,
+        attn_head_dim: int,
+        attn_scale: torch.Value,
+        attn_query_dim: torch.Value,
+        attn_inner_dim: torch.Value,
+        attn_inner_kv_dim: torch.Value,
+        norm_q_eps: torch.Value,
+        norm_k_eps: torch.Value,
+        norm_added_q_eps: torch.Value,
+        norm_added_k_eps: torch.Value,
+        to_out_1_dropout_p: torch.Value,
+        attn_upcast_attention: torch.Value,
+        attn_upcast_softmax: torch.Value,
+        _attn_original_encoder_hidden_states_was_none: torch.Value,  # From ctx
+        _attn_original_attention_mask_was_none: torch.Value,  # From ctx
     ) -> Tuple[torch.Value, torch.Value]:
         # Pass all relevant parameters to the ONNXScript function.
         # The ONNXScript function will handle the conditional logic based on
         # whether encoder_hidden_states/attention_mask are zero-sized/empty tensors.
 
         combined_hidden_states, final_encoder_hidden_states  = g.onnxscript_op(
-            JointAttnProcessor2_0Onnx,
+            AttentionOnnx,
             hidden_states,
             encoder_hidden_states,  # Pass the (potentially dummy) tensor
             attention_mask,  # Pass the (potentially dummy) tensor
+            to_q_weight,
+            to_q_bias,
+            to_k_weight,
+            to_k_bias,
+            to_v_weight,
+            to_v_bias,
+            norm_q_weight,
+            norm_k_weight,
+            add_q_proj_weight,
+            add_q_proj_bias,
+            add_k_proj_weight,
+            add_k_proj_bias,
+            add_v_proj_weight,
+            add_v_proj_bias,
+            norm_added_q_weight,
+            norm_added_k_weight,
+            to_out_0_weight,
+            to_out_0_bias,
+            to_add_out_weight,
+            to_add_out_bias,
             attn_heads_i=attn_heads,
             attn_head_dim_i=attn_head_dim,
             attn_scale_f= attn_scale,
             attn_query_dim_i=attn_query_dim,
             attn_inner_dim_i=attn_inner_dim,
             attn_inner_kv_dim_i=attn_inner_kv_dim,
-            to_q_weight=to_q_weight,
-            to_q_bias=to_q_bias,
-            to_k_weight=to_k_weight,
-            to_k_bias=to_k_bias,
-            to_v_weight=to_v_weight,
-            to_v_bias=to_v_bias,
-            norm_q_weight=norm_q_weight,
             norm_q_eps_f=norm_q_eps,
-            norm_k_weight=norm_k_weight,
             norm_k_eps_f=norm_k_eps,
-            add_q_proj_weight=add_q_proj_weight,
-            add_q_proj_bias=add_q_proj_bias,
-            add_k_proj_weight=add_k_proj_weight,
-            add_k_proj_bias=add_k_proj_bias,
-            add_v_proj_weight=add_v_proj_weight,
-            add_v_proj_bias=add_v_proj_bias,
-            norm_added_q_weight=norm_added_q_weight,
             norm_added_q_eps_f=norm_added_q_eps,
-            norm_added_k_weight=norm_added_k_weight,
             norm_added_k_eps_f=norm_added_k_eps,
-            to_out_0_weight=to_out_0_weight,
-            to_out_0_bias=to_out_0_bias,
             to_out_1_dropout_p_f=to_out_1_dropout_p,
-            attn_added_kv_proj_dim_i=attn_added_kv_proj_dim,
-            to_add_out_weight=to_add_out_weight,
-            to_add_out_bias=to_add_out_bias,
             attn_upcast_attention_i=attn_upcast_attention,
             attn_upcast_softmax_i=attn_upcast_softmax,
-            _attn_original_attention_mask_was_none_b=_original_attention_mask_was_none,
-            _attn_original_encoder_hidden_states_was_none_b=_original_encoder_hidden_states_was_none,
+            _attn_original_attention_mask_was_none_i=_attn_original_encoder_hidden_states_was_none,
+            _attn_original_encoder_hidden_states_was_none_i=_attn_original_attention_mask_was_none,
             outputs=2
         )
         return combined_hidden_states, final_encoder_hidden_states
 
 
 
-def get_first_linear_in_features(module):
-    for submodule in module.net:
-        if isinstance(submodule, nn.Linear):
-            return submodule.in_features
-    return None
-
-class JointAttnProcessor2_0AIC(nn.Module):
+# def get_first_linear_in_features(module):
+#     for submodule in module.net:
+#         if isinstance(submodule, nn.Linear):
+#             return submodule.in_features
+#     return None
+def _get_param_or_dummy_zero(param, default_tensor_if_none: Optional[torch.Tensor] = None):
+    if isinstance(param, nn.Parameter):
+        return param
+    if param is None:
+        if default_tensor_if_none is not None:
+            return default_tensor_if_none
+        return torch.tensor(0.0)  # Scalar zero for non-tensor defaults
+    return param
+class AttentionAIC(nn.Module):
     """
-    JointAttnProcessor2_0 module that works by replacing the current processor instance
-    with compiler-known custom-op via JointAttnProcessor2_0Func.
-    Inherits from the original JointAttnProcessor2_0 to maintain its API.
+    Dummy AttentionAIC module that just extracts parameters and calls AttentionFuncAIC.apply.
+    This replaces the original Attention module in the model.
     """
-
-    def __init__(self):
+    def __init__(self, original_module: Attention):
         super().__init__()
+        self.attn_heads = original_module.heads
+        self.attn_head_dim = original_module.inner_dim // original_module.heads
+        self.attn_scale = original_module.scale
+        self.attn_query_dim = original_module.query_dim
+        self.attn_inner_dim = original_module.inner_dim
+        self.attn_inner_kv_dim = original_module.inner_kv_dim
+        self.to_q_weight = original_module.to_q.weight
+        self.to_q_bias = _get_param_or_dummy_zero(
+            original_module.to_q.bias, torch.zeros(original_module.to_q.out_features)
+        )
+        self.to_k_weight = original_module.to_k.weight
+        self.to_k_bias = _get_param_or_dummy_zero(
+            original_module.to_k.bias, torch.zeros(original_module.to_k.out_features)
+        )
+        self.to_v_weight = original_module.to_v.weight
+        self.to_v_bias = _get_param_or_dummy_zero(
+            original_module.to_v.bias, torch.zeros(original_module.to_v.out_features)
+        )
+        self.norm_q_weight = _get_param_or_dummy_zero(
+            original_module.norm_q.weight,
+            torch.zeros(
+                original_module.norm_q.weight.shape
+                if hasattr(original_module.norm_q, "weight") and original_module.norm_q.weight is not None
+                else original_module.dim_head
+            ),
+        )
+        self.norm_q_eps = original_module.norm_q.eps if hasattr(original_module.norm_q, "eps") else 1e-6
+        self.norm_k_weight = _get_param_or_dummy_zero(
+            original_module.norm_k.weight,
+            torch.zeros(
+                original_module.norm_k.weight.shape
+                if hasattr(original_module.norm_k, "weight") and original_module.norm_k.weight is not None
+                else original_module.dim_head
+            ),
+        )
+        self.norm_k_eps = original_module.norm_k.eps if hasattr(original_module.norm_k, "eps") else 1e-6
+        self.add_q_proj_weight = _get_param_or_dummy_zero(
+            original_module.add_q_proj.weight, torch.zeros(original_module.add_q_proj.out_features)
+        )
+        self.add_q_proj_bias =  _get_param_or_dummy_zero(
+            original_module.add_q_proj.bias, torch.zeros(original_module.add_q_proj.out_features)
+        )
+        self.add_k_proj_weight =  _get_param_or_dummy_zero(
+            original_module.add_k_proj.weight, torch.zeros(original_module.add_k_proj.out_features)
+        )
+        self.add_k_proj_bias = _get_param_or_dummy_zero(
+            original_module.add_k_proj.bias, torch.zeros(original_module.add_k_proj.out_features)
+        )
+        self.add_v_proj_weight = _get_param_or_dummy_zero(
+            original_module.add_v_proj.weight, torch.zeros(original_module.add_v_proj.out_features)
+        )
+        self.add_v_proj_bias = _get_param_or_dummy_zero(
+            original_module.add_v_proj.bias, torch.zeros(original_module.add_v_proj.out_features)
+        )
+        self.norm_added_q_weight = _get_param_or_dummy_zero(
+            original_module.norm_added_q.weight,
+            torch.zeros(
+                original_module.norm_added_q.weight.shape
+                if hasattr(original_module.norm_added_q, "weight")
+                and original_module.norm_added_q.weight is not None
+                else original_module.dim_head
+            ),
+        )
+        self.norm_added_q_eps =  (
+            original_module.norm_added_q.eps if hasattr(original_module.norm_added_q, "eps") else 1e-6
+        )
+        self.norm_added_k_weight = _get_param_or_dummy_zero(
+            original_module.norm_added_k.weight,
+            torch.zeros(
+                original_module.norm_added_k.weight.shape
+                if hasattr(original_module.norm_added_k, "weight")
+                and original_module.norm_added_k.weight is not None
+                else original_module.dim_head
+            ),
+        )
+        self.norm_added_k_eps =  (
+            original_module.norm_added_k.eps if hasattr(original_module.norm_added_k, "eps") else 1e-6
+        )
+        self.to_out_0_weight = original_module.to_out[0].weight
+        self.to_out_0_bias = _get_param_or_dummy_zero(
+            original_module.to_out[0].bias, torch.zeros(original_module.to_out[0].out_features)
+        )
+        self.to_out_1_dropout_p = getattr(original_module.to_out[1], "p", 0.0) if getattr(original_module, "to_out", None) and len(original_module.to_out) > 1 else 0.0
+        self.to_add_out_weight =  _get_param_or_dummy_zero(
+            getattr(getattr(original_module, "to_add_out", None), "weight", None),
+            torch.zeros(original_module.to_out[0].out_features),
+        )
+
+        self.to_add_out_bias = _get_param_or_dummy_zero(
+            getattr(getattr(original_module, "to_add_out", None), "bias", None),
+            torch.zeros(original_module.to_out[0].out_features),
+        )
+        self.attn_upcast_attention = original_module.upcast_attention
+        self.attn_upcast_softmax = original_module.upcast_softmax
+        self._attn_original_encoder_hidden_states_was_none = False
+        self._attn_original_attention_mask_was_none = True
+
     def forward(
         self,
         hidden_states: torch.FloatTensor,
-        encoder_hidden_states: torch.FloatTensor,
-        attention_mask: Optional[torch.FloatTensor],
-        attn_heads: int,
-        attn_head_dim: int,
-        attn_scale: float,
-        attn_query_dim: int,
-        attn_inner_dim: int,
-        attn_inner_kv_dim: int,
-        to_q_weight: torch.Tensor,
-        to_q_bias: torch.Tensor,
-        to_k_weight: torch.Tensor,
-        to_k_bias: torch.Tensor,
-        to_v_weight: torch.Tensor,
-        to_v_bias: torch.Tensor,
-        norm_q_weight: torch.Tensor,
-        norm_q_eps: float,
-        norm_k_weight: torch.Tensor,
-        norm_k_eps: float,
-        add_q_proj_weight: torch.Tensor,
-        add_q_proj_bias: torch.Tensor,
-        add_k_proj_weight: torch.Tensor,
-        add_k_proj_bias: torch.Tensor,
-        add_v_proj_weight: torch.Tensor,
-        add_v_proj_bias: torch.Tensor,
-        norm_added_q_weight: torch.Tensor,
-        norm_added_q_eps: float,
-        norm_added_k_weight: torch.Tensor,
-        norm_added_k_eps: float,
-        to_out_0_weight: torch.Tensor,
-        to_out_0_bias: torch.Tensor,
-        to_out_1_dropout_p: float,
-        attn_added_kv_proj_dim: int,
-        to_add_out_weight: torch.Tensor,
-        to_add_out_bias: torch.Tensor,
-        attn_upcast_attention: bool,
-        attn_upcast_softmax: bool,
-        _original_encoder_hidden_states_was_none: bool,
-        _original_attention_mask_was_none: bool,
-        original_input_onnx_dtype_code: int,
-        *args,
-        **kwargs,
+        encoder_hidden_states: Optional[torch.FloatTensor],
+        # attention_mask: Optional[torch.FloatTensor],
+       
     ) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
-        # Determine if encoder_hidden_states and attention_mask were originally None
-        # These flags are passed to the autograd.Function to guide symbolic export.
-     
-        # Pass all relevant parameters to the autograd.Function
-        return JointAttnProcessor2_0Func.apply(
+        attention_mask_for_attn = torch.empty(0, device=hidden_states.device, dtype=hidden_states.dtype)
+        
+        # Convert float parameters to torch.Tensor for the autograd.Function call
+        # norm_q_eps_tensor = torch.tensor(self.norm_q_eps, dtype=dtype, device=device)
+        # norm_k_eps_tensor = torch.tensor(self.norm_k_eps, dtype=dtype, device=device)
+        # norm_added_q_eps_tensor = torch.tensor(self.norm_added_q_eps, dtype=dtype, device=device)
+        # norm_added_k_eps_tensor = torch.tensor(self.norm_added_k_eps, dtype=dtype, device=device)
+        # to_out_1_dropout_p_tensor = torch.tensor(self.to_out_1_dropout_p, dtype=dtype, device=device)
+
+        # Call the higher-level AttentionFuncAIC.apply
+        return AttentionFunc.apply(
             hidden_states,
             encoder_hidden_states,
-            attention_mask,  # Pass the (potentially dummy) mask
-            self.attn_heads,
-            self.attn_head_dim,
-            self.attn_scale,
-            self.attn_query_dim,
-            self.attn_inner_dim,
-            self.attn_inner_kv_dim,
+            attention_mask_for_attn,
             self.to_q_weight,
             self.to_q_bias,
             self.to_k_weight,
@@ -688,9 +754,7 @@ class JointAttnProcessor2_0AIC(nn.Module):
             self.to_v_weight,
             self.to_v_bias,
             self.norm_q_weight,
-            self.norm_q_eps,
             self.norm_k_weight,
-            self.norm_k_eps,
             self.add_q_proj_weight,
             self.add_q_proj_bias,
             self.add_k_proj_weight,
@@ -698,21 +762,26 @@ class JointAttnProcessor2_0AIC(nn.Module):
             self.add_v_proj_weight,
             self.add_v_proj_bias,
             self.norm_added_q_weight,
-            self.norm_added_q_eps,
-            # self.norm_added_q_elementwise_affine,
             self.norm_added_k_weight,
-            self.norm_added_k_eps,
             self.to_out_0_weight,
             self.to_out_0_bias,
-            self.to_out_1_dropout_p,
-            self.attn_added_kv_proj_dim,
             self.to_add_out_weight,
             self.to_add_out_bias,
+            self.attn_heads,
+            self.attn_head_dim,
+            self.attn_scale,
+            self.attn_query_dim,
+            self.attn_inner_dim,
+            self.attn_inner_kv_dim,
+            self.norm_q_eps,
+            self.norm_k_eps,
+            self.norm_added_q_eps,
+            self.norm_added_k_eps,
+            self.to_out_1_dropout_p,
             self.attn_upcast_attention,
             self.attn_upcast_softmax,
-            _original_encoder_hidden_states_was_none,  # Passed as flag to autograd.Function
-            _original_attention_mask_was_none,  # Passed as flag to autograd.Function
-            original_input_onnx_dtype_code,
+            self._attn_original_encoder_hidden_states_was_none,
+            self._attn_original_attention_mask_was_none,
         )
 
-
+   

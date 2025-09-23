@@ -14,10 +14,10 @@ from torch import nn
 
 from QEfficient.base.pytorch_transforms import ModuleMappingTransform
 from QEfficient.customop.rms_norm import CustomRMSNormAIC
-from QEfficient.customop.mmdit_attn_processor import JointAttnProcessor2_0AIC
+# from QEfficient.customop.mmdit_attn_processor import JointAttnProcessor2_0AIC
 from QEfficient.customop.mmdit_adaLN import AdaLayerNormZeroAIC
 from QEfficient.customop.mmdit_transformer_block import JointTransformerBlockAIC
-from QEfficient.customop.mmdit_attn import AttentionAIC
+from QEfficient.customop.mmdit_attention import AttentionAIC
 # from QEfficient.diffusers.models.attention import QEffJointTransformerBlock
 from QEfficient.customop.mmdit_feedforward import FeedForwardAIC
 from QEfficient.diffusers.models.attention_processor import (
@@ -31,7 +31,7 @@ class SD3TransformerBlockTransform:
         FeedForward:FeedForwardAIC,
         AdaLayerNormZero: AdaLayerNormZeroAIC,
         Attention: AttentionAIC,
-        JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
+        # JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
         # JointTransformerBlock: JointTransformerBlockAIC,
         
        
@@ -48,9 +48,11 @@ class SD3TransformerBlockTransform:
         for name, child_module in model.named_children():
             # Check if the child_module is a JointTransformerBlock
             for original_cls, replacement_cls in cls.MODULE_REPLACEMENTS.items():
-                if isinstance(child_module, original_cls) and original_cls.__name__ == "Attention":
+                if isinstance(child_module, original_cls):
                     # Initialize the replacement with the original module
                     # breakpoint()
+                    if original_cls.__name__ == "Attention":
+                        a=5
                     new_module = replacement_cls(original_module=child_module)
                     setattr(model, name, new_module)
                     transformed = True

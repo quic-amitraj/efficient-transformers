@@ -21,8 +21,7 @@ class AdaLayerNormZeroFunc(torch.autograd.Function):
         linear_bias: torch.Tensor,
         norm_epsilon: float,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        # import pdb; pdb.set_trace()
-        # PyTorch forward logic (identical to previous version)
+        
         silu_emb = F.silu(emb)
         linear_out = F.linear(silu_emb, linear_weight, linear_bias)
 
