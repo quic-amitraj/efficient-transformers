@@ -16,7 +16,7 @@ from QEfficient.base.pytorch_transforms import ModuleMappingTransform
 from QEfficient.customop.rms_norm import CustomRMSNormAIC
 # from QEfficient.customop.mmdit_attn_processor import JointAttnProcessor2_0AIC
 from QEfficient.customop.mmdit_adaLN import AdaLayerNormZeroAIC
-from QEfficient.customop.mmdit_transformer_block import JointTransformerBlockAIC
+# from QEfficient.customop.mmdit_transformer_block import JointTransformerBlockAIC
 from QEfficient.customop.mmdit_attention import AttentionAIC
 # from QEfficient.diffusers.models.attention import QEffJointTransformerBlock
 from QEfficient.customop.mmdit_feedforward import FeedForwardAIC
@@ -31,7 +31,6 @@ class SD3TransformerBlockTransform:
         FeedForward:FeedForwardAIC,
         AdaLayerNormZero: AdaLayerNormZeroAIC,
         Attention: AttentionAIC,
-        # JointAttnProcessor2_0: JointAttnProcessor2_0AIC,
         # JointTransformerBlock: JointTransformerBlockAIC,
         
        

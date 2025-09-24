@@ -8,10 +8,10 @@ from diffusers.models.activations import GELU
 import torch.nn.functional as F
 
 from diffusers.models.attention import JointTransformerBlock
-from QEfficient.customop.mmdit_attn import AttentionFunc, AttentionOnnx
+from QEfficient.customop.mmdit_attention import AttentionFunc, AttentionOnnx
 from QEfficient.customop.mmdit_feedforward import FeedForwardOnnx, FeedForwardFunc
 from QEfficient.customop.mmdit_adaLN import AdaLayerNormZeroOnnx, AdaLayerNormZeroFunc
-from QEfficient.customop.mmdit_attn_processor import JointAttnProcessor2_0Onnx
+# from QEfficient.customop.mmdit_attn_processor import JointAttnProcessor2_0Onnx
 from QEfficient.customop.rms_norm import CustomRMSNorm, CustomRMSNormFunc
 from QEfficient.customop.mmdit_layernorm import CustomLayerNormFunc, CustomLayerNormOnnx
 CUSTOM_OPSET = onnxscript.values.Opset(domain="com.qualcomm.cloud", version=1)
