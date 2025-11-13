@@ -126,21 +126,6 @@ class QEFFTransformersBase(QEFFBaseModel):
         model = cls._hf_auto_class.from_pretrained(pretrained_model_name_or_path, *args, **kwargs)
         return cls(model, pretrained_model_name_or_path=pretrained_model_name_or_path)
 
-    @property
-    def model_name(self) -> str:
-        """
-        Get the name of the underlying HuggingFace model.
-
-        Returns
-        -------
-        str
-            The model's class name, with "QEff" or "QEFF" prefix removed if present.
-        """
-        mname = self.model.__class__.__name__
-        if mname.startswith("QEff") or mname.startswith("QEFF"):
-            mname = mname[4:]
-        return mname
-
 
 class MultimodalUtilityMixin:
     """
@@ -704,21 +689,6 @@ class QEffVisionEncoderForTextImageToTextModel(QEFFBaseModel):
         )
 
     @property
-    def model_name(self) -> str:
-        """
-        Get the name of the underlying vision encoder model.
-
-        Returns
-        -------
-        str
-            The model's class name, with "QEff" or "QEFF" prefix removed if present.
-        """
-        mname = self.model.__class__.__name__
-        if mname.startswith("QEff") or mname.startswith("QEFF"):
-            mname = mname[4:]
-        return mname
-
-    @property
     def get_model_config(self) -> dict:
         """
         Get the configuration dictionary of the underlying HuggingFace vision model.
@@ -865,21 +835,6 @@ class QEffCausalLMForTextImageToTextModel(QEFFBaseModel):
         )
 
     @property
-    def model_name(self) -> str:
-        """
-        Get the name of the underlying language decoder model.
-
-        Returns
-        -------
-        str
-            The model's class name, with "QEff" or "QEFF" prefix removed if present.
-        """
-        mname = self.model.__class__.__name__
-        if mname.startswith("QEff") or mname.startswith("QEFF"):
-            mname = mname[4:]
-        return mname
-
-    @property
     def get_model_config(self) -> dict:
         """
         Get the configuration dictionary of the underlying HuggingFace language model.
@@ -938,21 +893,6 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         self.lang_model = QEffCausalLMForTextImageToTextModel(model, **kwargs)
         self.continuous_batching = continuous_batching
         self.input_shapes, self.output_names = None, None
-
-    @property
-    def model_name(self) -> str:
-        """
-        Get the name of the underlying multimodal model.
-
-        Returns
-        -------
-        str
-            The model's class name, with "QEff" or "QEFF" prefix removed if present.
-        """
-        mname = self.model.__class__.__name__
-        if mname.startswith("QEff") or mname.startswith("QEFF"):
-            mname = mname[4:]
-        return mname
 
     @classmethod
     def from_pretrained(cls, pretrained_model_name_or_path: str, qaic_config: Optional[dict] = None, **kwargs):
@@ -2082,33 +2022,6 @@ class _QEFFAutoModelForImageTextToTextSingleQPC(QEFFTransformersBase, Multimodal
             ),
         )
 
-    @property
-    def model_name(self) -> str:
-        """
-        Get the name of the underlying multimodal model.
-
-        Returns
-        -------
-        str
-            The model's class name, with "QEff" or "QEFF" prefix removed if present.
-        """
-        mname = self.model.__class__.__name__
-        if mname.startswith("QEff") or mname.startswith("QEFF"):
-            mname = mname[4:]
-        return mname
-
-    @property
-    def get_model_config(self) -> dict:
-        """
-        Get the configuration dictionary of the underlying HuggingFace model.
-
-        Returns
-        -------
-        dict
-            The configuration dictionary.
-        """
-        return self.model.config.__dict__
-
 
 class QEFFAutoModelForImageTextToText:
     """
@@ -2383,21 +2296,6 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
         # SpDTransforms to PytorchTransforms.
         if self.is_tlm:
             self.model.qaic_config["return_pdfs"] = True
-
-    @property
-    def model_name(self) -> str:
-        """
-        Get the name of the underlying Causal Language Model.
-
-        Returns
-        -------
-        str
-            The model's class name, with "QEff" or "QEFF" prefix removed if present.
-        """
-        mname = self.model.__class__.__name__
-        if mname.startswith("QEff") or mname.startswith("QEFF"):
-            mname = mname[4:]
-        return mname
 
     def __repr__(self) -> str:
         return self.__class__.__name__ + "\n" + self.model.__repr__()
