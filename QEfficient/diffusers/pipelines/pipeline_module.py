@@ -375,3 +375,111 @@ class QEffFluxTransformerModel(QEFFBaseModel):
         if mname.startswith("QEff") or mname.startswith("QEFF"):
             mname = mname[4:]
         return mname
+
+
+class QEffWanTransformerModel(QEFFBaseModel):
+    _pytorch_transforms = [AttentionTransform, CustomOpsTransform, NormalizationTransform ]
+    _onnx_transforms = [FP16ClipTransform, SplitTensorsTransform]
+    """
+    QEffWanTransformerModel is a wrapper class for WanTransformer 3DModel models that provides ONNX export and compilation capabilities.
+    This class extends QEFFBaseModel to handle Wan Transformer3DModel models with specific transformations and optimizations for efficient inference on Qualcomm AI hardware.
+    """
+    def __init__(self, model: nn.modules, use_onnx_function):
+        super().__init__(model)
+        if use_onnx_function:
+            self._pytorch_transforms.append(OnnxFunctionTransform)
+            model, _ = OnnxFunctionTransform.apply(model)
+        # Ensure the model and all its submodules are on CPU to avoid meta device issues
+        self.model = model.to("cpu")
+
+    def get_onnx_config(self, batch_size=1, seq_length=512, cl=3840, latent_height=24, latent_width=40): #cl = 3840, # TODO update generic for Wan 2.2 5 B (6240), 14 B
+        example_inputs = {
+            "hidden_states": torch.randn(batch_size, self.model.config.in_channels, self.model.config.out_channels , latent_height, latent_width ,dtype=torch.float32), #TODO check self.model.config.num_frames - wan 5B  #1, 48, 16, 30, 52
+            "encoder_hidden_states": torch.randn(batch_size, seq_length , 5120, dtype=torch.float32), # BS, seq len , text dim #TODO: check why 5120, not like wan 5B - text_dim : 4096
+            "rotary_emb": torch.randn(2, cl, 1, 128 , dtype=torch.float32),
+            "temb": torch.randn(1, 5120, dtype=torch.float32), #TODO: wan 5b - 1, cl, 3072
+            "timestep_proj": torch.randn(1, 6, 5120, dtype=torch.float32), #TODO  wan 5b - 1, cl, 6, 3072
+            "timestep": torch.tensor([1], dtype=torch.float32),  # Adding timestep as a 1D array # error: assert len(timesteps.shape) == 1, "Timesteps should be a 1d-array
+        }
+
+        output_names = ["output"]
+
+        dynamic_axes={
+            "hidden_states": {
+                0: "batch_size",
+                1: "num_channels",
+                2: "num_frames",
+                3: "latent_height",
+                4: "latent_width",
+            },
+            "timestep": {0: "steps"},
+            "encoder_hidden_states": {0: "batch_size", 1: "sequence_length"},
+            "rotary_emb": {1: "cl"}
+        }
+
+        return example_inputs, dynamic_axes, output_names
+
+
+    def export(
+        self,
+        inputs,
+        output_names,
+        dynamic_axes,
+        export_dir=None,
+        export_kwargs=None,
+    ):
+        return self._export(
+            example_inputs=inputs,
+            output_names=output_names,
+            dynamic_axes=dynamic_axes,
+            export_dir=export_dir,
+            export_kwargs=export_kwargs,
+        )
+
+    def get_specializations(
+        self,
+        batch_size: int,
+        seq_len: int,
+        latent_height: int,
+        latent_width:int,
+        cl:int,
+    ):
+        specializations = [
+            {
+                "batch_size": batch_size,
+                "num_channels": self.model.in_channels, # TODO check for wan 5B=48
+                "num_frames": "16",
+                "latent_height": latent_height,
+                "latent_width": latent_width,
+                "sequence_length": seq_len,
+                "steps": 1,
+                "cl": cl
+            }
+        ]
+
+        return specializations
+
+
+    def compile(self, specializations, **compiler_options):
+        self._compile(specializations=specializations, **compiler_options)
+
+
+    @property
+    def model_name(self) -> str:
+        mname = self.model.__class__.__name__
+        if mname.startswith("QEff") or mname.startswith("QEFF"):
+            mname = mname[4:]
+        return mname
+
+
+    @property
+    def get_model_config(self) -> dict:
+        """
+        Get the model configuration as a dictionary.
+
+        Returns
+        -------
+        dict
+            The configuration dictionary of the underlying HuggingFace model.
+        """
+        return self.model.config.__dict__
