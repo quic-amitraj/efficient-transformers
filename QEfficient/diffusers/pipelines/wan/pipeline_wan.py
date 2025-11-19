@@ -17,6 +17,7 @@ from diffusers.pipelines.wan.pipeline_wan import prompt_clean
 from diffusers.video_processor import VideoProcessor
 
 from diffusers.pipelines.wan.pipeline_output import WanPipelineOutput
+from diffusers.models.transformers.transformer_wan import WanTransformerBlock
 
 from QEfficient.diffusers.pipelines.pipeline_module import (
     QEffWanTransformerModel
@@ -151,7 +152,7 @@ class QEFFWanPipeline(WanPipeline):
             export_kwargs = {}
             if "transformer" in module_name and self.use_onnx_function:
                 export_kwargs = {
-                    "export_modules_as_functions": self.transformer.model._block_classes,
+                    "export_modules_as_functions": {WanTransformerBlock}
                 }
             module_obj.export(
                 inputs=example_inputs,
@@ -208,12 +209,12 @@ class QEFFWanPipeline(WanPipeline):
 
             # Get compilation parameters from configuration
             compile_kwargs = module_config[module_name]["compilation"]
-            compile_kwargs["enable_sub_function"] = self.use_onnx_function
-
 
             # Handling dynamic values which depends on image height and width
             if "transformer" in module_name:
                 specializations[0]["cl"] = self.cl
+                specializations[0]["latent_height"] = self.latent_height
+                specializations[0]["latent_width"] = self.latent_width
 
             elif module_name == "vae_decoder":
                 specializations[0]["latent_height"] = self.latent_height
@@ -248,6 +249,8 @@ class QEFFWanPipeline(WanPipeline):
     ):
         r"""The call function to the pipeline for generation. """
         device = "cpu"
+        height = self.height
+        width = self.width
         ##TODO : remove after UMT5 is enabled on QAIC
         # max_sequence_length = 226
 
@@ -326,7 +329,6 @@ class QEFFWanPipeline(WanPipeline):
             else self.transformer_2.model.config.in_channels
         )
 
-        # import pdb; pdb.set_trace()
         latents = self.prepare_latents(
             batch_size * num_videos_per_prompt,
             num_channels_latents,

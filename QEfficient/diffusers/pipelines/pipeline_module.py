@@ -16,7 +16,6 @@ from QEfficient.diffusers.models.pytorch_transforms import (
     AttentionTransform,
     CustomOpsTransform,
     NormalizationTransform,
-    OnnxFunctionTransform,
 )
 from QEfficient.transformers.models.pytorch_transforms import (
     T5ModelTransform,
@@ -288,9 +287,6 @@ class QEffFluxTransformerModel(QEFFBaseModel):
 
     def __init__(self, model: nn.modules, use_onnx_function):
         super().__init__(model)
-        if use_onnx_function:
-            self._pytorch_transforms.append(OnnxFunctionTransform)
-            model, _ = OnnxFunctionTransform.apply(model)
         # Ensure the model and all its submodules are on CPU to avoid meta device issues
         self.model = model.to("cpu")
 
@@ -386,9 +382,6 @@ class QEffWanTransformerModel(QEFFBaseModel):
     """
     def __init__(self, model: nn.modules, use_onnx_function):
         super().__init__(model)
-        if use_onnx_function:
-            self._pytorch_transforms.append(OnnxFunctionTransform)
-            model, _ = OnnxFunctionTransform.apply(model)
         # Ensure the model and all its submodules are on CPU to avoid meta device issues
         self.model = model.to("cpu")
 

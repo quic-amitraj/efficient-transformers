@@ -556,18 +556,3 @@ class QEFFWanTransformer3DModel(WanTransformer3DModel):
             return (output,)
 
         return Transformer2DModelOutput(sample=output)
-
-class QEFFWanTransformer3DModelOF(QEFFWanTransformer3DModel):
-    def __qeff_init__(self):
-        self.transformer_blocks = nn.ModuleList()
-        self._block_classes = set()
-        # self.config.num_layers = 2 # to load subfn with 2 layers #TODO: recheck to optimize
-        for _ in range(self.config.num_layers):
-            BlockClass = WanTransformerBlock
-            block = BlockClass(
-                dim = self.config.num_attention_heads * self.config.attention_head_dim,
-                ffn_dim =13824,
-                num_heads=self.config.num_attention_heads,
-            )
-            self.transformer_blocks.append(block)
-            self._block_classes.add(BlockClass)
