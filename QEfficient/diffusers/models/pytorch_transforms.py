@@ -17,7 +17,7 @@ from diffusers.models.transformers.transformer_flux import (
     FluxTransformerBlock,
 )
 from diffusers.models.transformers.transformer_qwenimage import (
-    QwenEmbedRope,
+    QwenDoubleStreamAttnProcessor2_0,
     QwenImageTransformer2DModel,
 )
 from torch import nn
@@ -44,7 +44,6 @@ from QEfficient.diffusers.models.transformers.transformer_flux import (
 )
 from QEfficient.diffusers.models.transformers.transformer_qwenimage import (
     QEffQwenDoubleStreamAttnProcessor2_0,
-    QEffQwenEmbedRope,
     QEffQwenImageTransformer2DModel,
 )
 
@@ -71,9 +70,8 @@ class AttentionTransform(ModuleMappingTransform):
         FluxTransformer2DModel: QEffFluxTransformer2DModel,
         FluxAttention: QEffFluxAttention,
         FluxAttnProcessor: QEffFluxAttnProcessor,
-        QwenEmbedRope: QEffQwenEmbedRope,
         QwenImageTransformer2DModel: QEffQwenImageTransformer2DModel,
-        QEffQwenDoubleStreamAttnProcessor2_0: QEffQwenDoubleStreamAttnProcessor2_0,
+        QwenDoubleStreamAttnProcessor2_0: QEffQwenDoubleStreamAttnProcessor2_0,
     }
 
     @classmethod
