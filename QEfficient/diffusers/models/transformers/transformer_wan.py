@@ -14,7 +14,7 @@ import torch.nn.functional as F
 import numpy as np
 import math
 from diffusers.models.modeling_outputs import  Transformer2DModelOutput
-from diffusers.models.transformers.transformer_wan import WanAttention, _get_qkv_projections, _get_added_kv_projections, dispatch_attention_fn, WanTransformer3DModel, WanAttnProcessor
+from diffusers.models.transformers.transformer_wan import WanAttention, _get_qkv_projections, _get_added_kv_projections, dispatch_attention_fn, WanTransformer3DModel, WanAttnProcessor, WanTransformerBlock
 from diffusers.utils import set_weights_and_activate_adapters
 from diffusers.loaders.peft import _SET_ADAPTER_SCALE_FN_MAPPING
 
@@ -556,3 +556,18 @@ class QEFFWanTransformer3DModel(WanTransformer3DModel):
             return (output,)
 
         return Transformer2DModelOutput(sample=output)
+
+class QEFFWanTransformer3DModelOF(QEFFWanTransformer3DModel):
+    def __qeff_init__(self):
+        self.transformer_blocks = nn.ModuleList()
+        self._block_classes = set()
+        # self.config.num_layers = 2 # to load subfn with 2 layers #TODO: recheck to optimize
+        for _ in range(self.config.num_layers):
+            BlockClass = WanTransformerBlock
+            block = BlockClass(
+                dim = self.config.num_attention_heads * self.config.attention_head_dim,
+                ffn_dim =13824,
+                num_heads=self.config.num_attention_heads,
+            )
+            self.transformer_blocks.append(block)
+            self._block_classes.add(BlockClass)

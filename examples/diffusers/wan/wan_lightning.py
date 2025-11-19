@@ -20,6 +20,7 @@ from QEfficient import QEFFWanPipeline
 # width = 320
 
 # Load the pipeline
+# To enable sub function pass use_onnx_function=True
 pipeline = QEFFWanPipeline.from_pretrained("Wan-AI/Wan2.2-T2V-A14B-Diffusers", use_onnx_function=False, height=480, width=832)
 
 # Download the LoRAs
@@ -73,5 +74,8 @@ frames = output.images[0]
 export_to_video(frames, "out_t2v_480p_sub_fn_elder_man.mp4", fps=12)
 print(output)
 
-## To run with HQKV blocking
+## To run with HQKV blocking for 480 P
 # ATTENTION_BLOCKING_MODE=qkv head_block_size=16 num_kv_blocks=16 num_q_blocks=2  python -W ignore examples/diffusers/wan/wan_lightning.py
+
+## To run with Sub function
+# QAIC_COMPILER_OPTS_UNSUPPORTED="-loader-inline-all=0" ATTENTION_BLOCKING_MODE=qkv head_block_size=16 num_kv_blocks=16 num_q_blocks=2  python -W ignore examples/diffusers/wan/wan_lightning.py

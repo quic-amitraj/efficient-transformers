@@ -61,9 +61,9 @@ def create_export_hash(**kwargs):
 
     export_hash_params["export_params"] = export_params
 
-    export_kwargs = kwargs.get("export_kwargs")
-    if export_kwargs:
-        export_hash_params.update(export_kwargs)
+    # export_kwargs = kwargs.get("export_kwargs")
+    # if export_kwargs:
+    #     export_hash_params.update(export_kwargs)
 
     onnx_transform_kwargs = kwargs.get("onnx_transform_kwargs")
     if onnx_transform_kwargs:

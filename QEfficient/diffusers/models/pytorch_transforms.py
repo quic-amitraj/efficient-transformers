@@ -42,6 +42,7 @@ from QEfficient.diffusers.models.transformers.transformer_flux import (
 
 from QEfficient.diffusers.models.transformers.transformer_wan import (
     QEFFWanTransformer3DModel,
+    QEFFWanTransformer3DModelOF,
     QEFFWanAttnProcessor,
     QEFFWanAttention
 )
@@ -94,7 +95,10 @@ class NormalizationTransform(ModuleMappingTransform):
 
 
 class OnnxFunctionTransform(ModuleMappingTransform):
-    _module_mapping = {QEffFluxTransformer2DModel, QEffFluxTransformer2DModelOF}
+    _module_mapping = {
+        QEffFluxTransformer2DModel: QEffFluxTransformer2DModelOF,
+        QEFFWanTransformer3DModel: QEFFWanTransformer3DModelOF
+    }
 
     @classmethod
     def apply(cls, model: nn.Module) -> Tuple[nn.Module, bool]:
