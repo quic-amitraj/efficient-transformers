@@ -19,6 +19,7 @@ from QEfficient.diffusers.models.pytorch_transforms import (
 )
 from QEfficient.transformers.models.pytorch_transforms import (
     T5ModelTransform,
+    UMT5ModelTransform
 )
 from QEfficient.utils import constants
 
@@ -92,6 +93,135 @@ class QEffTextEncoder(QEFFBaseModel):
             mname = mname[4:]
         return mname
 
+
+class QEffUmt5TextEncoder(QEFFBaseModel):
+    _pytorch_transforms = [CustomOpsTransform, UMT5ModelTransform]
+    _onnx_transforms = [FP16ClipTransform, SplitTensorsTransform]
+    """
+    QEffTextEncoder is a wrapper class for text encoder models that provides ONNX export and compilation capabilities.
+
+    This class extends QEFFBaseModel to handle text encoder models (like T5EncoderModel) with specific
+    transformations and optimizations for efficient inference on Qualcomm AI hardware.
+    """
+
+    def __init__(self, model: nn.modules):
+        super().__init__(model)
+        self.model = copy.deepcopy(model)
+
+    def get_onnx_config(self, batch_size=1,  seq_length=512, **kwargs):
+        bs = batch_size
+        example_inputs = {
+            "input_ids": torch.zeros((bs, seq_length), dtype=torch.int64),
+            "attention_mask": torch.zeros((bs, seq_length), dtype=torch.int64) # TODO: cross check
+        }
+
+        dynamic_axes = {"input_ids": {0: "batch_size", 1: "seq_length"},
+                         "attention_mask": {0: "batch_size", 1: "seq_length"}} # TODO: cross check
+        output_names = ["pooler_output", "last_hidden_state"]
+
+        if self.model.__class__.__name__ == "QEffUMT5EncoderModel":
+            output_names = ["last_hidden_state"]
+        else:
+            example_inputs["output_hidden_states"] = (True,)
+        return example_inputs, dynamic_axes, output_names
+
+    def get_scale_factors(self):
+        wo_scaling_factors = []
+        fp16_max = torch.finfo(torch.float16).max
+        encoder = self.model.encoder
+        print(f"Total encoder blocks: {len(encoder.block)}")
+
+        for i, block in enumerate(encoder.block):
+            print(f"Number of layers in block: {len(block.layer)}")
+            for layer_idx, layer in enumerate(block.layer):
+                layer_type = layer.__class__.__name__
+                print(f"Layer {layer_idx}: {layer_type}")
+                if hasattr(layer, 'DenseReluDense'):
+                    dense_relu_dense = layer.DenseReluDense
+                    dense_type = dense_relu_dense.__class__.__name__
+                    # Check for layer norm
+                    if hasattr(layer, 'layer_norm'):
+                        g = layer.layer_norm.weight
+                        root_n = torch.sqrt(torch.tensor(g.shape[0], dtype=torch.float32))
+                        # Check for different types of dense layers
+                        if hasattr(dense_relu_dense, 'wo'):
+                            wow = dense_relu_dense.wo.weight
+                            # Calculate scaling based on wi weights
+                            if hasattr(dense_relu_dense, 'wi_0') and hasattr(dense_relu_dense, 'wi_1'):
+                                wiw0 = dense_relu_dense.wi_0.weight
+                                wiw1 = dense_relu_dense.wi_1.weight
+                                gw0 = g.unsqueeze(1) * wiw0.T
+                                max_row0 = root_n * gw0.norm(dim=0)
+                                gw1 = g.unsqueeze(1) * wiw1.T
+                                max_row1 = root_n * gw1.norm(dim=0)
+                                max_row = max_row0 * max_row1
+                            elif hasattr(dense_relu_dense, 'wi'):
+                                wiw = dense_relu_dense.wi.weight
+                                gw = g.unsqueeze(1) * wiw.T
+                                max_row = root_n * gw.norm(dim=0)
+                            else:
+                                continue
+                            # Calculate wo scaling factor
+                            wo_max = max_row.norm() * wow.T.norm(dim=0).max()
+                            wo_scaling_factor = torch.ceil(wo_max / fp16_max)
+                            wo_sf_value = int(wo_scaling_factor.item())
+                            wo_scaling_factors.append(wo_sf_value)
+                        else:
+                            print(f"No wo weight found!")
+                elif hasattr(layer, 'SelfAttention'):
+                    print(f"SelfAttention (skipping for now)")
+                else:
+                    print(f"Unknown layer structure")
+        return wo_scaling_factors
+
+    def export(self, inputs, output_names, dynamic_axes, export_dir=None, export_kwargs=None,):
+
+        wo_sfs = [float(x) for x in self.get_scale_factors()]
+        # print(f">>>>>>>>>>>> wo_sfs : {wo_sfs}") #[1829.0, 10745.0, 17357.0, 19643.0, 21625.0, 22191.0, 25395.0, 25954.0, 34890.0, 35209.0, 43846.0, 51801.0, 51082.0, 54136.0, 50560.0, 51044.0, 49073.0, 47763.0, 42468.0, 40632.0, 37141.0, 33225.0, 27185.0, 12966.0]
+        # import ipdb; ipdb.set_trace()
+        with torch.no_grad():
+            prev_sf = 1
+            num_blocks = len(self.model.encoder.block)
+            if num_blocks != len(wo_sfs):
+                raise ValueError(
+                    f"Model has {num_blocks} blocks but {len(wo_sfs)} scaling factors provided!"
+                )
+            for i in range(num_blocks):
+                wosf = wo_sfs[i]
+                self.model.encoder.block[i].layer[0].SelfAttention.o.weight *= 1 / wosf
+                self.model.encoder.block[i].layer[0].scaling_factor *= prev_sf / wosf
+                self.model.encoder.block[i].layer[1].DenseReluDense.wo.weight *= 1 / wosf
+                prev_sf = wosf
+                if (i + 1) % 6 == 0 or i == num_blocks - 1:
+                    print(f"Scaled blocks 0-{i}")
+
+        print(f"Applied scaling factors to all {num_blocks} blocks")
+        return self._export(inputs, output_names, dynamic_axes, export_dir,export_kwargs)
+
+    def get_specializations(
+        self,
+        batch_size: int,
+        seq_len: int,
+    ):
+        specializations = [
+            {"batch_size": batch_size, "seq_length": seq_len},
+        ]
+
+        return specializations
+
+    def compile(self, specializations, **compiler_options):
+        self._compile(specializations=specializations, **compiler_options)
+
+    @property
+    def model_name(self) -> str:
+        mname = self.model.__class__.__name__
+        if mname.startswith("QEff") or mname.startswith("QEFF"):
+            mname = mname[4:]
+        return mname
+
+    @property
+    def get_model_config(self) -> dict:
+        return self.model.model.vision_model.config.__dict__
 
 class QEffUNet(QEFFBaseModel):
     _pytorch_transforms = [CustomOpsTransform]
@@ -385,9 +515,15 @@ class QEffWanTransformerModel(QEFFBaseModel):
         # Ensure the model and all its submodules are on CPU to avoid meta device issues
         self.model = model.to("cpu")
 
-    def get_onnx_config(self, batch_size=1, seq_length=512, cl=3840, latent_height=24, latent_width=40): #cl = 3840, # TODO update generic for Wan 2.2 5 B (6240), 14 B
+    def get_onnx_config(self, batch_size=1, seq_length=512, **kwargs): #cl = 3840, # TODO update generic for Wan 2.2 5 B (6240), 14 B
+        # cl=3840, latent_height=24, latent_width=40
+        cl = kwargs.get("cl",3840)
+        latent_height = kwargs.get("latent_height",3840)
+        latent_width = kwargs.get("latent_width",3840)
+        num_frames = kwargs.get("num_frames", 21)
+
         example_inputs = {
-            "hidden_states": torch.randn(batch_size, self.model.config.in_channels, self.model.config.out_channels , latent_height, latent_width ,dtype=torch.float32), #TODO check self.model.config.num_frames - wan 5B  #1, 48, 16, 30, 52
+            "hidden_states": torch.randn(batch_size, self.model.config.in_channels, num_frames , latent_height, latent_width ,dtype=torch.float32), #TODO check self.model.config.num_frames - wan 5B  #1, 48, 16, 30, 52
             "encoder_hidden_states": torch.randn(batch_size, seq_length , 5120, dtype=torch.float32), # BS, seq len , text dim #TODO: check why 5120, not like wan 5B - text_dim : 4096
             "rotary_emb": torch.randn(2, cl, 1, 128 , dtype=torch.float32),
             "temb": torch.randn(1, 5120, dtype=torch.float32), #TODO: wan 5b - 1, cl, 3072

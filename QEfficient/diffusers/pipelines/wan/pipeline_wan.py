@@ -20,6 +20,7 @@ from diffusers.pipelines.wan.pipeline_output import WanPipelineOutput
 from diffusers.models.transformers.transformer_wan import WanTransformerBlock
 
 from QEfficient.diffusers.pipelines.pipeline_module import (
+    QEffUmt5TextEncoder,
     QEffWanTransformerModel
 )
 from QEfficient.diffusers.pipelines.pipeline_utils import (
@@ -48,15 +49,16 @@ class QEFFWanPipeline(WanPipeline):
         self.custom_config = None
         # self.use_onnx_function = self.kwargs.get("use_onnx_function", False)
         self.use_onnx_function = use_onnx_function
-        self.text_encoder = model.text_encoder   ##TODO : update with  Qeff umt5
+        self.text_encoder = QEffUmt5TextEncoder(model.text_encoder) #model.text_encoder   ##TODO : update with  Qeff umt5
         self.transformer = QEffWanTransformerModel(model.transformer, use_onnx_function=use_onnx_function)
         self.transformer_2 = QEffWanTransformerModel(model.transformer_2, use_onnx_function=use_onnx_function) # only for wan 14B ##TODO: check for wan5B
         self.vae_decode = model.vae  ##TODO: QEffVAE(model, "decoder")
 
         # All modules of WanPipeline stored in a dictionary for easy access and iteration
         self.modules = {
-            "transformer": self.transformer,
-            "transformer_2": self.transformer_2, #TODO: for wan 5B getattr(self, "transformer_2", None),
+            "text_encoder": self.text_encoder,
+            # "transformer": self.transformer,
+            # "transformer_2": self.transformer_2, #TODO: for wan 5B getattr(self, "transformer_2", None),
         }
         self.tokenizer = model.tokenizer
         self.text_encoder.tokenizer = model.tokenizer
@@ -85,7 +87,10 @@ class QEFFWanPipeline(WanPipeline):
         self.video_processor = VideoProcessor(vae_scale_factor=self.vae_scale_factor_spatial)
         self.latent_height = self.height // 8
         self.latent_width = self.width // 8
+        # patch size is 2,2
+        # num frames default = 21
         self.cl = (self.height * self.width) // 16
+        # self.cl = (self.latent_height//2 * self.latent_width//2) * 21
 
 
     @classmethod
@@ -190,9 +195,9 @@ class QEFFWanPipeline(WanPipeline):
         if any(
             path is None
             for path in [
-                # self.text_encoder.onnx_path,
-                self.transformer.onnx_path,
-                self.transformer_2.onnx_path,
+                self.text_encoder.onnx_path,
+                # self.transformer.onnx_path,
+                # self.transformer_2.onnx_path,
                 # self.vae_decode.onnx_path,
             ]
         ):
@@ -222,6 +227,123 @@ class QEFFWanPipeline(WanPipeline):
             # Compile the module
             module_obj.compile(specializations=specializations, **compile_kwargs)
 
+
+    def _get_t5_prompt_embeds(
+        self,
+        prompt: Union[str, List[str]] = None,
+        num_videos_per_prompt: int = 1,
+        max_sequence_length: int = 226,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
+    ):
+        device = device or self._execution_device
+        dtype = dtype or self.text_encoder.model.dtype
+
+        prompt = [prompt] if isinstance(prompt, str) else prompt
+        prompt = [prompt_clean(u) for u in prompt]
+        batch_size = len(prompt)
+
+        text_inputs = self.tokenizer(
+            prompt,
+            padding="max_length",
+            max_length=max_sequence_length,
+            truncation=True,
+            add_special_tokens=True,
+            return_attention_mask=True,
+            return_tensors="pt",
+        )
+        text_input_ids, mask = text_inputs.input_ids, text_inputs.attention_mask
+        seq_lens = mask.gt(0).sum(dim=1).long()
+
+        aic_text_input = {"input_ids": text_input_ids.numpy(),"attention_mask": mask.numpy()}
+        # Initialize QAIC inference session if not already created
+        if self.text_encoder.qpc_session is None:
+            self.text_encoder.qpc_session = QAICInferenceSession(
+                str(self.text_encoder.qpc_path), device_ids=self.text_encoder.device_ids
+            )
+        # # Allocate output buffers for QAIC inference
+        text_encoder_output = {"last_hidden_state": np.random.rand(batch_size, max_sequence_length, 4096).astype(np.float32)}
+        self.text_encoder.qpc_session.set_buffers(text_encoder_output)
+
+        # Run UMT5 encoder inference and measure time
+        start_umt5_time = time.time()
+        prompt_embeds = torch.tensor(self.text_encoder.qpc_session.run(aic_text_input)["last_hidden_state"])
+        end_umt5_time = time.time()
+        text_encoder_perf = end_umt5_time - start_umt5_time
+        print("text_encoder_perf:",text_encoder_perf)
+        # torch_prompt_embeds = self.text_encoder(text_input_ids.to(device), mask.to(device)).last_hidden_state
+        # import pdb; pdb.set_trace()
+        prompt_embeds = prompt_embeds.to(dtype=dtype, device=device)
+        prompt_embeds = [u[:v] for u, v in zip(prompt_embeds, seq_lens)]
+        prompt_embeds = torch.stack(
+            [torch.cat([u, u.new_zeros(max_sequence_length - u.size(0), u.size(1))]) for u in prompt_embeds], dim=0
+        )
+
+        # duplicate text embeddings for each generation per prompt, using mps friendly method
+        _, seq_len, _ = prompt_embeds.shape
+        prompt_embeds = prompt_embeds.repeat(1, num_videos_per_prompt, 1)
+        prompt_embeds = prompt_embeds.view(batch_size * num_videos_per_prompt, seq_len, -1)
+
+        return prompt_embeds, text_encoder_perf
+
+    def encode_prompt(
+        self,
+        prompt: Union[str, List[str]],
+        negative_prompt: Optional[Union[str, List[str]]] = None,
+        do_classifier_free_guidance: bool = True,
+        num_videos_per_prompt: int = 1,
+        prompt_embeds: Optional[torch.Tensor] = None,
+        negative_prompt_embeds: Optional[torch.Tensor] = None,
+        max_sequence_length: int = 226,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
+    ):
+        r""" Encodes the prompt into text encoder hidden states."""
+        device = device or self._execution_device
+
+        prompt = [prompt] if isinstance(prompt, str) else prompt
+        if prompt is not None:
+            batch_size = len(prompt)
+        else:
+            batch_size = prompt_embeds.shape[0]
+
+        perf_text_encoder = []
+
+        if prompt_embeds is None:
+            prompt_embeds, perf_prompt_embeds = self._get_t5_prompt_embeds(
+                prompt=prompt,
+                num_videos_per_prompt=num_videos_per_prompt,
+                max_sequence_length=max_sequence_length,
+                device=device,
+                dtype=dtype,
+            )
+            perf_text_encoder.append(perf_prompt_embeds)
+
+        if do_classifier_free_guidance and negative_prompt_embeds is None:
+            negative_prompt = negative_prompt or ""
+            negative_prompt = batch_size * [negative_prompt] if isinstance(negative_prompt, str) else negative_prompt
+
+            if prompt is not None and type(prompt) is not type(negative_prompt):
+                raise TypeError(
+                    f"`negative_prompt` should be the same type to `prompt`, but got {type(negative_prompt)} !="
+                    f" {type(prompt)}."
+                )
+            elif batch_size != len(negative_prompt):
+                raise ValueError(
+                    f"`negative_prompt`: {negative_prompt} has batch size {len(negative_prompt)}, but `prompt`:"
+                    f" {prompt} has batch size {batch_size}. Please make sure that passed `negative_prompt` matches"
+                    " the batch size of `prompt`."
+                )
+
+            negative_prompt_embeds, perf_negative_prompt_embeds  = self._get_t5_prompt_embeds(
+                prompt=negative_prompt,
+                num_videos_per_prompt=num_videos_per_prompt,
+                max_sequence_length=max_sequence_length,
+                device=device,
+                dtype=dtype,
+            )
+            perf_text_encoder.append(perf_negative_prompt_embeds)
+        return prompt_embeds, negative_prompt_embeds, perf_text_encoder
 
     def __call__(
         self,
@@ -298,8 +420,7 @@ class QEFFWanPipeline(WanPipeline):
             batch_size = prompt_embeds.shape[0]
 
         # 3. Encode input prompt
-        start_encoder_time = time.time() #TODO will update once UMT5 enabled on QAIC
-        prompt_embeds, negative_prompt_embeds = self.encode_prompt(
+        prompt_embeds, negative_prompt_embeds, text_encoder_perf= self.encode_prompt(
             prompt=prompt,
             negative_prompt=negative_prompt,
             do_classifier_free_guidance=self.do_classifier_free_guidance,
@@ -309,9 +430,6 @@ class QEFFWanPipeline(WanPipeline):
             max_sequence_length=max_sequence_length,
             device=device,
         )
-        end_encoder_time = time.time()
-        text_encoder_perf = end_encoder_time - start_encoder_time
-
 
         transformer_dtype = self.transformer.model.dtype  # if self.transformer is not None else self.transformer_2.dtype update it to self.transformer_2.model.dtype for 14 B
         prompt_embeds = prompt_embeds.to(transformer_dtype)
@@ -354,11 +472,12 @@ class QEFFWanPipeline(WanPipeline):
 
         # 6. Denoising loop
         ###### AIC related changes of transformers ######
-
+        # self.transformer.qpc_path = "/home/vtirumal/sub_fun_wan_lit_hqkv_full/rerun1_qpc_sfn_lit_hn_t1_hqkv_480p_mxfp6_mdts_mos/"
+        # self.transformer_2.qpc_path = "/home/vtirumal/sub_fun_wan_lit_hqkv_full/qpc_sfn_lit_ln_t2_hqkv_480p_mxfp6_mdts_mos/"
         if self.transformer.qpc_session is None:
-            self.transformer.qpc_session = QAICInferenceSession(str(self.transformer.qpc_path), device_ids=self.transformer.device_ids)
+            self.transformer.qpc_session = QAICInferenceSession(str(self.transformer.qpc_path))#, device_ids=self.transformer.device_ids)
         if self.transformer_2.qpc_session is None:
-            self.transformer_2.qpc_session = QAICInferenceSession(str(self.transformer_2.qpc_path), device_ids=self.transformer_2.device_ids)
+            self.transformer_2.qpc_session = QAICInferenceSession(str(self.transformer_2.qpc_path))#, device_ids=self.transformer_2.device_ids)
 
         output_buffer = {
             "output": np.random.rand(
@@ -449,7 +568,7 @@ class QEFFWanPipeline(WanPipeline):
                     outputs = current_model_qpc.run(inputs_aic)
                     end_transfromer_step_time = time.time()
                     transformer_perf.append(end_transfromer_step_time - start_transformer_step_time)
-                    print(f"DIT {i} time {end_transfromer_step_time - start_transformer_step_time:.2f} seconds")
+                    print(f">>>>>>>> DIT {i} time {end_transfromer_step_time - start_transformer_step_time:.2f} seconds")
 
                     # noise_pred = torch.from_numpy(outputs["output"])
                     hidden_states = torch.tensor(outputs["output"])
@@ -536,7 +655,7 @@ class QEFFWanPipeline(WanPipeline):
         # return WanPipelineOutput(frames=video)
         # Collect performance data in a dict
         perf_data = {
-            "umt5_cpu" : text_encoder_perf,
+            "umt5_qaic" : text_encoder_perf,
             "transformer_qaic": transformer_perf,
             "vae_decoder_cpu": vae_decode_perf,
         }

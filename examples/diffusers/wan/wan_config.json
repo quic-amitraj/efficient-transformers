@@ -2,6 +2,24 @@
   "description": "Default configuration for Wan pipeline",
   "model_type": "wan",
   "modules": {
+    "text_encoder": {
+      "specializations": {
+        "batch_size": 1,
+        "seq_length": 512
+      },
+      "compilation": {
+        "onnx_path": null,
+        "compile_dir": null,
+        "mdp_ts_num_devices": 1,
+        "convert_to_fp16": true,
+        "aic_num_cores": 16,
+        "mos": 1,
+        "mdts-mos": 1
+      },
+      "execute": {
+        "device_ids": null
+      }
+    },
     "transformer": {
       "specializations": {
         "batch_size": "1",

@@ -202,6 +202,16 @@ from transformers.models.t5.modeling_t5 import (
     T5LayerNorm,
     T5LayerSelfAttention,
 )
+from transformers.models.umt5.modeling_umt5 import (
+    UMT5Stack,
+    UMT5Block,
+    UMT5EncoderModel,
+    UMT5Attention,
+    UMT5LayerNorm,
+    UMT5LayerFF,
+    UMT5LayerSelfAttention,
+    UMT5LayerCrossAttention
+)
 from transformers.models.whisper.modeling_whisper import (
     WhisperAttention,
     WhisperDecoder,
@@ -211,7 +221,6 @@ from transformers.models.whisper.modeling_whisper import (
     WhisperModel,
     WhisperPositionalEmbedding,
 )
-
 from QEfficient.base.pytorch_transforms import ExternalModuleMapperTransform, ModuleMappingTransform
 from QEfficient.customop import CustomRMSNormAIC, GemmaCustomRMSNormAIC
 from QEfficient.transformers.embeddings.embedding_utils import POOLING_MAP, PooledModel, validate_user_pooling_function
@@ -427,6 +436,16 @@ from QEfficient.transformers.models.t5.modeling_t5 import (
     QEffT5LayerFF,
     QEffT5LayerNorm,
     QEffT5LayerSelfAttention,
+)
+from QEfficient.transformers.models.umt5.modeling_umt5 import (
+    QEffUMT5Stack,
+    QEffUMT5Block,
+    QEffUMT5EncoderModel,
+    QEffUMT5Attention,
+    QEffUMT5LayerNorm,
+    QEffUMT5LayerFF,
+    QEffUMT5LayerSelfAttention,
+    QEffUMT5LayerCrossAttention,
 )
 from QEfficient.transformers.models.whisper.modeling_whisper import (
     QEffWhisperAttention,
@@ -833,6 +852,23 @@ class T5ModelTransform(ModuleMappingTransform):
         model, transformed = super().apply(model)
         return model, transformed
 
+class UMT5ModelTransform(ModuleMappingTransform):
+    # supported architectures
+    _module_mapping = {
+        UMT5Stack: QEffUMT5Stack,
+        UMT5Block: QEffUMT5Block,
+        UMT5EncoderModel: QEffUMT5EncoderModel,
+        UMT5Attention: QEffUMT5Attention,
+        UMT5LayerNorm: QEffUMT5LayerNorm,
+        UMT5LayerFF: QEffUMT5LayerFF,
+        UMT5LayerSelfAttention: QEffUMT5LayerSelfAttention,
+        UMT5LayerCrossAttention: QEffUMT5LayerCrossAttention,
+    }
+
+    @classmethod
+    def apply(cls, model: nn.Module) -> Tuple[nn.Module, bool]:
+        model, transformed = super().apply(model)
+        return model, transformed
 
 class PoolingTransform:
     """

@@ -71,7 +71,7 @@ output = pipeline(
     custom_config_path = "examples/diffusers/wan/wan_config.json"
     )
 frames = output.images[0]
-export_to_video(frames, "out_t2v_480p_sub_fn_elder_man.mp4", fps=12)
+export_to_video(frames, "out_t2v_480p_sub_fn_elder_man_old_qpc_t5.mp4", fps=12)
 print(output)
 
 ## To run with HQKV blocking for 480 P
