@@ -21,7 +21,8 @@ from diffusers.models.transformers.transformer_wan import WanTransformerBlock
 
 from QEfficient.diffusers.pipelines.pipeline_module import (
     QEffUmt5TextEncoder,
-    QEffWanTransformerModel
+    QEffWanTransformerModel,
+    QEffAutoencoderKLWan
 )
 from QEfficient.diffusers.pipelines.pipeline_utils import (
     ModulePerf,
@@ -52,8 +53,8 @@ class QEFFWanPipeline(WanPipeline):
         self.text_encoder = QEffUmt5TextEncoder(model.text_encoder) #model.text_encoder   ##TODO : update with  Qeff umt5
         self.transformer = QEffWanTransformerModel(model.transformer, use_onnx_function=use_onnx_function)
         self.transformer_2 = QEffWanTransformerModel(model.transformer_2, use_onnx_function=use_onnx_function) # only for wan 14B ##TODO: check for wan5B
-        self.vae_decode = model.vae  ##TODO: QEffVAE(model, "decoder")
-
+        # self.vae_decode = model.vae  ##TODO: QEffVAE(model, "decoder")
+        self.vae_decode  = QEffAutoencoderKLWan(model.vae)
         # All modules of WanPipeline stored in a dictionary for easy access and iteration
         self.modules = {
             "text_encoder": self.text_encoder,
@@ -198,7 +199,7 @@ class QEFFWanPipeline(WanPipeline):
                 self.text_encoder.onnx_path,
                 # self.transformer.onnx_path,
                 # self.transformer_2.onnx_path,
-                # self.vae_decode.onnx_path,
+                self.vae_decode.onnx_path,
             ]
         ):
             self.export()
@@ -478,6 +479,9 @@ class QEFFWanPipeline(WanPipeline):
             self.transformer.qpc_session = QAICInferenceSession(str(self.transformer.qpc_path))#, device_ids=self.transformer.device_ids)
         if self.transformer_2.qpc_session is None:
             self.transformer_2.qpc_session = QAICInferenceSession(str(self.transformer_2.qpc_path))#, device_ids=self.transformer_2.device_ids)
+        
+        if self.vae_decode.qpc_session is None:
+            self.vae_decode.qpc_session = QAICInferenceSession(str(self.vae_decode.qpc_path))#, device_ids=self.transformer_2.device_ids)
 
         output_buffer = {
             "output": np.random.rand(
@@ -643,7 +647,9 @@ class QEFFWanPipeline(WanPipeline):
             latents = latents / latents_std + latents_mean
             # import pdb; pdb.set_trace()
             start_decode_time = time.time()
-            video = self.model.vae.decode(latents, return_dict=False)[0] #TODO: to enable aic with qpc self.vae_decode(latents, return_dict=False)[0]
+            # video = self.model.vae.decode(latents, return_dict=False)[0] #TODO: to enable aic with qpc self.vae_decode(latents, return_dict=False)[0]
+            inputs_decoder = {"sample": latents.detach().numpy()}
+            video  = torch.tensor(self.vae_decode.run(inputs_decoder)["video"])
             end_decode_time = time.time()
             vae_decode_perf = end_decode_time - start_decode_time
             video = self.video_processor.postprocess_video(video.detach())

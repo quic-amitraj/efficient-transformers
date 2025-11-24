@@ -8,6 +8,13 @@ from typing import Tuple
 
 from diffusers.models.attention import JointTransformerBlock
 from diffusers.models.attention_processor import Attention, JointAttnProcessor2_0
+from diffusers.models.autoencoders.autoencoder_kl_wan import (
+    AutoencoderKLWan,
+    WanDecoder3d,
+    WanEncoder3d,
+    WanResample,
+    WanResidualBlock,
+)
 from diffusers.models.normalization import AdaLayerNormContinuous, AdaLayerNormZero, AdaLayerNormZeroSingle, RMSNorm
 from diffusers.models.transformers.transformer_flux import (
     FluxAttention,
@@ -16,7 +23,7 @@ from diffusers.models.transformers.transformer_flux import (
     FluxTransformer2DModel,
     FluxTransformerBlock,
 )
-from diffusers.models.transformers.transformer_wan import WanTransformer3DModel, WanAttnProcessor, WanAttention
+from diffusers.models.transformers.transformer_wan import WanAttention, WanAttnProcessor, WanTransformer3DModel
 from torch import nn
 
 from QEfficient.base.pytorch_transforms import ModuleMappingTransform
@@ -25,6 +32,13 @@ from QEfficient.diffusers.models.attention import QEffJointTransformerBlock
 from QEfficient.diffusers.models.attention_processor import (
     QEffAttention,
     QEffJointAttnProcessor2_0,
+)
+from QEfficient.diffusers.models.autoencoders.autoencoder_kl_wan import (
+    QEffAutoencoderKLWan,
+    QEffWanDecoder3d,
+    QEffWanEncoder3d,
+    QEffWanResample,
+    QEffWanResidualBlock,
 )
 from QEfficient.diffusers.models.normalization import (
     QEffAdaLayerNormContinuous,
@@ -36,14 +50,12 @@ from QEfficient.diffusers.models.transformers.transformer_flux import (
     QEffFluxAttnProcessor,
     QEffFluxSingleTransformerBlock,
     QEffFluxTransformer2DModel,
-    QEffFluxTransformer2DModelOF,
     QEffFluxTransformerBlock,
 )
-
 from QEfficient.diffusers.models.transformers.transformer_wan import (
-    QEFFWanTransformer3DModel,
+    QEFFWanAttention,
     QEFFWanAttnProcessor,
-    QEFFWanAttention
+    QEFFWanTransformer3DModel,
 )
 
 
@@ -70,8 +82,13 @@ class AttentionTransform(ModuleMappingTransform):
         FluxAttention: QEffFluxAttention,
         FluxAttnProcessor: QEffFluxAttnProcessor,
         WanAttnProcessor: QEFFWanAttnProcessor,
-        WanAttention : QEFFWanAttention,
-        WanTransformer3DModel : QEFFWanTransformer3DModel,
+        WanAttention: QEFFWanAttention,
+        WanTransformer3DModel: QEFFWanTransformer3DModel,
+        WanDecoder3d: QEffWanDecoder3d,
+        WanEncoder3d: QEffWanEncoder3d,
+        WanResidualBlock: QEffWanResidualBlock,
+        WanResample: QEffWanResample,
+        AutoencoderKLWan: QEffAutoencoderKLWan,
     }
 
     @classmethod
@@ -91,4 +108,3 @@ class NormalizationTransform(ModuleMappingTransform):
     def apply(cls, model: nn.Module) -> Tuple[nn.Module, bool]:
         model, transformed = super().apply(model)
         return model, transformed
-
