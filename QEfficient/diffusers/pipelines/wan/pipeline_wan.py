@@ -13,14 +13,14 @@ from venv import logger
 import numpy as np
 import torch
 from diffusers import WanPipeline
+from diffusers.models.transformers.transformer_wan import WanTransformerBlock
+from diffusers.pipelines.wan.pipeline_output import WanPipelineOutput
 from diffusers.pipelines.wan.pipeline_wan import prompt_clean
 from diffusers.video_processor import VideoProcessor
 
-from diffusers.pipelines.wan.pipeline_output import WanPipelineOutput
-from diffusers.models.transformers.transformer_wan import WanTransformerBlock
-
 from QEfficient.diffusers.pipelines.pipeline_module import (
-    QEffWanTransformerModel
+    QEFFWanUnifiedTransformer,
+    QEFFWanUnifiedWrapper,
 )
 from QEfficient.diffusers.pipelines.pipeline_utils import (
     ModulePerf,
@@ -30,8 +30,8 @@ from QEfficient.diffusers.pipelines.pipeline_utils import (
 )
 from QEfficient.generation.cloud_infer import QAICInferenceSession
 
+
 class QEFFWanPipeline(WanPipeline):
-    _hf_auto_class = WanPipeline
     r"""
     Pipeline for text-to-video generation using Wan.
     A QEfficient-optimized Wan pipeline, inheriting from `diffusers.WanPipeline`.
@@ -40,23 +40,22 @@ class QEFFWanPipeline(WanPipeline):
     wan transformer, and VAE) to enhance performance, particularly for deployment on Qualcomm AI hardware.
     It provides methods for text-to-video generation leveraging these optimized components.
     """
+    _hf_auto_class = WanPipeline
 
     def __init__(self, model, use_onnx_function=False, *args, **kwargs):
         # Required by diffusers for serialization and device management
         self.model = model
         self.kwargs = kwargs
         self.custom_config = None
-        # self.use_onnx_function = self.kwargs.get("use_onnx_function", False)
         self.use_onnx_function = use_onnx_function
         self.text_encoder = model.text_encoder   ##TODO : update with  Qeff umt5
-        self.transformer = QEffWanTransformerModel(model.transformer, use_onnx_function=use_onnx_function)
-        self.transformer_2 = QEffWanTransformerModel(model.transformer_2, use_onnx_function=use_onnx_function) # only for wan 14B ##TODO: check for wan5B
+        self.unified_wrapper  = QEFFWanUnifiedWrapper(model.transformer, model.transformer_2, 875 ) # 875 ==>  boundary_ratio * 1000 (self.scheduler.config.num_train_timesteps= 1000)
+        self.transformer = QEFFWanUnifiedTransformer(self.unified_wrapper)
         self.vae_decode = model.vae  ##TODO: QEffVAE(model, "decoder")
 
         # All modules of WanPipeline stored in a dictionary for easy access and iteration
         self.modules = {
-            "transformer": self.transformer,
-            "transformer_2": self.transformer_2, #TODO: for wan 5B getattr(self, "transformer_2", None),
+            "transformer": self.transformer
         }
         self.tokenizer = model.tokenizer
         self.text_encoder.tokenizer = model.tokenizer
@@ -67,15 +66,11 @@ class QEFFWanPipeline(WanPipeline):
             scheduler=self.scheduler,
             tokenizer=self.tokenizer,
             transformer=self.transformer ,
-            transformer_2=self.transformer_2,
             vae=self.vae_decode,
         )
 
         # boundary_ratio = self.kwargs.get("boundary_ratio", None)  # TODO: for wan 5 B
         # expand_timesteps = self.kwargs.get("expand_timesteps", True) ##TODO : for wan 5B
-
-        self.height = kwargs.get("height", 192)
-        self.width = kwargs.get("width", 320)
         boundary_ratio = 0.875
         expand_timesteps = self.kwargs.get("expand_timesteps", False)
         self.register_to_config(boundary_ratio=boundary_ratio)
@@ -83,9 +78,7 @@ class QEFFWanPipeline(WanPipeline):
         self.vae_scale_factor_temporal = self.vae_decode.config.scale_factor_temporal if getattr(self, "vae", None) else 4
         self.vae_scale_factor_spatial = self.vae_decode.config.scale_factor_spatial if getattr(self, "vae", None) else 8
         self.video_processor = VideoProcessor(vae_scale_factor=self.vae_scale_factor_spatial)
-        self.latent_height = self.height // 8
-        self.latent_width = self.width // 8
-        self.cl = (self.height * self.width) // 16
+        _, self.patch_height, self.patch_width = self.transformer.model.config.patch_size
 
 
     @classmethod
@@ -93,8 +86,6 @@ class QEFFWanPipeline(WanPipeline):
         cls,
         pretrained_model_name_or_path: Optional[Union[str, os.PathLike]],
         use_onnx_function: bool = False,
-        height: Optional[int] = 192,
-        width: Optional[int] = 320,
         **kwargs,
     ):
         """
@@ -117,8 +108,6 @@ class QEFFWanPipeline(WanPipeline):
             model=model,
             use_onnx_function=use_onnx_function,
             pretrained_model_name_or_path=pretrained_model_name_or_path,
-            height=height,
-            width=width,
             **kwargs,
         )
 
@@ -128,32 +117,54 @@ class QEFFWanPipeline(WanPipeline):
         return {
             "text_encoder": self.text_encoder,
             "transformer": self.transformer,
-            "transformer_2": self.transformer_2, #TODO: for wan 5B getattr(self, "transformer_2", None),
             "vae": self.vae_decode,
             "tokenizer": self.tokenizer,
             "scheduler": self.scheduler,
         }
 
-    def export(self, export_dir: Optional[str] = None) -> str:
+    def configure_height_width_cl_latents_hw(self, height, width):
+        self.height = height
+        self.width = width
+        self.cl, self.latent_height, self.latent_width = self.calculate_compressed_latent_dimension(height, width)
+
+    def calculate_compressed_latent_dimension(self, height, width):
+        """
+        Calculate the compressed latent dimension.
+        Args:
+            height (int): Target image height in pixels
+            width (int): Target image width in pixels
+        Returns:
+            int: Compressed latent dimension (cl) for transformer input buffer allocation
+        """
+        latent_height = height // self.vae_scale_factor_spatial
+        latent_width = width // self.vae_scale_factor_spatial
+        cl = (latent_height // self.patch_height * latent_width // self.patch_width) * 21 # for 81 frames, latent frames are 21
+        return cl, latent_height, latent_width
+
+
+    def export(self, height: int = 192, width:int = 320, export_dir: Optional[str] = None) -> str:
         """
         Exports the model to ``ONNX`` format using ``torch.onnx.export``.
 
         ``Optional`` Args:
+           :height (int) : export height
+           :width (int) : export width
            :export_dir (str, optional): The directory path to store ONNX-graph.
 
         Returns:
             :str: Path of the generated ``ONNX`` graph.
         """
-
+        export_cl, export_latent_height, export_latent_width = self.calculate_compressed_latent_dimension(height, width)
         for module_name, module_obj in self.modules.items():
             example_inputs, dynamic_axes, output_names = (
-                module_obj.get_onnx_config(batch_size=1, seq_length=512, cl=self.cl, latent_height=self.latent_height, latent_width=self.latent_width)
+                module_obj.get_onnx_config(batch_size=1, seq_length=512, cl=export_cl, latent_height=export_latent_height, latent_width=export_latent_width)
             )
             export_kwargs = {}
             if "transformer" in module_name and self.use_onnx_function:
                 export_kwargs = {
                     "export_modules_as_functions": {WanTransformerBlock}
                 }
+            start_time= time.time()
             module_obj.export(
                 inputs=example_inputs,
                 output_names=output_names,
@@ -161,6 +172,8 @@ class QEFFWanPipeline(WanPipeline):
                 export_dir=export_dir,
                 export_kwargs=export_kwargs,
             )
+            end_time= time.time()
+            print(f"{module_name} export took {end_time - start_time:.2f} seconds")
 
 
     def get_default_config_path():
@@ -192,11 +205,10 @@ class QEFFWanPipeline(WanPipeline):
             for path in [
                 # self.text_encoder.onnx_path,
                 self.transformer.onnx_path,
-                self.transformer_2.onnx_path,
                 # self.vae_decode.onnx_path,
             ]
         ):
-            self.export()
+            self.export(self.height, self.width)
 
         # Initialize configuration manager (JSON-only approach)
         if self.custom_config is None:
@@ -209,12 +221,12 @@ class QEFFWanPipeline(WanPipeline):
 
             # Get compilation parameters from configuration
             compile_kwargs = module_config[module_name]["compilation"]
-
-            # Handling dynamic values which depends on image height and width
+            # Handling dynamic values which depends on latent height and width
             if "transformer" in module_name:
-                specializations[0]["cl"] = self.cl
-                specializations[0]["latent_height"] = self.latent_height
-                specializations[0]["latent_width"] = self.latent_width
+                for i in range(len(specializations[0])):
+                    specializations[0][i]["cl"] = self.cl
+                    specializations[0][i]["latent_height"] = self.latent_height
+                    specializations[0][i]["latent_width"] = self.latent_width
 
             elif module_name == "vae_decoder":
                 specializations[0]["latent_height"] = self.latent_height
@@ -229,7 +241,7 @@ class QEFFWanPipeline(WanPipeline):
         negative_prompt: Union[str, List[str]] = None,
         height: int = 480,
         width: int = 832,
-        num_frames: int = 61, #81
+        num_frames: int = 81,
         num_inference_steps: int = 50,
         guidance_scale: float = 3.0,
         guidance_scale_2: Optional[float] = None,
@@ -249,8 +261,9 @@ class QEFFWanPipeline(WanPipeline):
     ):
         r"""The call function to the pipeline for generation. """
         device = "cpu"
-        height = self.height
-        width = self.width
+        # Set height, width
+        self.configure_height_width_cl_latents_hw(height, width)
+
         ##TODO : remove after UMT5 is enabled on QAIC
         # max_sequence_length = 226
 
@@ -312,8 +325,7 @@ class QEFFWanPipeline(WanPipeline):
         end_encoder_time = time.time()
         text_encoder_perf = end_encoder_time - start_encoder_time
 
-
-        transformer_dtype = self.transformer.model.dtype  # if self.transformer is not None else self.transformer_2.dtype update it to self.transformer_2.model.dtype for 14 B
+        transformer_dtype = self.transformer.model.transformer_high.dtype # if self.transformer is not None else self.transformer_2.dtype update it to self.transformer_2.model.dtype for 14 B
         prompt_embeds = prompt_embeds.to(transformer_dtype)
         if negative_prompt_embeds is not None:
             negative_prompt_embeds = negative_prompt_embeds.to(transformer_dtype)
@@ -325,8 +337,6 @@ class QEFFWanPipeline(WanPipeline):
         # 5. Prepare latent variables
         num_channels_latents = (
             self.transformer.model.config.in_channels
-            if self.transformer is not None
-            else self.transformer_2.model.config.in_channels
         )
 
         latents = self.prepare_latents(
@@ -354,11 +364,8 @@ class QEFFWanPipeline(WanPipeline):
 
         # 6. Denoising loop
         ###### AIC related changes of transformers ######
-
         if self.transformer.qpc_session is None:
             self.transformer.qpc_session = QAICInferenceSession(str(self.transformer.qpc_path), device_ids=self.transformer.device_ids)
-        if self.transformer_2.qpc_session is None:
-            self.transformer_2.qpc_session = QAICInferenceSession(str(self.transformer_2.qpc_path), device_ids=self.transformer_2.device_ids)
 
         output_buffer = {
             "output": np.random.rand(
@@ -367,7 +374,6 @@ class QEFFWanPipeline(WanPipeline):
             ).astype(np.int32),
         }
         self.transformer.qpc_session.set_buffers(output_buffer)
-        self.transformer_2.qpc_session.set_buffers(output_buffer)
         transformer_perf = []
 
         with self.progress_bar(total=num_inference_steps) as progress_bar:
@@ -379,15 +385,16 @@ class QEFFWanPipeline(WanPipeline):
 
                 if boundary_timestep is None or t >= boundary_timestep:
                     # wan2.1 or high-noise stage in wan2.2
-                    current_model = self.transformer.model
-                    current_model_qpc = self.transformer.qpc_session
+                    current_model = self.transformer.model.transformer_high
                     current_guidance_scale = guidance_scale
+                    model_type = torch.ones(1, dtype=torch.int64)
                 else:
                     ## TODO : not available for wan 5B
                     # low-noise stage in wan2.2
-                    current_model = self.transformer_2.model
-                    current_model_qpc = self.transformer_2.qpc_session
+                    current_model = self.transformer.model.transformer_low
                     current_guidance_scale = guidance_scale_2
+                    model_type = torch.ones(2, dtype=torch.int64)
+
 
                 latent_model_input = latents.to(transformer_dtype)
                 if self.config.expand_timesteps:
@@ -408,11 +415,11 @@ class QEFFWanPipeline(WanPipeline):
                 timestep = timestep.flatten()
 
                 temb, timestep_proj, encoder_hidden_states, encoder_hidden_states_image = current_model.condition_embedder(
-                    timestep.cpu(), prompt_embeds.cpu(), encoder_hidden_states_image=None, timestep_seq_len=ts_seq_len
+                    timestep, prompt_embeds, encoder_hidden_states_image=None, timestep_seq_len=ts_seq_len
                 )
                 if self.do_classifier_free_guidance:
                     temb, timestep_proj, encoder_hidden_states_neg, encoder_hidden_states_image = current_model.condition_embedder(
-                        timestep.cpu(), negative_prompt_embeds.cpu(), encoder_hidden_states_image=None, timestep_seq_len=ts_seq_len
+                        timestep, negative_prompt_embeds, encoder_hidden_states_image=None, timestep_seq_len=ts_seq_len
                     )
                 # timestep_proj = timestep_proj.unflatten(2, (6, -1)) # for 5 B new_app.py ##TODO: cross check once
                 timestep_proj = timestep_proj.unflatten(1, (6, -1))
@@ -421,7 +428,8 @@ class QEFFWanPipeline(WanPipeline):
                     "encoder_hidden_states": encoder_hidden_states.detach().numpy(),
                     "rotary_emb": rotary_emb.detach().numpy(),
                     "temb": temb.detach().numpy(),
-                    "timestep_proj": timestep_proj.detach().numpy()
+                    "timestep_proj": timestep_proj.detach().numpy(),
+                    "tsp": model_type.detach().numpy()
                 }
                 if self.do_classifier_free_guidance:
                     inputs_aic2 = {
@@ -446,7 +454,7 @@ class QEFFWanPipeline(WanPipeline):
                     # )[0]
 
                     start_transformer_step_time = time.time()
-                    outputs = current_model_qpc.run(inputs_aic)
+                    outputs = self.transformer.qpc_session.run(inputs_aic)
                     end_transfromer_step_time = time.time()
                     transformer_perf.append(end_transfromer_step_time - start_transformer_step_time)
                     print(f"DIT {i} time {end_transfromer_step_time - start_transformer_step_time:.2f} seconds")
@@ -472,7 +480,7 @@ class QEFFWanPipeline(WanPipeline):
                         #     return_dict=False,
                         # )[0]
                         start_transformer_step_time = time.time()
-                        outputs = current_model_qpc.run(inputs_aic2)
+                        outputs = self.transformer.qpc_session.run(inputs_aic2)
                         end_transfromer_step_time = time.time()
                         transformer_perf.append(end_transfromer_step_time - start_transformer_step_time)
 
@@ -490,16 +498,16 @@ class QEFFWanPipeline(WanPipeline):
 
                 # compute the previous noisy sample x_t -> x_t-1
                 latents = self.scheduler.step(noise_pred, t, latents, return_dict=False)[0]
+                # Execute callback if provided
+                if callback_on_step_end is not None:
+                    callback_kwargs = {}
+                    for k in callback_on_step_end_tensor_inputs:
+                        callback_kwargs[k] = locals()[k]
+                    callback_outputs = callback_on_step_end(self, i, t, callback_kwargs)
 
-                # if callback_on_step_end is not None:
-                #     callback_kwargs = {}
-                #     for k in callback_on_step_end_tensor_inputs:
-                #         callback_kwargs[k] = locals()[k]
-                #     callback_outputs = callback_on_step_end(self, i, t, callback_kwargs)
-
-                #     latents = callback_outputs.pop("latents", latents)
-                #     prompt_embeds = callback_outputs.pop("prompt_embeds", prompt_embeds)
-                #     negative_prompt_embeds = callback_outputs.pop("negative_prompt_embeds", negative_prompt_embeds)
+                    latents = callback_outputs.pop("latents", latents)
+                    prompt_embeds = callback_outputs.pop("prompt_embeds", prompt_embeds)
+                    negative_prompt_embeds = callback_outputs.pop("negative_prompt_embeds", negative_prompt_embeds)
 
                 # call the callback, if provided
                 if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
@@ -522,7 +530,6 @@ class QEFFWanPipeline(WanPipeline):
                 latents.device, latents.dtype
             )
             latents = latents / latents_std + latents_mean
-            # import pdb; pdb.set_trace()
             start_decode_time = time.time()
             video = self.model.vae.decode(latents, return_dict=False)[0] #TODO: to enable aic with qpc self.vae_decode(latents, return_dict=False)[0]
             end_decode_time = time.time()
@@ -533,7 +540,6 @@ class QEFFWanPipeline(WanPipeline):
 
         # Offload all models
         # self.maybe_free_model_hooks()
-        # return WanPipelineOutput(frames=video)
         # Collect performance data in a dict
         perf_data = {
             "umt5_cpu" : text_encoder_perf,
@@ -542,7 +548,6 @@ class QEFFWanPipeline(WanPipeline):
         }
 
         # Build performance metrics dynamically
-        #self.modules.keys() I am having 2 transformers but only one time will be use based on timestamp, also I am running other blocks on cpu, want to collect time for those
         perf_metrics = [ModulePerf(module_name=name, perf=perf_data[name]) for name in perf_data.keys()]
 
         return QEffPipelineOutput(
