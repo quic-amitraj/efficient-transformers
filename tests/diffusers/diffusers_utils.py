@@ -1,4 +1,3 @@
-
 # -----------------------------------------------------------------------------
 #
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
@@ -12,22 +11,21 @@ Provides essential functions for MAD validation, image validation
 hash verification, and other testing utilities.
 """
 
+import os
+from typing import Any, Dict, Tuple, Union
+
 import numpy as np
 import torch
-import hashlib
-import os
-import json
 from PIL import Image
-from typing import Dict, Any, Optional, Tuple, Union, List
 
 
 class DiffusersTestUtils:
     """Essential utilities for diffusion pipeline testing"""
 
     @staticmethod
-    def validate_image_generation(image: Image.Image,
-                                expected_size: Tuple[int, int],
-                                min_variance: float = 1.0) -> Dict[str, Any]:
+    def validate_image_generation(
+        image: Image.Image, expected_size: Tuple[int, int], min_variance: float = 1.0
+    ) -> Dict[str, Any]:
         """
         Validate generated image properties.
         Args:
@@ -43,13 +41,12 @@ class DiffusersTestUtils:
         # Basic image validation
         assert isinstance(image, Image.Image), f"Expected PIL Image, got {type(image)}"
         assert image.size == expected_size, f"Expected size {expected_size}, got {image.size}"
-        assert image.mode in ['RGB', 'RGBA'], f"Unexpected image mode: {image.mode}"
+        assert image.mode in ["RGB", "RGBA"], f"Unexpected image mode: {image.mode}"
 
         # Variance check (ensure image is not blank)
         img_array = np.array(image)
         image_variance = float(img_array.std())
-        assert image_variance > min_variance, \
-            f"Generated image appears blank (variance: {image_variance:.2f})"
+        assert image_variance > min_variance, f"Generated image appears blank (variance: {image_variance:.2f})"
 
         return {
             "size": image.size,
@@ -58,7 +55,7 @@ class DiffusersTestUtils:
             "mean_pixel_value": float(img_array.mean()),
             "min_pixel": int(img_array.min()),
             "max_pixel": int(img_array.max()),
-            "valid": True
+            "valid": True,
         }
 
     @staticmethod
@@ -76,7 +73,6 @@ class DiffusersTestUtils:
         print(f"{status} {file_type}: {file_path}")
         return exists
 
-
     @staticmethod
     def print_test_header(title: str, config: Dict[str, Any]) -> None:
         """
@@ -86,13 +82,13 @@ class DiffusersTestUtils:
             title: Test title
             config: Test configuration dictionary
         """
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print(f"{title}")
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
 
         if "model_setup" in config:
             setup = config["model_setup"]
-            for k,v in setup.items():
+            for k, v in setup.items():
                 print(f"{k} : {v}")
 
         if "functional_testing" in config:
@@ -101,11 +97,12 @@ class DiffusersTestUtils:
             print(f"Inference Steps: {func.get('num_inference_steps', 'N/A')}")
             print(f"Guidance Scale: {func.get('guidance_scale', 'N/A')}")
 
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
 
     @staticmethod
-    def print_test_summary(success: bool, execution_time: float,
-                          image_count: int = 0, mad_results: Dict = None) -> None:
+    def print_test_summary(
+        success: bool, execution_time: float, image_count: int = 0, mad_results: Dict = None
+    ) -> None:
         """
         Print formatted test summary.
 
@@ -115,32 +112,33 @@ class DiffusersTestUtils:
             image_count: Number of images generated
             mad_results: MAD validation results
         """
-        print(f"\n{'='*80}")
-        print(f"TEST SUMMARY:")
+        print(f"\n{'=' * 80}")
+        print("TEST SUMMARY:")
 
         status = "✅ PASSED" if success else "❌ FAILED"
         print(f"{status}")
 
         if success:
-            print(f"✅ Pipeline executed successfully")
+            print("✅ Pipeline executed successfully")
             if image_count > 0:
                 print(f"✅ Generated {image_count} image(s)")
             print(f"✅ Total execution time: {execution_time:.4f}s")
 
-        print(f"\n📊 MAD RESULTS SUMMARY:")
-        print(f"{'-'*60}")
+        print("\n📊 MAD RESULTS SUMMARY:")
+        print(f"{'-' * 60}")
         for module_name, results in mad_results.items():
             if isinstance(results, list) and "transformer" in module_name:
                 print("Transformer MAD per step:")
                 for i, r in enumerate(results):
                     print(f"  Step {i}: {r['mad']:.8f}")
             else:
-                print(f'{module_name.replace("_"," ").title()} : {results:.8f}')
-        print(f"{'='*80}")
+                print(f"{module_name.replace('_', ' ').title()} : {results:.8f}")
+        print(f"{'=' * 80}")
 
 
 class MADValidator:
     """Specialized class for MAD validation - always enabled, always reports, always fails on exceed"""
+
     def __init__(self, tolerances: Dict[str, float] = None):
         """
         Initialize MAD validator.
@@ -152,8 +150,9 @@ class MADValidator:
         self.tolerances = tolerances
         self.results = {}
 
-    def calculate_mad(self,tensor1: Union[torch.Tensor, np.ndarray],
-                     tensor2: Union[torch.Tensor, np.ndarray]) -> float:
+    def calculate_mad(
+        self, tensor1: Union[torch.Tensor, np.ndarray], tensor2: Union[torch.Tensor, np.ndarray]
+    ) -> float:
         """
         Calculate Max Absolute Deviation between two tensors.
 
@@ -171,9 +170,13 @@ class MADValidator:
 
         return float(np.max(np.abs(tensor1 - tensor2)))
 
-    def validate_module_mad(self, pytorch_output: Union[torch.Tensor, np.ndarray],
-                           qaic_output: Union[torch.Tensor, np.ndarray],
-                           module_name: str, step_info: str = "") -> bool:
+    def validate_module_mad(
+        self,
+        pytorch_output: Union[torch.Tensor, np.ndarray],
+        qaic_output: Union[torch.Tensor, np.ndarray],
+        module_name: str,
+        step_info: str = "",
+    ) -> bool:
         """
         Validate MAD for a specific module.
         Always validates, always reports, always fails if tolerance exceeded.
@@ -204,11 +207,7 @@ class MADValidator:
         # Store result
         if module_name not in self.results:
             self.results[module_name] = []
-        self.results[module_name].append({
-            "mad": mad_value,
-            "step_info": step_info,
-            "tolerance": tolerance
-        })
+        self.results[module_name].append({"mad": mad_value, "step_info": step_info, "tolerance": tolerance})
         return True
 
     def get_summary(self) -> Dict[str, Any]:
@@ -219,7 +218,6 @@ class MADValidator:
                 summary[f"{module_name}_mad"] = results[0]["mad"]
             else:
                 summary[f"{module_name}_mad_per_step"] = [
-                    {"step": i, "mad": r["mad"], "step_info": r["step_info"]}
-                    for i, r in enumerate(results)
+                    {"step": i, "mad": r["mad"], "step_info": r["step_info"]} for i, r in enumerate(results)
                 ]
         return summary

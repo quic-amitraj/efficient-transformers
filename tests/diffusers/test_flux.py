@@ -5,29 +5,30 @@
 #
 # -----------------------------------------------------------------------------
 
-import pytest
-import torch
-import numpy as np
 import os
 import time
+from typing import Any, Callable, Dict, List, Optional, Union
+
+import numpy as np
+import pytest
+import torch
 from diffusers import FluxPipeline
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion import retrieve_timesteps
 
-from QEfficient.utils._utils import load_json
 from QEfficient import QEFFFluxPipeline
-from QEfficient.generation.cloud_infer import QAICInferenceSession
 from QEfficient.diffusers.pipelines.pipeline_utils import (
     ModulePerf,
     QEffPipelineOutput,
     config_manager,
     set_module_device_ids,
 )
-
+from QEfficient.generation.cloud_infer import QAICInferenceSession
+from QEfficient.utils._utils import load_json
 from tests.diffusers.diffusers_utils import DiffusersTestUtils, MADValidator
-from typing import Union, List, Optional, Dict, Any, Callable
 
 # Test Configuration for 256x256 resolution with 2 layers # update mad tolerance
 INITIAL_TEST_CONFIG = load_json("tests/diffusers/flux_test_config.json")
+
 
 def flux_pipeline_call_with_mad_validation(
     pipeline,
@@ -147,7 +148,9 @@ def flux_pipeline_call_with_mad_validation(
         clip_qaic_output = pipeline.text_encoder.qpc_session.run(aic_text_input)
         clip_qaic_pooled = clip_qaic_output["pooler_output"]
 
-        mad_validator.validate_module_mad(clip_pt_pooled, clip_qaic_pooled, module_name="clip_text_encoder") # make sure map module with config
+        mad_validator.validate_module_mad(
+            clip_pt_pooled, clip_qaic_pooled, module_name="clip_text_encoder"
+        )  # make sure map module with config
 
     # T5 Text Encoder MAD validation
     prompt_2_list = prompt_2 or prompt_list
@@ -210,6 +213,7 @@ def flux_pipeline_call_with_mad_validation(
 
     # Calculate compressed latent dimension (cl) for transformer buffer allocation
     from QEfficient.diffusers.pipelines.pipeline_utils import calculate_compressed_latent_dimension
+
     cl, _, _ = calculate_compressed_latent_dimension(height, width, pipeline.model.vae_scale_factor)
 
     # Allocate output buffer for transformer
@@ -290,9 +294,9 @@ def flux_pipeline_call_with_mad_validation(
             # Transformer MAD validation
             mad_validator.validate_module_mad(
                 noise_pred_torch.detach().cpu().numpy(),
-                outputs['output'],
+                outputs["output"],
                 "transformer",
-                f"step {i} (t={t.item():.1f})"
+                f"step {i} (t={t.item():.1f})",
             )
 
             # Update latents using scheduler
@@ -349,11 +353,7 @@ def flux_pipeline_call_with_mad_validation(
         vae_decode_perf = end_decode_time - start_decode_time
 
         # VAE MAD validation
-        mad_validator.validate_module_mad(
-            image_torch.detach().cpu().numpy(),
-            image['sample'],
-            "vae_decoder"
-        )
+        mad_validator.validate_module_mad(image_torch.detach().cpu().numpy(), image["sample"], "vae_decoder")
 
         # Post-process image
         image_tensor = torch.from_numpy(image["sample"])
@@ -396,20 +396,28 @@ def flux_pipeline():
 
     # pipeline.transformer.model.config.num_layers = config["num_transformer_layers"]
     # pipeline.transformer.model.config.num_single_layers = config["num_single_layers"]
-    pipeline.transformer.model.config['num_layers'] = config["num_transformer_layers"]
-    pipeline.transformer.model.config['num_single_layers'] = config["num_single_layers"]
-    pipeline.transformer.model.transformer_blocks = torch.nn.ModuleList([original_blocks[i] for i in range(0,pipeline.transformer.model.config['num_layers'])])
-    pipeline.transformer.model.single_transformer_blocks = torch.nn.ModuleList([org_single_blocks[i] for i in range(0,pipeline.transformer.model.config['num_single_layers'])])
+    pipeline.transformer.model.config["num_layers"] = config["num_transformer_layers"]
+    pipeline.transformer.model.config["num_single_layers"] = config["num_single_layers"]
+    pipeline.transformer.model.transformer_blocks = torch.nn.ModuleList(
+        [original_blocks[i] for i in range(0, pipeline.transformer.model.config["num_layers"])]
+    )
+    pipeline.transformer.model.single_transformer_blocks = torch.nn.ModuleList(
+        [org_single_blocks[i] for i in range(0, pipeline.transformer.model.config["num_single_layers"])]
+    )
 
     ### Pytorch pipeline
     pytorch_pipeline = FluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell")
     # Reduce to 2 layers for testing
     original_blocks_pt = pytorch_pipeline.transformer.transformer_blocks
     org_single_blocks_pt = pytorch_pipeline.transformer.single_transformer_blocks
-    pytorch_pipeline.transformer.config['num_layers'] = config["num_transformer_layers"]
-    pytorch_pipeline.transformer.config['num_single_layers'] = config["num_single_layers"]
-    pytorch_pipeline.transformer.transformer_blocks = torch.nn.ModuleList([original_blocks_pt[i] for i in range(0,pytorch_pipeline.transformer.config['num_layers'])])
-    pytorch_pipeline.transformer.single_transformer_blocks = torch.nn.ModuleList([org_single_blocks_pt[i] for i in range(0,pytorch_pipeline.transformer.config['num_single_layers'])])
+    pytorch_pipeline.transformer.config["num_layers"] = config["num_transformer_layers"]
+    pytorch_pipeline.transformer.config["num_single_layers"] = config["num_single_layers"]
+    pytorch_pipeline.transformer.transformer_blocks = torch.nn.ModuleList(
+        [original_blocks_pt[i] for i in range(0, pytorch_pipeline.transformer.config["num_layers"])]
+    )
+    pytorch_pipeline.transformer.single_transformer_blocks = torch.nn.ModuleList(
+        [org_single_blocks_pt[i] for i in range(0, pytorch_pipeline.transformer.config["num_single_layers"])]
+    )
     return pipeline, pytorch_pipeline
 
 
@@ -429,8 +437,8 @@ def test_flux_pipeline(flux_pipeline):
 
     # Print test header
     DiffusersTestUtils.print_test_header(
-        f'FLUX PIPELINE TEST - {config["model_setup"]["height"]}x{config["model_setup"]["width"]} Resolution, {config["model_setup"]["num_transformer_layers"]} Layers',
-        config
+        f"FLUX PIPELINE TEST - {config['model_setup']['height']}x{config['model_setup']['width']} Resolution, {config['model_setup']['num_transformer_layers']} Layers",
+        config,
     )
 
     # Test parameters
@@ -459,8 +467,8 @@ def test_flux_pipeline(flux_pipeline):
             custom_config_path=custom_config_path,
             generator=generator,
             mad_tolerances=config["mad_validation"]["tolerances"],
-            parallel_compile= True,
-            return_dict=True
+            parallel_compile=True,
+            return_dict=True,
         )
 
         execution_time = time.time() - start_time
@@ -469,19 +477,17 @@ def test_flux_pipeline(flux_pipeline):
         # Validate image generation
         if config["functional_testing"]["validate_gen_img"]:
             assert result is not None, "Pipeline returned None"
-            assert hasattr(result, 'images'), "Result missing 'images' attribute"
+            assert hasattr(result, "images"), "Result missing 'images' attribute"
             assert len(result.images) > 0, "No images generated"
 
             generated_image = result.images[0]
             expected_size = (config["model_setup"]["height"], config["model_setup"]["width"])
             # Validate image properties using utilities
             image_validation = DiffusersTestUtils.validate_image_generation(
-                generated_image,
-                expected_size,
-                config["functional_testing"]["min_image_variance"]
+                generated_image, expected_size, config["functional_testing"]["min_image_variance"]
             )
 
-            print(f"\n✅ IMAGE VALIDATION PASSED")
+            print("\n✅ IMAGE VALIDATION PASSED")
             print(f"   - Size: {image_validation['size']}")
             print(f"   - Mode: {image_validation['mode']}")
             print(f"   - Variance: {image_validation['variance']:.2f}")
@@ -495,29 +501,28 @@ def test_flux_pipeline(flux_pipeline):
             else:
                 print("Image was not saved.")
 
-
         if config["validation_checks"]["onnx_export"]:
             # Check if ONNX files exist (basic check)
-            print(f"\n🔍 ONNX Export Validation:")
+            print("\n🔍 ONNX Export Validation:")
             for module_name in ["text_encoder", "text_encoder_2", "transformer", "vae_decode"]:
                 module_obj = getattr(pipeline, module_name, None)
-                if module_obj and hasattr(module_obj, 'onnx_path') and module_obj.onnx_path:
+                if module_obj and hasattr(module_obj, "onnx_path") and module_obj.onnx_path:
                     DiffusersTestUtils.check_file_exists(str(module_obj.onnx_path), f"{module_name} ONNX")
 
         if config["validation_checks"]["compilation"]:
             # Check if QPC files exist (basic check)
-            print(f"\n🔍 Compilation Validation:")
+            print("\n🔍 Compilation Validation:")
             for module_name in ["text_encoder", "text_encoder_2", "transformer", "vae_decode"]:
                 module_obj = getattr(pipeline, module_name, None)
-                if module_obj and hasattr(module_obj, 'qpc_path') and module_obj.qpc_path:
+                if module_obj and hasattr(module_obj, "qpc_path") and module_obj.qpc_path:
                     DiffusersTestUtils.check_file_exists(str(module_obj.qpc_path), f"{module_name} QPC")
 
         # Print test summary using utilities
         DiffusersTestUtils.print_test_summary(
             success=True,
             execution_time=execution_time,
-            image_count=len(result.images) if result and hasattr(result, 'images') else 0,
-            mad_results=mad_results
+            image_count=len(result.images) if result and hasattr(result, "images") else 0,
+            mad_results=mad_results,
         )
 
     except Exception as e:
@@ -526,10 +531,7 @@ def test_flux_pipeline(flux_pipeline):
 
         # Print failure summary
         DiffusersTestUtils.print_test_summary(
-            success=False,
-            execution_time=execution_time,
-            image_count=0,
-            mad_results=mad_results
+            success=False, execution_time=execution_time, image_count=0, mad_results=mad_results
         )
 
         raise
