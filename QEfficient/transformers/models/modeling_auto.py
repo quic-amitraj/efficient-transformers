@@ -2059,6 +2059,18 @@ class _QEFFAutoModelForImageTextToTextSingleQPC(QEFFTransformersBase, Multimodal
             ),
         )
 
+    @property
+    def get_model_config(self) -> dict:
+        """
+        Get the configuration dictionary of the underlying HuggingFace model.
+
+        Returns
+        -------
+        dict
+            The configuration dictionary.
+        """
+        return self.model.config.__dict__
+
 
 class QEFFAutoModelForImageTextToText:
     """
@@ -2334,6 +2346,9 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
         # SpDTransforms to PytorchTransforms.
         if self.is_tlm:
             self.model.qaic_config["return_pdfs"] = True
+
+        if self.model.qaic_config is not None and self.model.qaic_config.get("num_kv_blocks", None) is not None:
+            BlockedKVAttentionTransform.apply(self.model, num_kv_blocks=self.model.qaic_config.get("num_kv_blocks"))
 
     def __repr__(self) -> str:
         return self.__class__.__name__ + "\n" + self.model.__repr__()

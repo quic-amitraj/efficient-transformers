@@ -136,6 +136,7 @@ class QEFFBaseModel(ABC):
         return mname
 
     @property
+    @abstractmethod
     def get_model_config(self) -> Dict:
         """
         Get the model configuration as a dictionary.
@@ -144,6 +145,13 @@ class QEFFBaseModel(ABC):
             Dict: The configuration dictionary of the underlying HuggingFace model
         """
         return self.model.config.__dict__
+        This is an abstract property that must be implemented by all subclasses.
+        Typically returns: self.model.config.__dict__
+
+        Returns:
+            Dict: The configuration dictionary of the underlying model
+        """
+        pass
 
     @abstractmethod
     def export(self, export_dir: Optional[str] = None) -> Path:

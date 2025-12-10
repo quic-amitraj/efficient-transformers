@@ -216,3 +216,4 @@ class QEffPipelineOutput:
 # List of module name that require special handling during export
 # when use_onnx_subfunctions is enabled
 ONNX_SUBFUNCTION_MODULE = ["transformer"]
+ONNX_SUBFUNCTION_MODULE = ["transformer"]

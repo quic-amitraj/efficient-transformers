@@ -19,6 +19,10 @@ from QEfficient.diffusers.models.pytorch_transforms import (
     NormalizationTransform,
     OnnxFunctionTransform,
 )
+from QEfficient.diffusers.models.transformers.transformer_flux import (
+    QEffFluxSingleTransformerBlock,
+    QEffFluxTransformerBlock,
+)
 from QEfficient.transformers.models.pytorch_transforms import (
     T5ModelTransform,
 )
@@ -42,6 +46,16 @@ class QEffTextEncoder(QEFFBaseModel):
     _pytorch_transforms = [CustomOpsTransform, T5ModelTransform]
     _onnx_transforms = [FP16ClipTransform, SplitTensorsTransform]
 
+    @property
+    def get_model_config(self) -> Dict:
+        """
+        Get the model configuration as a dictionary.
+
+        Returns:
+            Dict: The configuration dictionary of the underlying text encoder model
+        """
+        return self.model.config.__dict__
+
     def __init__(self, model: nn.Module) -> None:
         """
         Initialize the text encoder wrapper.
@@ -53,6 +67,9 @@ class QEffTextEncoder(QEFFBaseModel):
         self.model = copy.deepcopy(model)
 
     def get_onnx_config(self) -> Tuple[Dict, Dict, List[str]]:
+        self.model = model
+
+    def get_onnx_params(self) -> Tuple[Dict, Dict, List[str]]:
         """
         Generate ONNX export configuration for the text encoder.
 
@@ -141,6 +158,16 @@ class QEffUNet(QEFFBaseModel):
     _pytorch_transforms = [CustomOpsTransform]
     _onnx_transforms = [FP16ClipTransform, SplitTensorsTransform]
 
+    @property
+    def get_model_config(self) -> Dict:
+        """
+        Get the model configuration as a dictionary.
+
+        Returns:
+            Dict: The configuration dictionary of the underlying UNet model
+        """
+        return self.model.config.__dict__
+
     def __init__(self, model: nn.Module) -> None:
         """
         Initialize the UNet wrapper.
@@ -209,6 +236,16 @@ class QEffVAE(QEFFBaseModel):
     _pytorch_transforms = [CustomOpsTransform]
     _onnx_transforms = [FP16ClipTransform, SplitTensorsTransform]
 
+    @property
+    def get_model_config(self) -> Dict:
+        """
+        Get the model configuration as a dictionary.
+
+        Returns:
+            Dict: The configuration dictionary of the underlying VAE model
+        """
+        return self.model.config.__dict__
+
     def __init__(self, model: nn.Module, type: str) -> None:
         """
         Initialize the VAE wrapper.
@@ -222,6 +259,13 @@ class QEffVAE(QEFFBaseModel):
         self.type = type
 
     def get_onnx_config(self, latent_height: int = 32, latent_width: int = 32) -> Tuple[Dict, Dict, List[str]]:
+        super().__init__(model)
+        self.model = model
+
+        # To have different hashing for encoder/decoder
+        self.model.config["type"] = type
+
+    def get_onnx_params(self, latent_height: int = 32, latent_width: int = 32) -> Tuple[Dict, Dict, List[str]]:
         """
         Generate ONNX export configuration for the VAE decoder.
 
@@ -378,6 +422,17 @@ class QEffFluxTransformerModel(QEFFBaseModel):
     _onnx_transforms = [FP16ClipTransform, SplitTensorsTransform]
 
     def __init__(self, model: nn.Module, use_onnx_function: bool) -> None:
+    @property
+    def get_model_config(self) -> Dict:
+        """
+        Get the model configuration as a dictionary.
+
+        Returns:
+            Dict: The configuration dictionary of the underlying Flux transformer model
+        """
+        return self.model.config.__dict__
+
+    def __init__(self, model: nn.Module) -> None:
         """
         Initialize the Flux transformer wrapper.
 
@@ -402,6 +457,16 @@ class QEffFluxTransformerModel(QEFFBaseModel):
 
     def get_onnx_config(
         self, batch_size: int = 1, seq_length: int = 256, cl: int = 4096
+            use_onnx_subfunctions (bool): Whether to export transformer blocks as ONNX functions
+                                     for better modularity and potential optimization
+        """
+        super().__init__(model)
+
+    def get_onnx_params(
+        self,
+        batch_size: int = constants.ONNX_EXPORT_EXAMPLE_BATCH_SIZE,
+        seq_length: int = constants.FLUX_ONNX_EXPORT_SEQ_LENGTH,
+        cl: int = constants.FLUX_ONNX_EXPORT_COMPRESSED_LATENT_DIM,
     ) -> Tuple[Dict, Dict, List[str]]:
         """
         Generate ONNX export configuration for the Flux transformer.
@@ -413,6 +478,9 @@ class QEffFluxTransformerModel(QEFFBaseModel):
             batch_size (int): Batch size for example inputs (default: 1)
             seq_length (int): Text sequence length (default: 256)
             cl (int): Compressed latent dimension (default: 4096)
+            batch_size (int): Batch size for example inputs (default: FLUX_ONNX_EXPORT_BATCH_SIZE)
+            seq_length (int): Text sequence length (default: FLUX_ONNX_EXPORT_SEQ_LENGTH)
+            cl (int): Compressed latent dimension (default: FLUX_ONNX_EXPORT_COMPRESSED_LATENT_DIM)
 
         Returns:
             Tuple containing:
@@ -454,6 +522,32 @@ class QEffFluxTransformerModel(QEFFBaseModel):
             # Output AdaLN embedding
             # Shape: [batch_size, 2 * hidden_dim] for final projection
             "adaln_out": torch.randn(batch_size, 6144, dtype=torch.float32),  # 2 * 3072
+            "encoder_hidden_states": torch.randn(
+                batch_size, seq_length, self.model.config.joint_attention_dim, dtype=torch.float32
+            ),
+            "pooled_projections": torch.randn(batch_size, self.model.config.pooled_projection_dim, dtype=torch.float32),
+            "timestep": torch.tensor([1.0], dtype=torch.float32),
+            "img_ids": torch.randn(cl, 3, dtype=torch.float32),
+            "txt_ids": torch.randn(seq_length, 3, dtype=torch.float32),
+            # AdaLN embeddings for dual transformer blocks
+            # Shape: [num_layers, FLUX_ADALN_DUAL_BLOCK_CHUNKS, FLUX_ADALN_HIDDEN_DIM]
+            "adaln_emb": torch.randn(
+                self.model.config["num_layers"],
+                constants.FLUX_ADALN_DUAL_BLOCK_CHUNKS,
+                constants.FLUX_ADALN_HIDDEN_DIM,
+                dtype=torch.float32,
+            ),
+            # AdaLN embeddings for single transformer blocks
+            # Shape: [num_single_layers, FLUX_ADALN_SINGLE_BLOCK_CHUNKS, FLUX_ADALN_HIDDEN_DIM]
+            "adaln_single_emb": torch.randn(
+                self.model.config["num_single_layers"],
+                constants.FLUX_ADALN_SINGLE_BLOCK_CHUNKS,
+                constants.FLUX_ADALN_HIDDEN_DIM,
+                dtype=torch.float32,
+            ),
+            # Output AdaLN embedding
+            # Shape: [batch_size, FLUX_ADALN_OUTPUT_DIM] for final projection
+            "adaln_out": torch.randn(batch_size, constants.FLUX_ADALN_OUTPUT_DIM, dtype=torch.float32),
         }
 
         output_names = ["output"]
@@ -476,6 +570,7 @@ class QEffFluxTransformerModel(QEFFBaseModel):
         dynamic_axes: Dict,
         export_dir: str = None,
         export_kwargs: Dict = None,
+        use_onnx_subfunctions: bool = False,
     ) -> str:
         """
         Export the Flux transformer model to ONNX format.
@@ -490,6 +585,13 @@ class QEffFluxTransformerModel(QEFFBaseModel):
         Returns:
             str: Path to the exported ONNX model
         """
+
+        if use_onnx_subfunctions:
+            export_kwargs = {"export_modules_as_functions": {QEffFluxTransformerBlock, QEffFluxSingleTransformerBlock}}
+
+        # Sort _use_default_values in config to ensure consistent hash generation during export
+        self.model.config["_use_default_values"].sort()
+
         return self._export(
             example_inputs=inputs,
             output_names=output_names,
@@ -526,6 +628,9 @@ class QEffFluxTransformerModel(QEFFBaseModel):
         ]
 
         return specializations
+
+            offload_pt_weights=False,  # As weights are needed with AdaLN changes
+        )
 
     def compile(self, specializations: List[Dict], **compiler_options) -> None:
         """

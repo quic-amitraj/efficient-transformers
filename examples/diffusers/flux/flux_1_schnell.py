@@ -8,44 +8,38 @@
 """
 FLUX.1-schnell Image Generation Example
 
-This example demonstrates how to use the QEFFFluxPipeline to generate images
+This example demonstrates how to use the QEffFluxPipeline to generate images
 using the FLUX.1-schnell model from Black Forest Labs. FLUX.1-schnell is a
 fast, distilled version of the FLUX.1 text-to-image model optimized for
 speed with minimal quality loss.
-
-Key Features:
-- Fast inference with only 4 steps
-- High-quality image generation from text prompts
-- Optimized for Qualcomm Cloud AI 100 using ONNX runtime
-- Deterministic output using fixed random seed
-
-Output:
-- Generates an image based on the text prompt
-- Saves the image as 'cat_with_sign.png' in the current directory
 """
 
 import torch
 
-from QEfficient import QEFFFluxPipeline
+from QEfficient import QEffFluxPipeline
 
 # Initialize the FLUX.1-schnell pipeline from pretrained weights
-# use_onnx_function=True enables ONNX-based optimizations for faster compilation
-pipeline = QEFFFluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell", use_onnx_function=False)
+pipeline = QEffFluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell")
 
 # Generate an image from a text prompt
+# use_onnx_subfunctions=True enables ONNX-based optimizations for faster compilation
 output = pipeline(
-    prompt="A cat holding a sign that says hello world",
+    prompt="A laughing girl",
+    height=1024,
+    width=1024,
     guidance_scale=0.0,
     num_inference_steps=4,
     max_sequence_length=256,
     generator=torch.manual_seed(42),
+    parallel_compile=True,
+    use_onnx_subfunctions=False,
 )
 
 # Extract the generated image from the output
 image = output.images[0]
 
 # Save the generated image to disk
-image.save("cat_with_sign.png")
+image.save("girl_laughing.png")
 
 # Print the output object (contains perf info)
 print(output)
