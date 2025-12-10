@@ -4,11 +4,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # ----------------------------------------------------------------------------
+import math
+import os
 from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
 import torch
-from diffusers.models.attention_dispatch import dispatch_attention_fn
 from diffusers.models.modeling_outputs import Transformer2DModelOutput
 from diffusers.models.transformers.transformer_flux import (
     FluxAttention,
@@ -54,6 +55,306 @@ class QEffFluxAttnProcessor(FluxAttnProcessor):
     _attention_backend = None
     _parallel_config = None
 
+    def forward_head_qkv_blocked(
+        self,
+        q: torch.FloatTensor,
+        k: torch.FloatTensor,
+        v: torch.FloatTensor,
+        attention_mask: Optional[torch.FloatTensor] = None,
+        *args,
+        **kwargs,
+    ) -> torch.FloatTensor:
+        BS, NH, CL, DH = q.shape  # Input: (BS, NH, CL, DH) = (1, 38, 4429, 64)
+        scale_factor = 1.0 / math.sqrt(DH)
+        head_block_size = int(os.environ.get("head_block_size", NH))
+        num_head_blocks = math.ceil(NH / head_block_size)
+        target_blocks_kv = int(os.environ.get("num_kv_blocks", CL))  # KV blocks
+        target_blocks_q = int(os.environ.get("num_q_blocks", CL))  # Q blocks
+        kv_block_positions = [(i * CL) // target_blocks_kv for i in range(target_blocks_kv)]
+        q_block_positions = [(i * CL) // target_blocks_q for i in range(target_blocks_q)]
+        BS, NH, K_CL, DH = k.shape
+        if K_CL <= 512:
+            scores = torch.matmul(q, k.transpose(-2, -1)) * scale_factor
+            if attention_mask is not None:
+                scores = torch.where(
+                    attention_mask, scores, torch.tensor(-1e4, dtype=scores.dtype, device=scores.device)
+                )
+            probs = torch.softmax(scores, dim=-1)
+            out = torch.matmul(probs, v)
+            return out
+
+        head_outputs = []
+
+        # Head blocking
+        for head_block_idx in range(num_head_blocks):
+            h_start = head_block_idx * head_block_size
+            h_end = min(h_start + head_block_size, NH)
+            num_h = h_end - h_start
+
+            q_g = q[:, h_start:h_end, :, :]
+            k_g = k[:, h_start:h_end, :, :]
+            v_g = v[:, h_start:h_end, :, :]
+            q_output_list = []
+
+            # Q blocking
+            for q_block_idx in range(target_blocks_q):
+                qi = q_block_positions[q_block_idx]
+                # Calculate Q block size
+                if q_block_idx == target_blocks_q - 1:
+                    real_q_len = CL - qi
+                else:
+                    real_q_len = q_block_positions[q_block_idx + 1] - qi
+
+                q_block = q_g[:, :, qi : qi + real_q_len, :]
+                running_exp_sum = torch.zeros((BS, num_h, real_q_len), device=q.device, dtype=q.dtype)
+                running_max = torch.full((BS, num_h, real_q_len), float("-inf"), device=q.device, dtype=q.dtype)
+                output_blocks = torch.zeros((BS, num_h, real_q_len, DH), device=q.device, dtype=q.dtype)
+
+                # Process K,V in blocks for this Q block
+                for kv_block_idx in range(target_blocks_kv):
+                    ki = kv_block_positions[kv_block_idx]
+                    if kv_block_idx == target_blocks_kv - 1:
+                        real_kv_len = CL - ki
+                    else:
+                        real_kv_len = kv_block_positions[kv_block_idx + 1] - ki
+
+                    k_block = k_g[:, :, ki : ki + real_kv_len, :]
+                    v_block = v_g[:, :, ki : ki + real_kv_len, :]
+
+                    qkblock = torch.matmul(q_block, k_block.transpose(-2, -1)) * scale_factor
+
+                    prev_max = running_max.clone()
+                    if qkblock.shape[-1] == 0:
+                        running_max = prev_max
+                    else:
+                        running_max = torch.maximum(prev_max, torch.max(qkblock, dim=-1)[0])
+
+                    # running_max = torch.maximum(prev_max, torch.max(qkblock, dim=-1)[0])
+
+                    delta_max = prev_max - running_max
+                    curr_exp = torch.exp(qkblock - running_max.unsqueeze(-1))
+
+                    prev_exp_sum = running_exp_sum.clone()
+                    # running_exp_sum = prev_exp_sum * torch.exp(delta_max) + curr_exp.sum(dim=-1)
+                    curr_exp_sum = torch.einsum("bhqk->bhq", curr_exp)
+                    running_exp_sum = prev_exp_sum * torch.exp(delta_max) + curr_exp_sum
+
+                    # Compute softmax for this block
+                    inv_running_exp_sum = 1.0 / running_exp_sum
+                    softmax_qkblock = curr_exp * inv_running_exp_sum.unsqueeze(-1)
+
+                    prev_out = output_blocks.clone()
+                    rescale_factor = (prev_exp_sum * inv_running_exp_sum) * torch.exp(delta_max)
+                    output_blocks = rescale_factor.unsqueeze(-1) * prev_out + torch.matmul(softmax_qkblock, v_block)
+
+                q_output_list.append(output_blocks)
+
+            head_output = torch.cat(q_output_list, dim=2)
+            head_outputs.append(head_output)
+
+        out = torch.cat(head_outputs, dim=1)  # (BS, NH, CL, DH)
+        return out
+
+    def forward_head_blocked(
+        self,
+        q: torch.FloatTensor,
+        k: torch.FloatTensor,
+        v: torch.FloatTensor,
+        attention_mask: Optional[torch.FloatTensor] = None,
+        *args,
+        **kwargs,
+    ) -> torch.FloatTensor:
+        BS, NH, CL, DH = q.shape  # Input: (BS, NH, CL, DH) = (1, 38, 4429, 64)
+        scale_factor = 1.0 / math.sqrt(DH)
+        head_block_size = int(os.environ.get("head_block_size", NH))
+        num_head_blocks = math.ceil(NH / head_block_size)
+        # To Handle small CL directly
+        BS, NH, K_CL, DH = k.shape
+        if K_CL <= 512:
+            scores = torch.matmul(q, k.transpose(-2, -1)) * scale_factor
+            if attention_mask is not None:
+                scores = torch.where(
+                    attention_mask, scores, torch.tensor(-1e4, dtype=scores.dtype, device=scores.device)
+                )
+            probs = torch.softmax(scores, dim=-1)
+            out = torch.matmul(probs, v)
+            return out
+
+        outputs = []
+
+        for head_block_idx in range(num_head_blocks):
+            h_start = head_block_idx * head_block_size
+            h_end = min(h_start + head_block_size, NH)
+            num_h = h_end - h_start
+
+            # Extract head blocks
+            q_g = q[:, h_start:h_end, :, :]
+            k_g = k[:, h_start:h_end, :, :]
+            v_g = v[:, h_start:h_end, :, :]
+
+            qkblock = torch.matmul(q_g, k_g.transpose(-2, -1)) * scale_factor  # (BS, num_h, CL, CL)
+            # import pdb; pdb.set_trace()
+
+            # Softmax computation (same as blocked Q version)
+            probs = torch.softmax(qkblock, dim=-1)
+            # self.softmax_count += 1
+
+            # Compute output
+            output_blocks = torch.matmul(probs, v_g)
+
+            outputs.append(output_blocks)
+
+        # Concatenate all head blocks along head dimension
+        out = torch.cat(outputs, dim=1)  # (BS, NH, CL, DH)
+
+        return out
+
+    def forward_head_kv_blocked(
+        self,
+        q: torch.FloatTensor,
+        k: torch.FloatTensor,
+        v: torch.FloatTensor,
+        attention_mask: Optional[torch.FloatTensor] = None,
+        *args,
+        **kwargs,
+    ) -> torch.FloatTensor:
+        BS, NH, CL, DH = q.shape  # Input: (BS, NH, CL, DH) = (1, 38, 4429, 64)
+        scale_factor = 1.0 / math.sqrt(DH)
+        head_block_size = int(os.environ.get("head_block_size", NH))
+        num_head_blocks = math.ceil(NH / head_block_size)
+        target_blocks = int(os.environ.get("num_kv_blocks", CL))
+        block_positions = [(i * CL) // target_blocks for i in range(target_blocks)]
+
+        # Handle small CL directly
+        BS, NH, K_CL, DH = k.shape
+        if K_CL <= 512:
+            scores = torch.matmul(q, k.transpose(-2, -1)) * scale_factor
+            if attention_mask is not None:
+                scores = torch.where(
+                    attention_mask, scores, torch.tensor(-1e4, dtype=scores.dtype, device=scores.device)
+                )
+            probs = torch.softmax(scores, dim=-1)
+            out = torch.matmul(probs, v)
+            return out
+
+        head_outputs = []
+
+        # Head blocking
+        for head_block_idx in range(num_head_blocks):
+            h_start = head_block_idx * head_block_size
+            h_end = min(h_start + head_block_size, NH)
+            num_h = h_end - h_start
+
+            q_g = q[:, h_start:h_end, :, :]
+            k_g = k[:, h_start:h_end, :, :]
+            v_g = v[:, h_start:h_end, :, :]
+
+            running_exp_sum = torch.zeros((BS, num_h, CL), device=q.device, dtype=q.dtype)
+            running_max = torch.full((BS, num_h, CL), float("-inf"), device=q.device, dtype=q.dtype)
+            output_blocks = torch.zeros_like(q_g)
+
+            # Process K,V in blocks
+            for kv_block_idx in range(target_blocks):
+                ki = block_positions[kv_block_idx]
+                if kv_block_idx == target_blocks - 1:
+                    real_kv_len = CL - ki
+                else:
+                    real_kv_len = block_positions[kv_block_idx + 1] - ki
+                k_block = k_g[:, :, ki : ki + real_kv_len, :]
+                v_block = v_g[:, :, ki : ki + real_kv_len, :]
+                qkblock = torch.matmul(q_g, k_block.transpose(-2, -1)) * scale_factor
+
+                prev_max = running_max.clone()
+                running_max = torch.maximum(prev_max, torch.max(qkblock, dim=-1)[0])
+
+                delta_max = prev_max - running_max
+                curr_exp = torch.exp(qkblock - running_max.unsqueeze(-1))
+                prev_exp_sum = running_exp_sum.clone()
+                # running_exp_sum = prev_exp_sum * torch.exp(delta_max) + curr_exp.sum(dim=-1)
+                curr_exp_sum = torch.einsum("bhqk->bhq", curr_exp)
+                running_exp_sum = prev_exp_sum * torch.exp(delta_max) + curr_exp_sum
+
+                # Compute softmax for this block
+                inv_running_exp_sum = 1.0 / running_exp_sum
+                softmax_qkblock = curr_exp * inv_running_exp_sum.unsqueeze(-1)
+
+                prev_out = output_blocks.clone()
+                rescale_factor = (prev_exp_sum * inv_running_exp_sum) * torch.exp(delta_max)
+                output_blocks = rescale_factor.unsqueeze(-1) * prev_out + torch.matmul(softmax_qkblock, v_block)
+            head_outputs.append(output_blocks)
+
+        out = torch.cat(head_outputs, dim=1)  # (BS, NH, CL, DH)
+        return out
+
+    def forward_head_q_blocked(
+        self,
+        q: torch.FloatTensor,
+        k: torch.FloatTensor,
+        v: torch.FloatTensor,
+        attention_mask: Optional[torch.FloatTensor] = None,
+        *args,
+        **kwargs,
+    ) -> torch.FloatTensor:
+        BS, NH, CL, DH = q.shape  # Input: (BS, NH, CL, DH) = (1, 38, 4429, 64)
+        scale_factor = 1.0 / math.sqrt(DH)
+        head_block_size = int(os.environ.get("head_block_size", NH))
+        num_head_blocks = math.ceil(NH / head_block_size)
+        target_blocks_q = int(os.environ.get("num_q_blocks", CL))  # Q blocks
+        q_block_positions = [(i * CL) // target_blocks_q for i in range(target_blocks_q)]
+        if CL <= 512:
+            scores = torch.matmul(q, k.transpose(-2, -1)) * scale_factor
+            if attention_mask is not None:
+                scores = torch.where(
+                    attention_mask, scores, torch.tensor(-1e4, dtype=scores.dtype, device=scores.device)
+                )
+            probs = torch.softmax(scores, dim=-1)
+            out = torch.matmul(probs, v)
+            return out
+
+        head_outputs = []
+
+        # Head blocking
+        for head_block_idx in range(num_head_blocks):
+            h_start = head_block_idx * head_block_size
+            h_end = min(h_start + head_block_size, NH)
+
+            q_g = q[:, h_start:h_end, :, :]
+            k_g = k[:, h_start:h_end, :, :]
+            v_g = v[:, h_start:h_end, :, :]
+
+            q_output_list = []
+
+            for q_block_idx in range(target_blocks_q):
+                qi = q_block_positions[q_block_idx]
+                if q_block_idx == target_blocks_q - 1:
+                    real_q_len = CL - qi
+                else:
+                    real_q_len = q_block_positions[q_block_idx + 1] - qi
+
+                q_block = q_g[:, :, qi : qi + real_q_len, :]
+
+                # Matmul with 4D tensors
+                scores = torch.matmul(q_block, k_g.transpose(-2, -1)) * scale_factor
+                probs = torch.softmax(scores, dim=-1)
+                out_block = torch.matmul(probs, v_g)
+
+                q_output_list.append(out_block)
+
+            head_output = torch.cat(q_output_list, dim=2)
+            head_outputs.append(head_output)
+
+        out = torch.cat(head_outputs, dim=1)  # (BS, NH, CL, DH)
+
+        return out
+
+    def _get_blocking_mode(self):
+        """Get blocking mode from environment variable"""
+        mode = os.environ.get("ATTENTION_BLOCKING_MODE", "default").lower()
+        valid_modes = ["kv", "qkv", "q", "default"]
+        if mode not in valid_modes:
+            raise ValueError(f"Invalid ATTENTION_BLOCKING_MODE: {mode}. Must be one of {valid_modes}")
+        return mode
+
     def __call__(
         self,
         attn: "QEffFluxAttention",
@@ -89,9 +390,28 @@ class QEffFluxAttnProcessor(FluxAttnProcessor):
             query = qeff_apply_rotary_emb(query, image_rotary_emb)
             key = qeff_apply_rotary_emb(key, image_rotary_emb)
 
-        hidden_states = dispatch_attention_fn(
-            query, key, value, attn_mask=attention_mask, backend=self._attention_backend
-        )
+        # hidden_states = dispatch_attention_fn(
+        #     query, key, value, attn_mask=attention_mask, backend=self._attention_backend
+        # )
+
+        blocking_mode = self._get_blocking_mode()
+        if blocking_mode == "kv":
+            hidden_states = self.forward_head_kv_blocked(
+                query.transpose(1, 2), key.transpose(1, 2), value.transpose(1, 2)
+            )
+        elif blocking_mode == "q":
+            hidden_states = self.forward_head_q_blocked(
+                query.transpose(1, 2), key.transpose(1, 2), value.transpose(1, 2)
+            )
+        elif blocking_mode == "qkv":
+            hidden_states = self.forward_head_qkv_blocked(
+                query.transpose(1, 2), key.transpose(1, 2), value.transpose(1, 2)
+            )
+        else:  # default
+            hidden_states = self.forward_head_blocked(query.transpose(1, 2), key.transpose(1, 2), value.transpose(1, 2))
+
+        hidden_states = hidden_states.transpose(1, 2)
+
         hidden_states = hidden_states.flatten(2, 3)
         hidden_states = hidden_states.to(query.dtype)
 
