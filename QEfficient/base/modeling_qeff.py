@@ -141,6 +141,10 @@ class QEFFBaseModel(ABC):
         """
         Get the model configuration as a dictionary.
 
+        Returns:
+            Dict: The configuration dictionary of the underlying HuggingFace model
+        """
+        return self.model.config.__dict__
         This is an abstract property that must be implemented by all subclasses.
         Typically returns: self.model.config.__dict__
 
