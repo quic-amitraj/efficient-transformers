@@ -6,6 +6,14 @@
 # -----------------------------------------------------------------------------
 
 from diffusers.models.normalization import AdaLayerNormContinuous, AdaLayerNormZero, AdaLayerNormZeroSingle, RMSNorm
+from diffusers import AutoencoderKLWan
+
+from diffusers.models.autoencoders.autoencoder_kl_wan import (
+    WanDecoder3d,
+    WanEncoder3d,
+    WanResample,
+    WanResidualBlock,
+)
 from diffusers.models.transformers.transformer_flux import (
     FluxAttention,
     FluxAttnProcessor,
@@ -13,10 +21,21 @@ from diffusers.models.transformers.transformer_flux import (
     FluxTransformer2DModel,
     FluxTransformerBlock,
 )
+from diffusers.models.transformers.transformer_wan import WanTransformer3DModel, WanAttnProcessor, WanAttention
+
 from torch import nn
 
 from QEfficient.base.pytorch_transforms import ModuleMappingTransform
 from QEfficient.customop.rms_norm import CustomRMSNormAIC
+
+from QEfficient.diffusers.models.autoencoders.autoencoder_kl_wan import (
+    QEffAutoencoderKLWan,
+    QEffWanDecoder3d,
+    QEffWanEncoder3d,
+    QEffWanResample,
+    QEffWanResidualBlock,
+)
+
 from QEfficient.diffusers.models.normalization import (
     QEffAdaLayerNormContinuous,
     QEffAdaLayerNormZero,
@@ -28,6 +47,12 @@ from QEfficient.diffusers.models.transformers.transformer_flux import (
     QEffFluxSingleTransformerBlock,
     QEffFluxTransformer2DModel,
     QEffFluxTransformerBlock,
+)
+
+from QEfficient.diffusers.models.transformers.transformer_wan import (
+    QEffWanTransformer3DModel,
+    QEffWanAttnProcessor,
+    QEffWanAttention
 )
 
 
@@ -45,6 +70,14 @@ class AttentionTransform(ModuleMappingTransform):
         FluxTransformer2DModel: QEffFluxTransformer2DModel,
         FluxAttention: QEffFluxAttention,
         FluxAttnProcessor: QEffFluxAttnProcessor,
+        WanAttnProcessor: QEffWanAttnProcessor,
+        WanAttention : QEffWanAttention,
+        WanTransformer3DModel : QEffWanTransformer3DModel,
+        WanDecoder3d: QEffWanDecoder3d,
+        WanEncoder3d: QEffWanEncoder3d,
+        WanResidualBlock: QEffWanResidualBlock,
+        WanResample: QEffWanResample,
+        AutoencoderKLWan: QEffAutoencoderKLWan,
     }
 
 
