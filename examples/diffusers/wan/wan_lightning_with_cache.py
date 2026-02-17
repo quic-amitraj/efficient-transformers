@@ -24,36 +24,36 @@ from QEfficient import QEffWanPipeline
 
 # Load the pipeline
 print("Loading WAN 2.2 pipeline...")
-pipeline = QEffWanPipeline.from_pretrained("Wan-AI/Wan2.2-T2V-A14B-Diffusers", enable_first_cache=True)
+pipeline = QEffWanPipeline.from_pretrained("Wan-AI/Wan2.2-T2V-A14B-Diffusers", enable_first_cache=False)
 
 # Download the LoRAs for Lightning (4-step inference)
-print("Downloading Lightning LoRAs...")
-high_noise_lora_path = hf_hub_download(
-    repo_id="lightx2v/Wan2.2-Lightning",
-    filename="Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors",
-)
-low_noise_lora_path = hf_hub_download(
-    repo_id="lightx2v/Wan2.2-Lightning",
-    filename="Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors",
-)
+# print("Downloading Lightning LoRAs...")
+# high_noise_lora_path = hf_hub_download(
+#     repo_id="lightx2v/Wan2.2-Lightning",
+#     filename="Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors",
+# )
+# low_noise_lora_path = hf_hub_download(
+#     repo_id="lightx2v/Wan2.2-Lightning",
+#     filename="Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors",
+# )
 
 
-# LoRA conversion helper
-def load_wan_lora(path: str):
-    return _convert_non_diffusers_wan_lora_to_diffusers(safetensors.torch.load_file(path))
+# # LoRA conversion helper
+# def load_wan_lora(path: str):
+#     return _convert_non_diffusers_wan_lora_to_diffusers(safetensors.torch.load_file(path))
 
 
-# Load LoRAs into the transformers
-print("Loading LoRAs into transformers...")
-pipeline.transformer.model.transformer_high.load_lora_adapter(
-    load_wan_lora(high_noise_lora_path), adapter_name="high_noise"
-)
-pipeline.transformer.model.transformer_high.set_adapters(["high_noise"], weights=[1.0])
+# # Load LoRAs into the transformers
+# print("Loading LoRAs into transformers...")
+# pipeline.transformer.model.transformer_high.load_lora_adapter(
+#     load_wan_lora(high_noise_lora_path), adapter_name="high_noise"
+# )
+# pipeline.transformer.model.transformer_high.set_adapters(["high_noise"], weights=[1.0])
 
-pipeline.transformer.model.transformer_low.load_lora_adapter(
-    load_wan_lora(low_noise_lora_path), adapter_name="low_noise"
-)
-pipeline.transformer.model.transformer_low.set_adapters(["low_noise"], weights=[1.0])
+# pipeline.transformer.model.transformer_low.load_lora_adapter(
+#     load_wan_lora(low_noise_lora_path), adapter_name="low_noise"
+# )
+# pipeline.transformer.model.transformer_low.set_adapters(["low_noise"], weights=[1.0])
 
 
 # ============================================================================
@@ -83,7 +83,7 @@ pipeline.transformer.model.transformer_low.blocks = torch.nn.ModuleList(
 )
 
 # Define the prompt
-prompt = "In a warmly lit living room, an elderly man with gray hair sits in a wooden armchair adorned with a blue cushion. He wears a gray cardigan over a white shirt, engrossed in reading a book. As he turns the pages, he subtly adjusts his posture, ensuring his glasses stay in place. He then removes his glasses, holding them in his hand, and turns his head to the right, maintaining his grip on the book. The soft glow of a bedside lamp bathes the scene, creating a calm and serene atmosphere, with gentle shadows enhancing the intimate setting."
+prompt = "In a warmly lit living room."
 
 print("\n" + "="*80)
 print("GENERATING VIDEO WITH FIRST BLOCK CACHE")
@@ -102,12 +102,13 @@ output = pipeline(
     num_frames=81,
     guidance_scale=1.0,
     guidance_scale_2=1.0,
-    num_inference_steps=4,
+    num_inference_steps=40,
     generator=torch.manual_seed(0),
     height=320,
     width=320,
     use_onnx_subfunctions=False,
     parallel_compile=True,
+    custom_config_path="examples/diffusers/wan/wan_config.json",
     # First block cache parameters)
 )
 

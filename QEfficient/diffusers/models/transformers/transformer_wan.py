@@ -161,19 +161,16 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
     including optional first block cache for faster inference.
     """
 
-    def __qeff_init__(self, enable_first_cache: bool = True):
+    def __qeff_init__(self):
         """
         Initialize QEfficient-specific attributes.
 
         Args:
             enable_first_cache: Whether to enable first block cache optimization
         """
-        self.enable_first_cache = enable_first_cache
-
-        if enable_first_cache:
-            # Cache parameters
-            self.cache_threshold = 0.08  # Default threshold for similarity check
-            self.cache_warmup_steps = 2  # Hardcoded warmup steps (TODO: make configurable)
+        
+        self.cache_threshold = 0.08  # Default threshold for similarity check
+        self.cache_warmup_steps = 2  # Hardcoded warmup steps (TODO: make configurable)
 
     def set_adapters(
         self,
@@ -382,9 +379,12 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         )
 
         # Step 5: Select residual for next iteration
+        # Add 0.0 to force a new tensor and avoid buffer aliasing with retained state
+        # This prevents the compiler error: "Non disjoint non equal IO buffers"
+        cached_residual = prev_remaining_blocks_residual + 0.0
         final_remaining_residual = torch.where(
             use_cache,
-            prev_remaining_blocks_residual,
+            cached_residual,
             remaining_residual,
         )
 

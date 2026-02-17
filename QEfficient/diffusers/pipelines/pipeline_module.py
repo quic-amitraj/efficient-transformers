@@ -543,10 +543,8 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
         
         # Enable cache on both high and low noise transformers if requested
         if enable_first_cache:
-            if hasattr(self.model.transformer_high, '__qeff_init__'):
-                self.model.transformer_high.__qeff_init__(enable_first_cache=True)
-            if hasattr(self.model.transformer_low, '__qeff_init__'):
-                self.model.transformer_low.__qeff_init__(enable_first_cache=True)
+            self.model.transformer_high.enable_first_cache=True
+            self.model.transformer_low.enable_first_cache=True
 
 
     @property
@@ -608,7 +606,7 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
             # Timestep parameter: Controls high/low noise transformer selection based on shape
             "tsp": torch.ones(1, dtype=torch.int64),
         }
-
+        
         # Check if first block cache is enabled
         cache_enabled = getattr(self.model.transformer_high, 'enable_first_cache', False)
         
@@ -706,13 +704,16 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
         
         kv_cache_dtype = "float16"
         custom_io = {}
-        if  self.model.transformer_high.enable_first_cache:
+
+        if getattr(self.model.transformer_high, 'enable_first_cache', False):
             # Define custom IO for cache tensors to ensure correct handling during compilation
             custom_io = {
                 "prev_first_block_residual_high": kv_cache_dtype,
                 "prev_remaining_blocks_residual_high": kv_cache_dtype,
                 "prev_first_block_residual_low": kv_cache_dtype,
                 "prev_remaining_blocks_residual_low": kv_cache_dtype,
+                
+                
                 "prev_first_block_residual_high_RetainedState": kv_cache_dtype,
                 "prev_remaining_blocks_residual_high_RetainedState": kv_cache_dtype,
                 "prev_first_block_residual_low_RetainedState": kv_cache_dtype,

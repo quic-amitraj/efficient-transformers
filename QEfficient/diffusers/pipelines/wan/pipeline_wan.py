@@ -110,7 +110,7 @@ class QEffWanPipeline:
         self.vae_decoder = QEffVAE(model.vae, "decoder")
         # Store all modules in a dictionary for easy iteration during export/compile
         # TODO: add text encoder on QAIC
-        self.modules = {"transformer": self.transformer, "vae_decoder": self.vae_decoder}
+        self.modules = {"transformer": self.transformer}
 
         # Copy tokenizers and scheduler from the original model
         self.tokenizer = model.tokenizer
