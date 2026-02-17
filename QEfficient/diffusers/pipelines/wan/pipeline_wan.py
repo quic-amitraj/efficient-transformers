@@ -81,7 +81,7 @@ class QEffWanPipeline:
 
     _hf_auto_class = WanPipeline
 
-    def __init__(self, model, **kwargs):
+    def __init__(self, model, enable_first_cache=False, **kwargs):
         """
         Initialize the QEfficient WAN pipeline.
 
@@ -104,7 +104,7 @@ class QEffWanPipeline:
 
         # Create unified transformer wrapper combining dual-stage models(high, low noise DiTs)
         self.unified_wrapper = QEffWanUnifiedWrapper(model.transformer, model.transformer_2)
-        self.transformer = QEffWanUnifiedTransformer(self.unified_wrapper)
+        self.transformer = QEffWanUnifiedTransformer(self.unified_wrapper, enable_first_cache=enable_first_cache)
 
         # VAE decoder for latent-to-video conversion
         self.vae_decoder = QEffVAE(model.vae, "decoder")
@@ -139,6 +139,7 @@ class QEffWanPipeline:
     def from_pretrained(
         cls,
         pretrained_model_name_or_path: Optional[Union[str, os.PathLike]],
+        enable_first_cache: bool = False,
         **kwargs,
     ):
         """
@@ -186,6 +187,7 @@ class QEffWanPipeline:
         return cls(
             model=model,
             pretrained_model_name_or_path=pretrained_model_name_or_path,
+            enable_first_cache=enable_first_cache,
             **kwargs,
         )
 
@@ -657,6 +659,7 @@ class QEffWanPipeline:
                     "temb": temb.detach().numpy(),
                     "timestep_proj": timestep_proj.detach().numpy(),
                     "tsp": model_type.detach().numpy(),  # Transformer stage pointer
+                    "current_step": np.array([i], dtype=np.int64),  # Current step for dynamic control
                 }
 
                 # Prepare negative inputs for classifier-free guidance
@@ -673,6 +676,7 @@ class QEffWanPipeline:
                 with current_model.cache_context("cond"):
                     # QAIC inference for conditional prediction
                     start_transformer_step_time = time.perf_counter()
+                    import ipdb; ipdb.set_trace()
                     outputs = self.transformer.qpc_session.run(inputs_aic)
                     end_transformer_step_time = time.perf_counter()
                     transformer_perf.append(end_transformer_step_time - start_transformer_step_time)

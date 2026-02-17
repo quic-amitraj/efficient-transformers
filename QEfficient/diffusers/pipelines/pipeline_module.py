@@ -357,7 +357,8 @@ class QEffVAE(QEFFBaseModel):
             specializations (List[Dict]): Model specialization configurations
             **compiler_options: Additional compiler options
         """
-        self._compile(specializations=specializations, **compiler_options)
+        self._compile(specializations=specializations,
+                       **compiler_options)
 
 
 class QEffFluxTransformerModel(QEFFBaseModel):
@@ -529,15 +530,24 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
     _pytorch_transforms = [AttentionTransform, CustomOpsTransform, NormalizationTransform]
     _onnx_transforms = [FP16ClipTransform, SplitTensorsTransform]
 
-    def __init__(self, unified_transformer):
+    def __init__(self, unified_transformer, enable_first_cache=False) -> None:
         """
         Initialize the Wan unified transformer.
 
         Args:
-            model (nn.Module): Wan unified transformer model
+            unified_transformer (nn.Module): Wan unified transformer model
+            enable_first_cache (bool): Whether to enable first block cache optimization
         """
         super().__init__(unified_transformer)
         self.model = unified_transformer
+        
+        # Enable cache on both high and low noise transformers if requested
+        if enable_first_cache:
+            if hasattr(self.model.transformer_high, '__qeff_init__'):
+                self.model.transformer_high.__qeff_init__(enable_first_cache=True)
+            if hasattr(self.model.transformer_low, '__qeff_init__'):
+                self.model.transformer_low.__qeff_init__(enable_first_cache=True)
+
 
     @property
     def get_model_config(self) -> Dict:
@@ -554,7 +564,8 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
         Generate ONNX export configuration for the Wan transformer.
 
         Creates example inputs for all Wan-specific inputs including hidden states,
-        text embeddings, timestep conditioning,
+        text embeddings, timestep conditioning, and optional first block cache inputs.
+        
         Returns:
             Tuple containing:
                 - example_inputs (Dict): Sample inputs for ONNX export
@@ -562,6 +573,11 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
                 - output_names (List[str]): Names of model outputs
         """
         batch_size = constants.WAN_ONNX_EXPORT_BATCH_SIZE
+        cl = constants.WAN_ONNX_EXPORT_CL_180P  # Compressed latent dimension
+        # Hidden dimension after patch embedding (not input channels!)
+        # This is the actual hidden dimension used in transformer blocks
+        hidden_dim = self.model.config.hidden_size if hasattr(self.model.config, 'hidden_size') else 5120
+        
         example_inputs = {
             # hidden_states = [ bs, in_channels, frames, latent_height, latent_width]
             "hidden_states": torch.randn(
@@ -578,7 +594,7 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
             ),
             # Rotary position embeddings: [2, context_length, 1, rotary_dim]; 2 is from tuple of cos, sin freqs
             "rotary_emb": torch.randn(
-                2, constants.WAN_ONNX_EXPORT_CL_180P, 1, constants.WAN_ONNX_EXPORT_ROTARY_DIM, dtype=torch.float32
+                2, cl, 1, constants.WAN_ONNX_EXPORT_ROTARY_DIM, dtype=torch.float32
             ),
             # Timestep embeddings: [batch_size=1, embedding_dim]
             "temb": torch.randn(batch_size, constants.WAN_TEXT_EMBED_DIM, dtype=torch.float32),
@@ -593,8 +609,37 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
             "tsp": torch.ones(1, dtype=torch.int64),
         }
 
-        output_names = ["output"]
+        # Check if first block cache is enabled
+        cache_enabled = getattr(self.model.transformer_high, 'enable_first_cache', False)
+        
+        if cache_enabled:
+            # Add cache inputs for both high and low noise transformers
+            # Cache tensors have shape: [batch_size, seq_len, hidden_dim]
+            # seq_len = cl (compressed latent dimension after patch embedding)
+            example_inputs.update({
+                # High noise transformer cache
+                "prev_first_block_residual_high": torch.zeros(batch_size, cl, hidden_dim, dtype=torch.float32),
+                "prev_remaining_blocks_residual_high": torch.zeros(batch_size, cl, hidden_dim, dtype=torch.float32),
+                # Low noise transformer cache
+                "prev_first_block_residual_low": torch.zeros(batch_size, cl, hidden_dim, dtype=torch.float32),
+                "prev_remaining_blocks_residual_low": torch.zeros(batch_size, cl, hidden_dim, dtype=torch.float32),
+                # Current denoising step number
+                "current_step": torch.tensor(0, dtype=torch.int64),
+            })
 
+        # Define output names
+        if cache_enabled:
+            output_names = [
+                "output",
+                "prev_first_block_residual_high_RetainedState",
+                "prev_remaining_blocks_residual_high_RetainedState",
+                "prev_first_block_residual_low_RetainedState",
+                "prev_remaining_blocks_residual_low_RetainedState",
+            ]
+        else:
+            output_names = ["output"]
+
+        # Define dynamic axes
         dynamic_axes = {
             "hidden_states": {
                 0: "batch_size",
@@ -603,11 +648,20 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
                 3: "latent_height",
                 4: "latent_width",
             },
-            "timestep": {0: "steps"},
             "encoder_hidden_states": {0: "batch_size", 1: "sequence_length"},
             "rotary_emb": {1: "cl"},
             "tsp": {0: "model_type"},
         }
+        
+        # Add dynamic axes for cache tensors if enabled
+        if cache_enabled:
+            cache_dynamic_axes = {
+                "prev_first_block_residual_high": {0: "batch_size", 1: "cl"},
+                "prev_remaining_blocks_residual_high": {0: "batch_size", 1: "cl"},
+                "prev_first_block_residual_low": {0: "batch_size", 1: "cl"},
+                "prev_remaining_blocks_residual_low": {0: "batch_size", 1: "cl"},
+            }
+            dynamic_axes.update(cache_dynamic_axes)
 
         return example_inputs, dynamic_axes, output_names
 
@@ -649,4 +703,23 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
             specializations (List[Dict]): Model specialization configurations
             **compiler_options: Additional compiler options (e.g., num_cores, aic_num_of_activations)
         """
-        self._compile(specializations=specializations, **compiler_options)
+        
+        kv_cache_dtype = "float16"
+        custom_io = {}
+        if  self.model.transformer_high.enable_first_cache:
+            # Define custom IO for cache tensors to ensure correct handling during compilation
+            custom_io = {
+                "prev_first_block_residual_high": kv_cache_dtype,
+                "prev_remaining_blocks_residual_high": kv_cache_dtype,
+                "prev_first_block_residual_low": kv_cache_dtype,
+                "prev_remaining_blocks_residual_low": kv_cache_dtype,
+                "prev_first_block_residual_high_RetainedState": kv_cache_dtype,
+                "prev_remaining_blocks_residual_high_RetainedState": kv_cache_dtype,
+                "prev_first_block_residual_low_RetainedState": kv_cache_dtype,
+                "prev_remaining_blocks_residual_low_RetainedState": kv_cache_dtype,
+            }
+                  
+        self._compile(specializations=specializations,
+                      custom_io=custom_io,
+                      retained_state=True,
+                      **compiler_options)
