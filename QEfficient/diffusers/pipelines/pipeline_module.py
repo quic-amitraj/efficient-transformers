@@ -616,13 +616,13 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
             # seq_len = cl (compressed latent dimension after patch embedding)
             example_inputs.update({
                 # High noise transformer cache
-                "prev_first_block_residual_high": torch.zeros(batch_size, cl, hidden_dim, dtype=torch.float32),
-                "prev_remaining_blocks_residual_high": torch.zeros(batch_size, cl, hidden_dim, dtype=torch.float32),
+                "prev_first_block_residual_high": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
+                "prev_remaining_blocks_residual_high": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
                 # Low noise transformer cache
-                "prev_first_block_residual_low": torch.zeros(batch_size, cl, hidden_dim, dtype=torch.float32),
-                "prev_remaining_blocks_residual_low": torch.zeros(batch_size, cl, hidden_dim, dtype=torch.float32),
+                "prev_first_block_residual_low": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
+                "prev_remaining_blocks_residual_low": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
                 # Current denoising step number
-                "current_step": torch.tensor(0, dtype=torch.int64),
+                "current_step": torch.tensor(1, dtype=torch.int64),
             })
 
         # Define output names

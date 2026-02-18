@@ -353,6 +353,7 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         """
         # Step 1: Always execute first block
 
+    
         original_hidden_states = hidden_states
         first_block = self.blocks[0]
         hidden_states = first_block(
@@ -404,23 +405,25 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         2. Previous residual exists (not first step)
         3. Similarity is below threshold
         """
-        # Check warmup
-        is_warmup = current_step < self.cache_warmup_steps
-
         # Compute similarity (L1 distance normalized by magnitude)
+        # This must be computed BEFORE any conditional logic
         diff = (first_block_residual - prev_first_block_residual).abs().mean()
         norm = first_block_residual.abs().mean()
         similarity = diff / (norm + 1e-8)
-
-        # All conditions must be True for cache to be used
         
+        # Pre-compute both independent branches for torch.where
+        # Branch 1: similarity check (always computed, independent of warmup)
+        is_similar = (similarity < self.cache_threshold).to(torch.int32)
+        
+        
+        # torch.where selects between two pre-computed, independent values
         use_cache = torch.where(
-                    is_warmup,
-                    torch.tensor(False, device=first_block_residual.device),
-                    similarity < self.cache_threshold
+                    current_step < self.cache_warmup_steps,
+                    torch.tensor(0).to(torch.int32),  # During warmup: always False (no cache)
+                    is_similar     # If not warmup: use is_similar
                 )
 
-        return use_cache
+        return use_cache.to(torch.bool)
 
     def _compute_remaining_blocks(
         self,

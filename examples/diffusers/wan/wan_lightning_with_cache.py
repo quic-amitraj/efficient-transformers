@@ -24,7 +24,7 @@ from QEfficient import QEffWanPipeline
 
 # Load the pipeline
 print("Loading WAN 2.2 pipeline...")
-pipeline = QEffWanPipeline.from_pretrained("Wan-AI/Wan2.2-T2V-A14B-Diffusers", enable_first_cache=False)
+pipeline = QEffWanPipeline.from_pretrained("Wan-AI/Wan2.2-T2V-A14B-Diffusers", enable_first_cache=True)
 
 # Download the LoRAs for Lightning (4-step inference)
 # print("Downloading Lightning LoRAs...")

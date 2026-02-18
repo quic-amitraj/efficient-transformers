@@ -457,7 +457,7 @@ class QEffWanPipeline:
         """
         device = "cpu"
 
-        # Compile models with custom configuration if needed
+        # # Compile models with custom configuration if needed
         self.compile(
             compile_config=custom_config_path,
             parallel=parallel_compile,
@@ -558,11 +558,11 @@ class QEffWanPipeline:
         else:
             boundary_timestep = None
 
-        # Step 7: Initialize QAIC inference session for transformer
-        if self.transformer.qpc_session is None:
-            self.transformer.qpc_session = QAICInferenceSession(
-                str(self.transformer.qpc_path), device_ids=self.transformer.device_ids
-            )
+        # # Step 7: Initialize QAIC inference session for transformer
+        # if self.transformer.qpc_session is None:
+        #     self.transformer.qpc_session = QAICInferenceSession(
+        #         str(self.transformer.qpc_path), device_ids=self.transformer.device_ids
+        #     )
 
         # Calculate compressed latent dimension for transformer buffer allocation
         cl, _, _, _ = calculate_latent_dimensions_with_frames(
@@ -575,14 +575,14 @@ class QEffWanPipeline:
             self.patch_width,
         )
         # Allocate output buffer for QAIC inference
-        output_buffer = {
-            "output": np.random.rand(
-                batch_size,
-                cl,  # Compressed latent dimension
-                constants.WAN_DIT_OUT_CHANNELS,
-            ).astype(np.int32),
-        }
-        self.transformer.qpc_session.set_buffers(output_buffer)
+        # output_buffer = {
+        #     "output": np.random.rand(
+        #         batch_size,
+        #         cl,  # Compressed latent dimension
+        #         constants.WAN_DIT_OUT_CHANNELS,
+        #     ).astype(np.int32),
+        # }
+        # self.transformer.qpc_session.set_buffers(output_buffer)
         transformer_perf = []
 
         # Step 8: Denoising loop with dual-stage processing
@@ -674,9 +674,17 @@ class QEffWanPipeline:
 
                 # Run conditional prediction with caching context
                 with current_model.cache_context("cond"):
+                    
                     # QAIC inference for conditional prediction
                     start_transformer_step_time = time.perf_counter()
-                    import ipdb; ipdb.set_trace()
+                    self.transformer.onnx_path='/home/amitraj/projects/efficient-transformers/qeff_home/WanUnifiedWrapper/WanUnifiedWrapper-6b7b77cd08c5486c/WanUnifiedWrapper.onnx'
+                    import ipdb
+                    ipdb.set_trace()
+                    import onnxruntime as ort
+                    ort_session = ort.InferenceSession(str(self.transformer.onnx_path))
+                    outputs = ort_session.run(None, inputs_aic)
+                    
+                    
                     outputs = self.transformer.qpc_session.run(inputs_aic)
                     end_transformer_step_time = time.perf_counter()
                     transformer_perf.append(end_transformer_step_time - start_transformer_step_time)
