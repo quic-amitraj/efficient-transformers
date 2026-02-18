@@ -106,7 +106,7 @@ output = pipeline(
     generator=torch.manual_seed(0),
     height=320,
     width=320,
-    use_onnx_subfunctions=False,
+    use_onnx_subfunctions=True,
     parallel_compile=True,
     custom_config_path="examples/diffusers/wan/wan_config.json",
     # First block cache parameters)

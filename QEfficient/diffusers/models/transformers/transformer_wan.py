@@ -26,6 +26,7 @@ from diffusers.models.transformers.transformer_wan import (
     WanTransformerBlock,
     _get_qkv_projections,
 )
+from QEfficient.customop.ctx_scatter_gather import CtxGatherFunc3D,CtxScatterFunc3D
 from diffusers.utils import set_weights_and_activate_adapters
 
 from QEfficient.diffusers.models.modeling_utils import (
@@ -360,42 +361,54 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
             hidden_states, encoder_hidden_states, timestep_proj, rotary_emb
         )
         first_block_residual = hidden_states - original_hidden_states
-
+        
+        batch_size = first_block_residual.shape[0]
+        seq_len = first_block_residual.shape[1]
+        position_ids = torch.arange(seq_len).unsqueeze(0).expand(batch_size, -1)
+        
+        prev_first_block_residual = CtxGatherFunc3D.apply(prev_first_block_residual, position_ids)
+        
         # Step 2: Compute cache decision
-        use_cache = self._should_use_cache(
-            first_block_residual, prev_first_block_residual, current_step
+        use_cache, prev_first_block_residual = self._should_use_cache(
+            first_block_residual, prev_first_block_residual, current_step, position_ids
         )
+        
 
+       
         # Step 3: Compute remaining blocks (always computed for graph tracing)
-        remaining_output, remaining_residual = self._compute_remaining_blocks(
-            hidden_states, encoder_hidden_states, timestep_proj, rotary_emb
+        remaining_output, prev_remaining_blocks_residual = self._compute_remaining_blocks(
+            hidden_states, encoder_hidden_states, timestep_proj, rotary_emb, prev_remaining_blocks_residual, position_ids
         )
 
         # Step 4: Select output based on cache decision using torch.where
+        prev_remaining_blocks_residual = CtxGatherFunc3D.apply(prev_remaining_blocks_residual, position_ids)
         cache_output = hidden_states + prev_remaining_blocks_residual
+        
+        
         final_output = torch.where(
             use_cache,
             cache_output,
             remaining_output,
         )
 
-        # Step 5: Select residual for next iteration
-        # Add 0.0 to force a new tensor and avoid buffer aliasing with retained state
-        # This prevents the compiler error: "Non disjoint non equal IO buffers"
-        cached_residual = prev_remaining_blocks_residual + 0.0
-        final_remaining_residual = torch.where(
-            use_cache,
-            cached_residual,
-            remaining_residual,
-        )
+        # # Step 5: Select residual for next iteration
+        # # Add 0.0 to force a new tensor and avoid buffer aliasing with retained state
+        # # This prevents the compiler error: "Non disjoint non equal IO buffers"
+        # cached_residual = prev_remaining_blocks_residual + 0.0
+        # final_remaining_residual = torch.where(
+        #     use_cache,
+        #     cached_residual,
+        #     remaining_residual,
+        # )
 
-        return final_output, first_block_residual, final_remaining_residual
+        return final_output, prev_first_block_residual, prev_remaining_blocks_residual
 
     def _should_use_cache(
         self,
         first_block_residual: torch.Tensor,
         prev_first_block_residual: torch.Tensor,
         current_step: torch.Tensor,
+        position_ids: torch.Tensor,
     ) -> torch.Tensor:
         """
         Compute cache decision (returns boolean tensor).
@@ -409,6 +422,10 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         # This must be computed BEFORE any conditional logic
         diff = (first_block_residual - prev_first_block_residual).abs().mean()
         norm = first_block_residual.abs().mean()
+        
+        # Updating the residual cache for the next iteration using scatter-gather operations
+        prev_first_block_residual = CtxScatterFunc3D.apply(prev_first_block_residual, position_ids, first_block_residual)
+        
         similarity = diff / (norm + 1e-8)
         
         # Pre-compute both independent branches for torch.where
@@ -423,7 +440,7 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
                     is_similar     # If not warmup: use is_similar
                 )
 
-        return use_cache.to(torch.bool)
+        return use_cache.to(torch.bool), prev_first_block_residual
 
     def _compute_remaining_blocks(
         self,
@@ -431,6 +448,8 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         encoder_hidden_states: torch.Tensor,
         timestep_proj: torch.Tensor,
         rotary_emb: torch.Tensor,
+        prev_remaining_blocks_residual: torch.Tensor,
+        position_ids: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Execute transformer blocks 1 to N.
@@ -444,9 +463,9 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
             )
 
         # Compute residual for caching
-        remaining_residual = hidden_states - original_hidden_states
-
-        return hidden_states, remaining_residual
+        final_remaining_blocks_residual = hidden_states - original_hidden_states
+        prev_remaining_blocks_residual=CtxScatterFunc3D.apply(prev_remaining_blocks_residual, position_ids, final_remaining_blocks_residual)
+        return hidden_states, prev_remaining_blocks_residual
 
 
 class QEffWanUnifiedWrapper(nn.Module):
@@ -526,14 +545,7 @@ class QEffWanUnifiedWrapper(nn.Module):
         is_high_noise = tsp.shape[0] == torch.tensor(1)
 
         # Check if cache is enabled (both transformers should have same setting)
-        cache_enabled = (
-            getattr(self.transformer_high, 'enable_first_cache', False)
-            and prev_first_block_residual_high is not None
-            and prev_remaining_blocks_residual_high is not None
-            and prev_first_block_residual_low is not None
-            and prev_remaining_blocks_residual_low is not None
-            and current_step is not None
-        )
+        cache_enabled = self.transformer_high.enable_first_cache
 
         high_hs = hidden_states.detach()
         ehs = encoder_hidden_states.detach()
