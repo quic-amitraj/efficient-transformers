@@ -623,6 +623,8 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
                 "prev_remaining_blocks_residual_low": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
                 # Current denoising step number
                 "current_step": torch.tensor(1, dtype=torch.int64),
+                "cache_threshold": torch.tensor(0.5, dtype=torch.float32),  # Example threshold for cache decision
+                "warmup_steps": torch.tensor(2, dtype=torch.int64),  # Example
             })
 
         # Define output names

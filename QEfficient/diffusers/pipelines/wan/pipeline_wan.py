@@ -388,6 +388,8 @@ class QEffWanPipeline:
         custom_config_path: Optional[str] = None,
         use_onnx_subfunctions: bool = False,
         parallel_compile: bool = True,
+        cache_threshold: Optional[float] = None,
+        cache_warmup_steps: Optional[int] = None,
     ):
         """
         Generate videos from text prompts using the QEfficient-optimized WAN pipeline on QAIC hardware.
@@ -558,11 +560,11 @@ class QEffWanPipeline:
         else:
             boundary_timestep = None
 
-        # # Step 7: Initialize QAIC inference session for transformer
-        # if self.transformer.qpc_session is None:
-        #     self.transformer.qpc_session = QAICInferenceSession(
-        #         str(self.transformer.qpc_path), device_ids=self.transformer.device_ids
-        #     )
+        # Step 7: Initialize QAIC inference session for transformer
+        if self.transformer.qpc_session is None:
+            self.transformer.qpc_session = QAICInferenceSession(
+                str(self.transformer.qpc_path), device_ids=self.transformer.device_ids
+            )
 
         # Calculate compressed latent dimension for transformer buffer allocation
         cl, _, _, _ = calculate_latent_dimensions_with_frames(
@@ -575,14 +577,14 @@ class QEffWanPipeline:
             self.patch_width,
         )
         # Allocate output buffer for QAIC inference
-        # output_buffer = {
-        #     "output": np.random.rand(
-        #         batch_size,
-        #         cl,  # Compressed latent dimension
-        #         constants.WAN_DIT_OUT_CHANNELS,
-        #     ).astype(np.int32),
-        # }
-        # self.transformer.qpc_session.set_buffers(output_buffer)
+        output_buffer = {
+            "output": np.random.rand(
+                batch_size,
+                cl,  # Compressed latent dimension
+                constants.WAN_DIT_OUT_CHANNELS,
+            ).astype(np.int32),
+        }
+        self.transformer.qpc_session.set_buffers(output_buffer)
         transformer_perf = []
 
         # Step 8: Denoising loop with dual-stage processing
@@ -660,6 +662,8 @@ class QEffWanPipeline:
                     "timestep_proj": timestep_proj.detach().numpy(),
                     "tsp": model_type.detach().numpy(),  # Transformer stage pointer
                     "current_step": np.array([i], dtype=np.int64),  # Current step for dynamic control
+                    "cache_threshold": np.array([cache_threshold], dtype=np.float32),
+                    "warmup_steps": np.array([cache_warmup_steps], dtype=np.int64),
                 }
 
                 # Prepare negative inputs for classifier-free guidance
@@ -677,13 +681,6 @@ class QEffWanPipeline:
                     
                     # QAIC inference for conditional prediction
                     start_transformer_step_time = time.perf_counter()
-                    self.transformer.onnx_path='/home/amitraj/projects/efficient-transformers/qeff_home/WanUnifiedWrapper/WanUnifiedWrapper-6b7b77cd08c5486c/WanUnifiedWrapper.onnx'
-                    import ipdb
-                    ipdb.set_trace()
-                    import onnxruntime as ort
-                    ort_session = ort.InferenceSession(str(self.transformer.onnx_path))
-                    outputs = ort_session.run(None, inputs_aic)
-                    
                     
                     outputs = self.transformer.qpc_session.run(inputs_aic)
                     end_transformer_step_time = time.perf_counter()

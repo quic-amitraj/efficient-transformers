@@ -169,9 +169,6 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         Args:
             enable_first_cache: Whether to enable first block cache optimization
         """
-        
-        self.cache_threshold = 0.08  # Default threshold for similarity check
-        self.cache_warmup_steps = 2  # Hardcoded warmup steps (TODO: make configurable)
 
     def set_adapters(
         self,
@@ -239,6 +236,8 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         prev_remaining_blocks_residual: Optional[torch.Tensor] = None,
         current_step: Optional[torch.Tensor] = None,
         return_dict: bool = True,
+        cache_threshold: Optional[torch.Tensor] = None,
+        warmup_steps: Optional[torch.Tensor] = None,
         attention_kwargs: Optional[Dict[str, Any]] = None,
     ) -> Union[torch.Tensor, Dict[str, torch.Tensor]]:
         """
@@ -293,7 +292,7 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         if cache_enabled:
             hidden_states, first_residual, remaining_residual = self._forward_blocks_with_cache(
                 hidden_states, encoder_hidden_states, timestep_proj, rotary_emb,
-                prev_first_block_residual, prev_remaining_blocks_residual, current_step
+                prev_first_block_residual, prev_remaining_blocks_residual, current_step, cache_threshold, warmup_steps
             )
         else:
             # Standard forward pass
@@ -345,6 +344,8 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         prev_first_block_residual: torch.Tensor,
         prev_remaining_blocks_residual: torch.Tensor,
         current_step: torch.Tensor,
+        cache_threshold: torch.Tensor,
+        warmup_steps: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Core cache logic - AOT compilable.
@@ -354,7 +355,8 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         """
         # Step 1: Always execute first block
 
-    
+        import ipdb
+        ipdb.set_trace()
         original_hidden_states = hidden_states
         first_block = self.blocks[0]
         hidden_states = first_block(
@@ -365,30 +367,27 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         batch_size = first_block_residual.shape[0]
         seq_len = first_block_residual.shape[1]
         position_ids = torch.arange(seq_len).unsqueeze(0).expand(batch_size, -1)
-        
-        prev_first_block_residual = CtxGatherFunc3D.apply(prev_first_block_residual, position_ids)
-        
+                
         # Step 2: Compute cache decision
-        use_cache, prev_first_block_residual = self._should_use_cache(
-            first_block_residual, prev_first_block_residual, current_step, position_ids
+        is_similar, prev_first_block_residual = self._check_similarity(
+            first_block_residual, prev_first_block_residual, cache_threshold
         )
         
 
        
         # Step 3: Compute remaining blocks (always computed for graph tracing)
         remaining_output, prev_remaining_blocks_residual = self._compute_remaining_blocks(
-            hidden_states, encoder_hidden_states, timestep_proj, rotary_emb, prev_remaining_blocks_residual, position_ids
+            hidden_states, encoder_hidden_states, timestep_proj, rotary_emb, prev_remaining_blocks_residual
         )
 
         # Step 4: Select output based on cache decision using torch.where
-        prev_remaining_blocks_residual = CtxGatherFunc3D.apply(prev_remaining_blocks_residual, position_ids)
         cache_output = hidden_states + prev_remaining_blocks_residual
         
-        
+        import ipdb; ipdb.set_trace()
         final_output = torch.where(
-            use_cache,
-            cache_output,
+            (current_step < warmup_steps) | (~is_similar), 
             remaining_output,
+            cache_output
         )
 
         # # Step 5: Select residual for next iteration
@@ -403,12 +402,11 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
 
         return final_output, prev_first_block_residual, prev_remaining_blocks_residual
 
-    def _should_use_cache(
+    def _check_similarity(
         self,
         first_block_residual: torch.Tensor,
         prev_first_block_residual: torch.Tensor,
-        current_step: torch.Tensor,
-        position_ids: torch.Tensor,
+        cache_threshold: torch.Tensor,
     ) -> torch.Tensor:
         """
         Compute cache decision (returns boolean tensor).
@@ -424,23 +422,23 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         norm = first_block_residual.abs().mean()
         
         # Updating the residual cache for the next iteration using scatter-gather operations
-        prev_first_block_residual = CtxScatterFunc3D.apply(prev_first_block_residual, position_ids, first_block_residual)
+        prev_first_block_residual = first_block_residual
         
         similarity = diff / (norm + 1e-8)
         
         # Pre-compute both independent branches for torch.where
         # Branch 1: similarity check (always computed, independent of warmup)
-        is_similar = (similarity < self.cache_threshold).to(torch.int32)
+        is_similar = similarity < cache_threshold
         
         
-        # torch.where selects between two pre-computed, independent values
-        use_cache = torch.where(
-                    current_step < self.cache_warmup_steps,
-                    torch.tensor(0).to(torch.int32),  # During warmup: always False (no cache)
-                    is_similar     # If not warmup: use is_similar
-                )
+        # # torch.where selects between two pre-computed, independent values
+        # use_cache = torch.where(
+        #             current_step < self.cache_warmup_steps,
+        #             torch.tensor(0).to(torch.int32),  # During warmup: always False (no cache)
+        #             is_similar     # If not warmup: use is_similar
+        #         )
 
-        return use_cache.to(torch.bool), prev_first_block_residual
+        return is_similar, prev_first_block_residual
 
     def _compute_remaining_blocks(
         self,
@@ -449,7 +447,6 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         timestep_proj: torch.Tensor,
         rotary_emb: torch.Tensor,
         prev_remaining_blocks_residual: torch.Tensor,
-        position_ids: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Execute transformer blocks 1 to N.
@@ -463,8 +460,7 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
             )
 
         # Compute residual for caching
-        final_remaining_blocks_residual = hidden_states - original_hidden_states
-        prev_remaining_blocks_residual=CtxScatterFunc3D.apply(prev_remaining_blocks_residual, position_ids, final_remaining_blocks_residual)
+        prev_remaining_blocks_residual = hidden_states - original_hidden_states
         return hidden_states, prev_remaining_blocks_residual
 
 
@@ -515,6 +511,8 @@ class QEffWanUnifiedWrapper(nn.Module):
         prev_first_block_residual_low: Optional[torch.Tensor] = None,
         prev_remaining_blocks_residual_low: Optional[torch.Tensor] = None,
         current_step: Optional[torch.Tensor] = None,
+        cache_threshold: Optional[torch.Tensor] = None,
+        warmup_steps: Optional[torch.Tensor] = None,
         attention_kwargs=None,
         return_dict=False,
     ):
@@ -545,10 +543,9 @@ class QEffWanUnifiedWrapper(nn.Module):
         is_high_noise = tsp.shape[0] == torch.tensor(1)
 
         # Check if cache is enabled (both transformers should have same setting)
-        cache_enabled = self.transformer_high.enable_first_cache
-
+        cache_enabled = getattr(self.transformer_high, 'enable_first_cache', False)
         high_hs = hidden_states.detach()
-        ehs = encoder_hidden_states.detach()
+        ehs = encoder_hidden_states.detach() 
         rhs = rotary_emb.detach()
         ths = temb.detach()
         projhs = timestep_proj.detach()
@@ -565,6 +562,8 @@ class QEffWanUnifiedWrapper(nn.Module):
                 prev_first_block_residual=prev_first_block_residual_high,
                 prev_remaining_blocks_residual=prev_remaining_blocks_residual_high,
                 current_step=current_step,
+                cache_threshold=cache_threshold,
+                warmup_steps=warmup_steps,
                 attention_kwargs=attention_kwargs,
                 return_dict=False,  # Must be False when cache is enabled
             )
@@ -594,6 +593,8 @@ class QEffWanUnifiedWrapper(nn.Module):
                 prev_first_block_residual=prev_first_block_residual_low,
                 prev_remaining_blocks_residual=prev_remaining_blocks_residual_low,
                 current_step=current_step,
+                cache_threshold=cache_threshold,
+                warmup_steps=warmup_steps,
                 attention_kwargs=attention_kwargs,
                 return_dict=False,  # Must be False when cache is enabled
             )

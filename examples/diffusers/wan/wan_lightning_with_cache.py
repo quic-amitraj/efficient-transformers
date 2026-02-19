@@ -109,6 +109,8 @@ output = pipeline(
     use_onnx_subfunctions=True,
     parallel_compile=True,
     custom_config_path="examples/diffusers/wan/wan_config.json",
+    cache_threshold=0.08,  # Cache similarity threshold (lower = more aggressive caching)
+    cache_warmup_steps=2,  # Number of initial steps to run without caching
     # First block cache parameters)
 )
 
