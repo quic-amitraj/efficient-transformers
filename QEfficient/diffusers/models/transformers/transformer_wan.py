@@ -359,52 +359,45 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
 
         Executes the first transformer block always, then conditionally executes
         remaining blocks based on similarity of first block output to previous step.
+
+        Single torch.where pattern (matches other modeling files):
+          - True  branch (cache hit):  prev_remaining_blocks_residual  — cheap, always available
+          - False branch (cache miss): new_remaining_blocks_residual   — expensive, compiler skips when use_cache=True
+          - final_output = hidden_states + final_remaining_residual
+            (equivalent to: torch.where(use_cache, hs+prev_res, remaining_output))
         """
         # Step 1: Always execute first block
-        
-        
         original_hidden_states = hidden_states
-        first_block = self.blocks[0]
-        hidden_states = first_block(
-            hidden_states, encoder_hidden_states, timestep_proj, rotary_emb
-        )
+        hidden_states = self.blocks[0](hidden_states, encoder_hidden_states, timestep_proj, rotary_emb)
         first_block_residual = hidden_states - original_hidden_states
-                
-        # Step 2: Compute cache decision
-        use_cache, new_first_block_residual = self._check_similarity(
-            first_block_residual, prev_first_block_residual, cache_threshold, current_step, cache_warmup_steps
+
+        # condition
+        similarty = self._check_similarity(
+            first_block_residual, prev_first_block_residual
         )
         
-        # Step 4: Compute remaining blocks (always computed for graph tracing)
-        remaining_output, new_remaining_blocks_residual = self._compute_remaining_blocks(
-            hidden_states, encoder_hidden_states, timestep_proj, rotary_emb
-        )
+        # conditionally execute remaining blocks
+        for block in self.blocks[1:]:
+            new_hidden_states = block(
+                hidden_states, encoder_hidden_states, timestep_proj, rotary_emb
+            )
+        new_remaining_blocks_residual = new_hidden_states - hidden_states
         
-        # Step 5: Select output based on cache decision using torch.where
-        # Use INPUT residual for cache path, not the newly computed one
-        cache_output = hidden_states + prev_remaining_blocks_residual
-        final_output = torch.where(
-            use_cache,
-            cache_output,
-            remaining_output,
-        )
-        
-        # Step 5: Select residual for next iteration
+        # conditional selection of residuals using single torch.where
         final_remaining_residual = torch.where(
-            use_cache,
-            prev_remaining_blocks_residual,
-            new_remaining_blocks_residual,
+            (similarty < cache_threshold),                        
+            prev_remaining_blocks_residual,   
+            new_remaining_blocks_residual,    
         )
         
-        # Return the NEW residual for next iteration's cache
-        return final_output, new_first_block_residual, final_remaining_residual
+    
+        final_output = hidden_states + final_remaining_residual
+        return final_output, first_block_residual, final_remaining_residual
+
     def _check_similarity(
         self,
         first_block_residual: torch.Tensor,
         prev_first_block_residual: torch.Tensor,
-        cache_threshold: torch.Tensor,
-        current_step: torch.Tensor,
-        cache_warmup_steps: torch.Tensor,
     ) -> torch.Tensor:
         """
         Compute cache decision (returns boolean tensor).
@@ -421,19 +414,17 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         
         similarity = diff / (norm + 1e-8)
         
-        # Pre-compute both independent branches for torch.where
-        # Branch 1: similarity check (always computed, independent of warmup)
-        is_similar = (similarity < cache_threshold).to(torch.int32)
-        
-        
-        # # torch.where selects between two pre-computed, independent values
-        use_cache = torch.where(
-                    current_step < cache_warmup_steps,
-                    torch.tensor(0).to(torch.int32),  # During warmup: always False (no cache)
-                    is_similar     # If not warmup: use is_similar
-                )
 
-        return use_cache.to(torch.bool), prev_first_block_residual
+        # is_similar = similarity < cache_threshold  # scalar bool tensor
+
+
+        # use_cache = torch.where(
+        #     current_step < cache_warmup_steps,
+        #     torch.zeros_like(is_similar),  # During warmup: always False (same dtype as is_similar)
+        #     is_similar,                    # If not warmup: use is_similar
+        # )
+
+        return   similarity
 
     def _compute_remaining_blocks(
         self,
@@ -441,9 +432,13 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
         encoder_hidden_states: torch.Tensor,
         timestep_proj: torch.Tensor,
         rotary_emb: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> torch.Tensor:
         """
-        Execute transformer blocks 1 to N and return updated residual for caching.
+        Execute transformer blocks 1 to N and return the residual for caching.
+
+        Returns only the residual (output - input) so the caller can use a single
+        torch.where to select between prev_residual and new_residual, then derive
+        the final output as: hidden_states + selected_residual.
         """
         original_hidden_states = hidden_states
 
@@ -453,11 +448,8 @@ class QEffWanTransformer3DModel(WanTransformer3DModel):
                 hidden_states, encoder_hidden_states, timestep_proj, rotary_emb
             )
 
-        # Compute NEW residual for this iteration
-        new_remaining_blocks_residual = hidden_states - original_hidden_states
-        
-        # Return both the output and the NEW residual (which will be used for next iteration's cache)
-        return hidden_states, new_remaining_blocks_residual
+        # Return only the residual; output = original_hidden_states + residual
+        return hidden_states - original_hidden_states
 
 
 class QEffWanUnifiedWrapper(nn.Module):

@@ -106,11 +106,11 @@ output = pipeline(
     generator=torch.manual_seed(0),
     height=320,
     width=320,
-    use_onnx_subfunctions=True,
+    use_onnx_subfunctions=False,
     parallel_compile=True,
     custom_config_path="examples/diffusers/wan/wan_config.json",
-    cache_threshold=0.08,  # Cache similarity threshold (lower = more aggressive caching)
-    cache_warmup_steps=2,  # Number of initial steps to run without caching
+    cache_threshold=1,  # Cache similarity threshold (lower = more aggressive caching)
+    cache_warmup_steps=4,  # Number of initial steps to run without caching
     # First block cache parameters)
 )
 
