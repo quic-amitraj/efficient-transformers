@@ -583,12 +583,14 @@ class QEffWanUnifiedWrapper(nn.Module):
 
         # Select output based on timestep condition
         noise_pred = torch.where(is_high_noise, noise_pred_high, noise_pred_low)
+        new_remaining_residual_high = torch.where(is_high_noise, remaining_residual_high, prev_remaining_blocks_residual_high ) 
+        new_remaining_residual_low = torch.where(is_high_noise, prev_remaining_blocks_residual_low, remaining_residual_low) 
 
         # Return with cache outputs if enabled
         if cache_enabled:
             return (
                 noise_pred,
-                remaining_residual_high,
-                remaining_residual_low,
+                new_remaining_residual_high,
+                new_remaining_residual_low,
             )
         return noise_pred

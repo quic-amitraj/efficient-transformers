@@ -67,20 +67,20 @@ pipeline = QEffWanPipeline.from_pretrained("Wan-AI/Wan2.2-T2V-A14B-Diffusers", e
 # Uncomment the following lines to use only a subset of transformer layers:
 #
 # Configure for 2-layer model (faster inference)
-pipeline.transformer.model.transformer_high.config['num_layers'] = 10
-pipeline.transformer.model.transformer_low.config['num_layers']= 10
+# pipeline.transformer.model.transformer_high.config['num_layers'] = 10
+# pipeline.transformer.model.transformer_low.config['num_layers']= 10
 
-# Reduce high noise transformer blocks
-original_blocks = pipeline.transformer.model.transformer_high.blocks
-pipeline.transformer.model.transformer_high.blocks = torch.nn.ModuleList(
-    [original_blocks[i] for i in range(0, pipeline.transformer.model.transformer_high.config['num_layers'])]
-)
+# # Reduce high noise transformer blocks
+# original_blocks = pipeline.transformer.model.transformer_high.blocks
+# pipeline.transformer.model.transformer_high.blocks = torch.nn.ModuleList(
+#     [original_blocks[i] for i in range(0, pipeline.transformer.model.transformer_high.config['num_layers'])]
+# )
 
-# Reduce low noise transformer blocks
-org_blocks = pipeline.transformer.model.transformer_low.blocks
-pipeline.transformer.model.transformer_low.blocks = torch.nn.ModuleList(
-    [org_blocks[i] for i in range(0, pipeline.transformer.model.transformer_low.config['num_layers'])]
-)
+# # Reduce low noise transformer blocks
+# org_blocks = pipeline.transformer.model.transformer_low.blocks
+# pipeline.transformer.model.transformer_low.blocks = torch.nn.ModuleList(
+#     [org_blocks[i] for i in range(0, pipeline.transformer.model.transformer_low.config['num_layers'])]
+# )
 
 # Define the prompt
 prompt = "In a warmly lit living room."
@@ -110,7 +110,7 @@ output = pipeline(
     parallel_compile=True,
     custom_config_path="examples/diffusers/wan/wan_config.json",
     cache_threshold=0.1,  # Cache similarity threshold (lower = more aggressive caching)
-    cache_warmup_steps=2,  # Number of initial steps to run without caching
+    cache_warmup_steps=3,  # Number of initial steps to run without caching
     # First block cache parameters)
 )
 

@@ -110,7 +110,7 @@ class QEffWanPipeline:
         self.vae_decoder = QEffVAE(model.vae, "decoder")
         # Store all modules in a dictionary for easy iteration during export/compile
         # TODO: add text encoder on QAIC
-        self.modules = {"transformer": self.transformer}
+        self.modules = {"transformer": self.transformer, "vae_decoder": self.vae_decoder}
 
         # Copy tokenizers and scheduler from the original model
         self.tokenizer = model.tokenizer
@@ -383,19 +383,19 @@ class QEffWanPipeline:
         """
         # Compute similarity (L1 distance normalized by magnitude)
         # This must be computed BEFORE any conditional logic
-        
-        
-        if current_step < cache_warmup_steps:
+    
+        if current_step < cache_warmup_steps or prev_first_block_residual is None:
             return False
         
         diff = (new_first_block_residual - prev_first_block_residual).abs().mean()
         norm = new_first_block_residual.abs().mean()
         
         similarity = diff / (norm + 1e-8)
-        
-        print(f"Cache check at step {current_step}: similarity={similarity.item():.4f}, threshold={cache_threshold}")
-        
+            
         is_similar = similarity < cache_threshold  # scalar bool tensor
+        
+        if is_similar:
+            print(f"Residual similarity {similarity:.4f} is below threshold {cache_threshold}. Using cache.")
          
         if is_similar:
             return True
@@ -621,8 +621,21 @@ class QEffWanPipeline:
                 cl,  # Compressed latent dimension
                 constants.WAN_DIT_OUT_CHANNELS,
             ).astype(np.int32),
+
         }
         self.transformer.qpc_session.set_buffers(output_buffer)
+        self.transformer.qpc_session.skip_buffers(
+            [
+                x
+                for x in self.transformer.qpc_session.input_names + self.transformer.qpc_session.output_names
+                if x.startswith("prev_") or x.endswith("_RetainedState")
+            ]
+        )
+        
+        for x in self.transformer.qpc_session.input_names+self.transformer.qpc_session.output_names:
+            if x.startswith("prev_") or x.endswith("_RetainedState"):
+                print(f"Skipping buffer {x} for caching")
+        
         transformer_perf = []
         
         ## 
@@ -726,7 +739,7 @@ class QEffWanPipeline:
                     hidden_states = current_model.patch_embedding(latents)
                     hidden_states = hidden_states.flatten(2).transpose(1, 2)  # (B, H*W, C)
                     
-                    if model_type.shape==1:
+                    if model_type.shape[0]== torch.tensor(1):
                         print(f"Running high-noise model at step {i}, timestep {t}")
                         new_first_block_output_high = current_model.blocks[0](hidden_states, encoder_hidden_states, timestep_proj, rotary_emb)
                         new_first_block_residual_high = new_first_block_output_high - hidden_states
@@ -738,7 +751,7 @@ class QEffWanPipeline:
                                                               i
                                                               )
                         inputs_aic['hidden_states'] = new_first_block_output_high.detach().numpy()
-                        inputs_aic["use_cache"] = np.array([use_cache], dtype=np.bool_)
+                        inputs_aic["use_cache"] = np.array([use_cache], dtype=np.int64)
                         prev_first_block_residual_high = new_first_block_residual_high.detach()
                     else:
                         print(f"Running low-noise model at step {i}, timestep {t}")
