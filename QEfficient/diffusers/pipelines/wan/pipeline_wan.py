@@ -364,6 +364,44 @@ class QEffWanPipeline:
         else:
             compile_modules_sequential(self.modules, self.custom_config, specialization_updates)
 
+
+    def check_cache_conditions(
+        self,
+        new_first_block_residual: torch.Tensor,
+        prev_first_block_residual: torch.Tensor,
+        cache_threshold: float,
+        cache_warmup_steps: int,
+        current_step,
+    ) -> torch.Tensor:
+        """
+        Compute cache decision (returns boolean tensor).
+
+        Cache is used when:
+        1. Not in warmup period (current_step >= cache_warmup_steps)
+        2. Previous residual exists (not first step)
+        3. Similarity is below threshold
+        """
+        # Compute similarity (L1 distance normalized by magnitude)
+        # This must be computed BEFORE any conditional logic
+        
+        
+        if current_step < cache_warmup_steps:
+            return False
+        
+        diff = (new_first_block_residual - prev_first_block_residual).abs().mean()
+        norm = new_first_block_residual.abs().mean()
+        
+        similarity = diff / (norm + 1e-8)
+        
+        print(f"Cache check at step {current_step}: similarity={similarity.item():.4f}, threshold={cache_threshold}")
+        
+        is_similar = similarity < cache_threshold  # scalar bool tensor
+         
+        if is_similar:
+            return True
+
+        return False
+
     def __call__(
         self,
         prompt: Union[str, List[str]] = None,
@@ -586,6 +624,13 @@ class QEffWanPipeline:
         }
         self.transformer.qpc_session.set_buffers(output_buffer)
         transformer_perf = []
+        
+        ## 
+        prev_first_block_residual_high = None
+        prev_first_block_residual_low = None
+        prev_remaining_blocks_residual_high = None
+        prev_first_block_residual_low=None
+        ##
 
         # Step 8: Denoising loop with dual-stage processing
         with self.model.progress_bar(total=num_inference_steps) as progress_bar:
@@ -661,9 +706,6 @@ class QEffWanPipeline:
                     "temb": temb.detach().numpy(),
                     "timestep_proj": timestep_proj.detach().numpy(),
                     "tsp": model_type.detach().numpy(),  # Transformer stage pointer
-                    "current_step": np.array([i], dtype=np.int64),  # Current step for dynamic control
-                    "cache_threshold": np.array([cache_threshold], dtype=np.float32),
-                    "warmup_steps": np.array([cache_warmup_steps], dtype=np.int64),
                 }
 
                 # Prepare negative inputs for classifier-free guidance
@@ -680,8 +722,40 @@ class QEffWanPipeline:
                 with current_model.cache_context("cond"):
                     
                     # QAIC inference for conditional prediction
-                    start_transformer_step_time = time.perf_counter()
+                    # Apply patch embedding and reshape for transformer processing
+                    hidden_states = current_model.patch_embedding(latents)
+                    hidden_states = hidden_states.flatten(2).transpose(1, 2)  # (B, H*W, C)
                     
+                    if model_type.shape==1:
+                        print(f"Running high-noise model at step {i}, timestep {t}")
+                        new_first_block_output_high = current_model.blocks[0](hidden_states, encoder_hidden_states, timestep_proj, rotary_emb)
+                        new_first_block_residual_high = new_first_block_output_high - hidden_states
+                        use_cache=self.check_cache_conditions(
+                                                              new_first_block_residual_high,
+                                                              prev_first_block_residual_high,
+                                                              cache_threshold,
+                                                              cache_warmup_steps,
+                                                              i
+                                                              )
+                        inputs_aic['hidden_states'] = new_first_block_output_high.detach().numpy()
+                        inputs_aic["use_cache"] = np.array([use_cache], dtype=np.bool_)
+                        prev_first_block_residual_high = new_first_block_residual_high.detach()
+                    else:
+                        print(f"Running low-noise model at step {i}, timestep {t}")
+                        new_first_block_output_low = current_model.blocks[0](hidden_states, encoder_hidden_states, timestep_proj, rotary_emb)
+                        new_first_block_residual_low = new_first_block_output_low - hidden_states
+                        use_cache=self.check_cache_conditions(
+                                                              new_first_block_residual_low,
+                                                              prev_first_block_residual_low,
+                                                              cache_threshold,
+                                                              cache_warmup_steps,
+                                                              i
+                                                              )
+                        inputs_aic['hidden_states'] = new_first_block_output_low.detach().numpy()
+                        inputs_aic["use_cache"] = np.array([use_cache], dtype=np.int64)
+                        prev_first_block_residual_low = new_first_block_residual_low.detach()
+                    # import ipdb; ipdb.set_trace()
+                    start_transformer_step_time = time.perf_counter()
                     outputs = self.transformer.qpc_session.run(inputs_aic)
                     end_transformer_step_time = time.perf_counter()
                     transformer_perf.append(end_transformer_step_time - start_transformer_step_time)

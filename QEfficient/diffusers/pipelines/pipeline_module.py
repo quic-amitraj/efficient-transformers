@@ -580,10 +580,8 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
             # hidden_states = [ bs, in_channels, frames, latent_height, latent_width]
             "hidden_states": torch.randn(
                 batch_size,
-                self.model.config.in_channels,
-                constants.WAN_ONNX_EXPORT_LATENT_FRAMES,
-                constants.WAN_ONNX_EXPORT_LATENT_HEIGHT_180P,
-                constants.WAN_ONNX_EXPORT_LATENT_WIDTH_180P,
+                cl,
+                constants.WAN_TEXT_EMBED_DIM,
                 dtype=torch.float32,
             ),
             # encoder_hidden_states = [BS, seq len , text dim]
@@ -616,24 +614,23 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
             # seq_len = cl (compressed latent dimension after patch embedding)
             example_inputs.update({
                 # High noise transformer cache
-                "prev_first_block_residual_high": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
+                # "prev_first_block_residual_high": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
                 "prev_remaining_blocks_residual_high": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
                 # Low noise transformer cache
-                "prev_first_block_residual_low": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
+                # "prev_first_block_residual_low": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
                 "prev_remaining_blocks_residual_low": torch.randn(batch_size, cl, hidden_dim, dtype=torch.float32),
                 # Current denoising step number
-                "current_step": torch.tensor(1, dtype=torch.int64),
-                "cache_threshold": torch.tensor(0.5, dtype=torch.float32),  # Example threshold for cache decision
-                "warmup_steps": torch.tensor(2, dtype=torch.int64),  # Example
+                # "current_step": torch.tensor(1, dtype=torch.int64),
+                # "cache_threshold": torch.tensor(0.5, dtype=torch.float32),  # Example threshold for cache decision
+                # "warmup_steps": torch.tensor(2, dtype=torch.int64),  # Example
+                "use_cache": torch.tensor(1, dtype=torch.int64),  # Flag to enable/disable cache usage during inference
             })
 
         # Define output names
         if cache_enabled:
             output_names = [
                 "output",
-                "prev_first_block_residual_high_RetainedState",
                 "prev_remaining_blocks_residual_high_RetainedState",
-                "prev_first_block_residual_low_RetainedState",
                 "prev_remaining_blocks_residual_low_RetainedState",
             ]
         else:
@@ -643,10 +640,7 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
         dynamic_axes = {
             "hidden_states": {
                 0: "batch_size",
-                1: "num_channels",
-                2: "latent_frames",
-                3: "latent_height",
-                4: "latent_width",
+                1: "cl",
             },
             "encoder_hidden_states": {0: "batch_size", 1: "sequence_length"},
             "rotary_emb": {1: "cl"},
@@ -656,9 +650,7 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
         # Add dynamic axes for cache tensors if enabled
         if cache_enabled:
             cache_dynamic_axes = {
-                "prev_first_block_residual_high": {0: "batch_size", 1: "cl"},
                 "prev_remaining_blocks_residual_high": {0: "batch_size", 1: "cl"},
-                "prev_first_block_residual_low": {0: "batch_size", 1: "cl"},
                 "prev_remaining_blocks_residual_low": {0: "batch_size", 1: "cl"},
             }
             dynamic_axes.update(cache_dynamic_axes)
@@ -710,15 +702,11 @@ class QEffWanUnifiedTransformer(QEFFBaseModel):
         if getattr(self.model.transformer_high, 'enable_first_cache', False):
             # Define custom IO for cache tensors to ensure correct handling during compilation
             custom_io = {
-                "prev_first_block_residual_high": kv_cache_dtype,
                 "prev_remaining_blocks_residual_high": kv_cache_dtype,
-                "prev_first_block_residual_low": kv_cache_dtype,
                 "prev_remaining_blocks_residual_low": kv_cache_dtype,
                 
                 
-                "prev_first_block_residual_high_RetainedState": kv_cache_dtype,
                 "prev_remaining_blocks_residual_high_RetainedState": kv_cache_dtype,
-                "prev_first_block_residual_low_RetainedState": kv_cache_dtype,
                 "prev_remaining_blocks_residual_low_RetainedState": kv_cache_dtype,
             }
                   

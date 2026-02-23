@@ -67,8 +67,8 @@ pipeline = QEffWanPipeline.from_pretrained("Wan-AI/Wan2.2-T2V-A14B-Diffusers", e
 # Uncomment the following lines to use only a subset of transformer layers:
 #
 # Configure for 2-layer model (faster inference)
-pipeline.transformer.model.transformer_high.config['num_layers'] = 2
-pipeline.transformer.model.transformer_low.config['num_layers']= 2
+pipeline.transformer.model.transformer_high.config['num_layers'] = 10
+pipeline.transformer.model.transformer_low.config['num_layers']= 10
 
 # Reduce high noise transformer blocks
 original_blocks = pipeline.transformer.model.transformer_high.blocks
@@ -104,13 +104,13 @@ output = pipeline(
     guidance_scale_2=1.0,
     num_inference_steps=40,
     generator=torch.manual_seed(0),
-    height=320,
-    width=320,
+    height=96,
+    width=160,
     use_onnx_subfunctions=False,
     parallel_compile=True,
     custom_config_path="examples/diffusers/wan/wan_config.json",
-    cache_threshold=1,  # Cache similarity threshold (lower = more aggressive caching)
-    cache_warmup_steps=4,  # Number of initial steps to run without caching
+    cache_threshold=0.1,  # Cache similarity threshold (lower = more aggressive caching)
+    cache_warmup_steps=2,  # Number of initial steps to run without caching
     # First block cache parameters)
 )
 
