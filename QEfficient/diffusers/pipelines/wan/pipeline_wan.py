@@ -42,77 +42,27 @@ from QEfficient.utils.logging_utils import logger
 
 class QEffWanPipeline:
     """
-    QEfficient-optimized WAN pipeline for high-performance text-to-video generation on Qualcomm AI hardware.
+    QEfficient-optimized WAN pipeline for high-performance text-to-video generation.
 
-    This pipeline provides an optimized implementation of the WAN diffusion model
-    specifically designed for deployment on Qualcomm AI Cloud (QAIC) devices. It extends the original
-    HuggingFace WAN model with QEfficient-optimized components that can be exported to ONNX format
-    and compiled into Qualcomm Program Container (QPC) files for efficient video generation.
-
-    The pipeline supports the complete WAN workflow including:
-    - UMT5 text encoding for rich semantic understanding
-    - Unified transformer architecture: Combines multiple transformer stages into a single optimized model
-    - VAE decoding for final video output
-    - Performance monitoring and hardware optimization
-
-    Attributes:
-        text_encoder: UMT5 text encoder for semantic text understanding (TODO: QEfficient optimization)
-        unified_wrapper (QEffWanUnifiedWrapper): Wrapper combining transformer stages
-        transformer (QEffWanUnifiedTransformer): Optimized unified transformer for denoising
-        vae_decode: VAE decoder for latent-to-video conversion
-        modules (Dict[str, Any]): Dictionary of pipeline modules for batch operations
-        model (WanPipeline): Original HuggingFace WAN model reference
-        tokenizer: Text tokenizer for preprocessing
-        scheduler: Diffusion scheduler for timestep management
-
-    Example:
-        >>> from QEfficient.diffusers.pipelines.wan import QEffWanPipeline
-        >>> pipeline = QEffWanPipeline.from_pretrained("path/to/wan/model")
-        >>> videos = pipeline(
-        ...     prompt="A cat playing in a garden",
-        ...     height=480,
-        ...     width=832,
-        ...     num_frames=81,
-        ...     num_inference_steps=4
-        ... )
-        >>> # Save generated video
-        >>> videos.images[0].save("generated_video.mp4")
+    Supports both QAIC hardware inference (device='qaic') and standard GPU/CPU
+    inference (device='cuda' or device='cpu') for testing and validation.
     """
 
     _hf_auto_class = WanPipeline
 
     def __init__(self, model, enable_first_cache=False, **kwargs):
-        """
-        Initialize the QEfficient WAN pipeline.
-
-        This pipeline provides an optimized implementation of the WAN text-to-video model
-        for deployment on Qualcomm AI hardware. It wraps the original HuggingFace WAN model
-        components with QEfficient-optimized versions that can be exported to ONNX and compiled
-        for QAIC devices.
-
-        Args:
-            model: Pre-loaded WanPipeline model with transformer and transformer_2 components
-            **kwargs: Additional keyword arguments including configuration parameters
-        """
-        # Store original model and configuration
         self.model = model
         self.kwargs = kwargs
         self.custom_config = None
 
-        # Text encoder (TODO: Replace with QEfficient UMT5 optimization)
         self.text_encoder = model.text_encoder
 
-        # Create unified transformer wrapper combining dual-stage models(high, low noise DiTs)
         self.unified_wrapper = QEffWanUnifiedWrapper(model.transformer, model.transformer_2)
         self.transformer = QEffWanUnifiedTransformer(self.unified_wrapper, enable_first_cache=enable_first_cache)
 
-        # VAE decoder for latent-to-video conversion
         self.vae_decoder = QEffVAE(model.vae, "decoder")
-        # Store all modules in a dictionary for easy iteration during export/compile
-        # TODO: add text encoder on QAIC
         self.modules = {"transformer": self.transformer, "vae_decoder": self.vae_decoder}
 
-        # Copy tokenizers and scheduler from the original model
         self.tokenizer = model.tokenizer
         self.text_encoder.tokenizer = model.tokenizer
         self.scheduler = model.scheduler
@@ -122,17 +72,10 @@ class QEffWanPipeline:
         )
 
         self.vae_decoder.get_onnx_params = self.vae_decoder.get_video_onnx_params
-        # Extract patch dimensions from transformer configuration
         _, self.patch_height, self.patch_width = self.transformer.model.config.patch_size
 
     @property
     def do_classifier_free_guidance(self):
-        """
-        Determine if classifier-free guidance should be used.
-
-        Returns:
-            bool: True if CFG should be applied based on current guidance scales
-        """
         return self._guidance_scale > 1.0 and (self._guidance_scale_2 is None or self._guidance_scale_2 > 1.0)
 
     @classmethod
@@ -142,42 +85,6 @@ class QEffWanPipeline:
         enable_first_cache: bool = False,
         **kwargs,
     ):
-        """
-        Load a pretrained WAN model from HuggingFace Hub or local path and wrap it with QEfficient optimizations.
-
-        This class method provides a convenient way to instantiate a QEffWanPipeline from a pretrained
-        WAN model. It automatically loads the base WanPipeline model in float32 precision on CPU
-        and wraps all components with QEfficient-optimized versions for QAIC deployment.
-
-        Args:
-            pretrained_model_name_or_path (str or os.PathLike): Either a HuggingFace model identifier
-                or a local path to a saved WAN model directory. Should contain transformer, transformer_2,
-                text_encoder, and VAE components.
-            **kwargs: Additional keyword arguments passed to WanPipeline.from_pretrained().
-
-        Returns:
-            QEffWanPipeline: A fully initialized pipeline instance with QEfficient-optimized components
-                ready for export, compilation, and inference on QAIC devices.
-
-        Raises:
-            ValueError: If the model path is invalid or model cannot be loaded
-            OSError: If there are issues accessing the model files
-            RuntimeError: If model initialization fails
-
-        Example:
-            >>> # Load from HuggingFace Hub
-            >>> pipeline = QEffWanPipeline.from_pretrained("path/to/wan/model")
-            >>>
-            >>> # Load from local path
-            >>> pipeline = QEffWanPipeline.from_pretrained("/local/path/to/wan")
-            >>>
-            >>> # Load with custom cache directory
-            >>> pipeline = QEffWanPipeline.from_pretrained(
-            ...     "wan-model-id",
-            ...     cache_dir="/custom/cache/dir"
-            ... )
-        """
-        # Load the base WAN model in float32 on CPU for optimization
         model = cls._hf_auto_class.from_pretrained(
             pretrained_model_name_or_path,
             torch_dtype=torch.float32,
@@ -191,138 +98,39 @@ class QEffWanPipeline:
             **kwargs,
         )
 
-    def export(
-        self,
-        export_dir: Optional[str] = None,
-        use_onnx_subfunctions: bool = False,
-    ) -> str:
-        """
-        Export all pipeline modules to ONNX format for deployment preparation.
-
-        This method systematically exports the unified transformer to ONNX format with
-        video-specific configurations including temporal dimensions, dynamic axes, and
-        optimization settings. The export process prepares the model for subsequent
-        compilation to QPC format for efficient inference on QAIC hardware.
-
-        Args:
-            export_dir (str, optional): Target directory for saving ONNX model files. If None,
-                uses the default export directory structure. The directory will be created
-                if it doesn't exist.
-            use_onnx_subfunctions (bool, default=False): Whether to enable ONNX subfunction
-                optimization for supported modules. This can optimize the graph structure
-                and improve compilation efficiency for complex models like the transformer.
-
-        Returns:
-            str: Absolute path to the export directory containing all ONNX model files.
-
-        Raises:
-            RuntimeError: If ONNX export fails for any module
-            OSError: If there are issues creating the export directory or writing files
-            ValueError: If module configurations are invalid
-
-        Example:
-            >>> pipeline = QEffWanPipeline.from_pretrained("path/to/wan/model")
-            >>> export_path = pipeline.export(
-            ...     export_dir="/path/to/export",
-            ...     use_onnx_subfunctions=True
-            ... )
-        """
-
-        # Export each module with video-specific parameters
+    def export(self, export_dir=None, use_onnx_subfunctions=False):
         for module_name, module_obj in tqdm(self.modules.items(), desc="Exporting modules", unit="module"):
-            # Get ONNX export configuration with video dimensions
             example_inputs, dynamic_axes, output_names = module_obj.get_onnx_params()
-
-            # Prepare export parameters
             export_params = {
                 "inputs": example_inputs,
                 "output_names": output_names,
                 "dynamic_axes": dynamic_axes,
                 "export_dir": export_dir,
             }
-
-            # Enable ONNX subfunctions for supported modules if requested
             if use_onnx_subfunctions and module_name in ONNX_SUBFUNCTION_MODULE:
                 export_params["use_onnx_subfunctions"] = True
-
             if module_obj.qpc_path is None:
                 module_obj.export(**export_params)
 
     @staticmethod
     def get_default_config_path():
-        """
-        Get the default configuration file path for WAN pipeline.
-
-        Returns:
-            str: Path to the default WAN configuration JSON file.
-        """
         return os.path.join(os.path.dirname(os.path.dirname(__file__)), "configs/wan_config.json")
 
     def compile(
         self,
-        compile_config: Optional[str] = None,
-        parallel: bool = False,
-        height: int = constants.WAN_ONNX_EXPORT_HEIGHT_180P,
-        width: int = constants.WAN_ONNX_EXPORT_WIDTH_180P,
-        num_frames: int = constants.WAN_ONNX_EXPORT_FRAMES,
-        use_onnx_subfunctions: bool = False,
-    ) -> str:
-        """
-        Compiles the ONNX graphs of the different model components for deployment on Qualcomm AI hardware.
-
-        This method takes the ONNX paths of the transformer and compiles them into an optimized format
-        for inference using JSON-based configuration.
-
-        Args:
-            compile_config (str, optional): Path to a JSON configuration file containing
-                compilation settings, device mappings, and optimization parameters. If None,
-                uses the default configuration.
-            parallel (bool, default=False): Compilation mode selection:
-                - True: Compile modules in parallel using ThreadPoolExecutor for faster processing
-                - False: Compile modules sequentially for lower resource usage
-            height (int, default=192): Target image height in pixels.
-            width (int, default=320): Target image width in pixels.
-            num_frames (int, deafult=81) : Target num of frames in pixel space
-            use_onnx_subfunctions (bool, default=False): Whether to export models with ONNX
-                subfunctions before compilation if not already exported.
-
-        Raises:
-            RuntimeError: If compilation fails for any module or if QAIC compiler is not available
-            FileNotFoundError: If ONNX models haven't been exported or config file is missing
-            ValueError: If configuration parameters are invalid
-            OSError: If there are issues with file I/O during compilation
-
-        Example:
-            >>> pipeline = QEffWanPipeline.from_pretrained("path/to/wan/model")
-            >>> # Sequential compilation with default config
-            >>> pipeline.compile(height=480, width=832, num_frames=81)
-            >>>
-            >>> # Parallel compilation with custom config
-            >>> pipeline.compile(
-            ...     compile_config="/path/to/custom_config.json",
-            ...     parallel=True,
-            ...     height=480,
-            ...     width=832,
-            ...     num_frames=81
-            ... )
-        """
-        # Load compilation configuration
+        compile_config=None,
+        parallel=False,
+        height=constants.WAN_ONNX_EXPORT_HEIGHT_180P,
+        width=constants.WAN_ONNX_EXPORT_WIDTH_180P,
+        num_frames=constants.WAN_ONNX_EXPORT_FRAMES,
+        use_onnx_subfunctions=False,
+    ):
         config_manager(self, config_source=compile_config, use_onnx_subfunctions=use_onnx_subfunctions)
-
-        # Set device IDs, qpc path if precompiled qpc exist
         set_execute_params(self)
 
-        # Ensure all modules are exported to ONNX before compilation
-        if any(
-            path is None
-            for path in [
-                self.transformer.onnx_path,
-                self.vae_decoder.onnx_path,
-            ]
-        ):
+        if any(path is None for path in [self.transformer.onnx_path, self.vae_decoder.onnx_path]):
             self.export(use_onnx_subfunctions=use_onnx_subfunctions)
 
-        # Configure pipeline dimensions and calculate compressed latent parameters
         cl, latent_height, latent_width, latent_frames = calculate_latent_dimensions_with_frames(
             height,
             width,
@@ -332,23 +140,10 @@ class QEffWanPipeline:
             self.patch_height,
             self.patch_width,
         )
-        # Prepare dynamic specialization updates based on video dimensions
         specialization_updates = {
             "transformer": [
-                # high noise
-                {
-                    "cl": cl,  # Compressed latent dimension
-                    "latent_height": latent_height,  # Latent space height
-                    "latent_width": latent_width,  # Latent space width
-                    "latent_frames": latent_frames,  # Latent frames
-                },
-                # low noise
-                {
-                    "cl": cl,  # Compressed latent dimension
-                    "latent_height": latent_height,  # Latent space height
-                    "latent_width": latent_width,  # Latent space width
-                    "latent_frames": latent_frames,  # Latent frames
-                },
+                {"cl": cl, "latent_height": latent_height, "latent_width": latent_width, "latent_frames": latent_frames},
+                {"cl": cl, "latent_height": latent_height, "latent_width": latent_width, "latent_frames": latent_frames},
             ],
             "vae_decoder": {
                 "latent_frames": latent_frames,
@@ -357,50 +152,43 @@ class QEffWanPipeline:
             },
         }
 
-        # Use generic utility functions for compilation
         logger.warning('For VAE compilation use QAIC_COMPILER_OPTS_UNSUPPORTED="-aic-hmx-conv3d" ')
         if parallel:
             compile_modules_parallel(self.modules, self.custom_config, specialization_updates)
         else:
             compile_modules_sequential(self.modules, self.custom_config, specialization_updates)
 
-
     def check_cache_conditions(
         self,
         new_first_block_residual: torch.Tensor,
-        prev_first_block_residual: torch.Tensor,
+        prev_first_block_residual: Optional[torch.Tensor],
         cache_threshold: float,
         cache_warmup_steps: int,
-        current_step,
-    ) -> torch.Tensor:
+        current_step: int,
+    ) -> bool:
         """
-        Compute cache decision (returns boolean tensor).
+        Compute cache decision (returns bool).
 
         Cache is used when:
         1. Not in warmup period (current_step >= cache_warmup_steps)
         2. Previous residual exists (not first step)
-        3. Similarity is below threshold
+        3. Residual similarity is below threshold
         """
-        # Compute similarity (L1 distance normalized by magnitude)
-        # This must be computed BEFORE any conditional logic
-    
         if current_step < cache_warmup_steps or prev_first_block_residual is None:
             return False
-        
+
         diff = (new_first_block_residual - prev_first_block_residual).abs().mean()
         norm = new_first_block_residual.abs().mean()
-        
         similarity = diff / (norm + 1e-8)
-            
-        is_similar = similarity < cache_threshold  # scalar bool tensor
-        
-        if is_similar:
-            print(f"Residual similarity {similarity:.4f} is below threshold {cache_threshold}. Using cache.")
-         
-        if is_similar:
-            return True
 
-        return False
+        is_similar = similarity.item() < cache_threshold
+
+        if is_similar:
+            print(f"  [Cache HIT ] step={current_step} similarity={similarity.item():.4f} < threshold={cache_threshold:.4f}")
+        else:
+            print(f"  [Cache MISS] step={current_step} similarity={similarity.item():.4f} >= threshold={cache_threshold:.4f}")
+
+        return is_similar
 
     def __call__(
         self,
@@ -423,91 +211,44 @@ class QEffWanPipeline:
         callback_on_step_end: Optional[Union[Callable[[int, int, Dict], None]]] = None,
         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         max_sequence_length: int = 512,
+        # QAIC-specific parameters
         custom_config_path: Optional[str] = None,
         use_onnx_subfunctions: bool = False,
         parallel_compile: bool = True,
+        # Cache parameters
         cache_threshold: Optional[float] = None,
         cache_warmup_steps: Optional[int] = None,
+        # Device selection: "qaic" for Qualcomm hardware, "cuda"/"cpu" for GPU/CPU testing
+        device: str = "qaic",
     ):
         """
-        Generate videos from text prompts using the QEfficient-optimized WAN pipeline on QAIC hardware.
-
-        This is the main entry point for text-to-video generation. It orchestrates the complete WAN
-        diffusion pipeline optimized for Qualcomm AI Cloud devices.
+        Generate videos from text prompts.
 
         Args:
-            prompt (str or List[str]): Primary text prompt(s) describing the desired video content.
-                Required unless `prompt_embeds` is provided.
-            negative_prompt (str or List[str], optional): Negative prompt(s) describing what to avoid
-                in the generated video. Used with classifier-free guidance.
-            height (int, optional): Target video height in pixels. Must be divisible by VAE scale factor.
-                Default: 480.
-            width (int, optional): Target video width in pixels. Must be divisible by VAE scale factor.
-                Default: 832.
-            num_frames (int, optional): Number of video frames to generate. Must satisfy temporal
-                divisibility requirements. Default: 81.
-            num_inference_steps (int, optional): Number of denoising steps. More steps generally
-                improve quality but increase generation time. Default: 50.
-            guidance_scale (float, optional): Guidance scale for classifier-free guidance. Default: 3.0.
-            guidance_scale_2 (float, optional): Guidance scale for low-noise stage in WAN 2.2.
-                If None, uses guidance_scale value.
-            num_videos_per_prompt (int, optional): Number of videos to generate per prompt. Default: 1.
-            generator (torch.Generator or List[torch.Generator], optional): Random generator for
-                reproducible generation.
-            latents (torch.Tensor, optional): Pre-generated latent tensors. If None, random latents
-                are generated based on video dimensions.
-            prompt_embeds (torch.Tensor, optional): Pre-computed text embeddings from UMT5 encoder.
-                Shape: [batch, seq_len, hidden_dim].
-            negative_prompt_embeds (torch.Tensor, optional): Pre-computed negative text embeddings.
-            output_type (str, optional): Output format. Options: "np" (default), "pil", or "latent".
-            return_dict (bool, optional): Whether to return a dictionary or tuple. Default: True.
-            attention_kwargs (Dict[str, Any], optional): Additional attention arguments for transformer.
-            callback_on_step_end (Callable, optional): Callback function executed after each denoising step.
-            callback_on_step_end_tensor_inputs (List[str], optional): Tensor names to pass to callback.
-                Default: ["latents"].
-            max_sequence_length (int, optional): Maximum token sequence length for text encoder. Default: 512.
-            custom_config_path (str, optional): Path to custom JSON configuration file for compilation.
-            use_onnx_subfunctions (bool, optional): Whether to export transformer blocks as ONNX subfunctions.
-                Default: False.
-            parallel_compile (bool, optional): Whether to compile modules in parallel. Default: True.
-
-        Returns:
-            QEffPipelineOutput: A dataclass containing:
-                - images: Generated video(s) in the format specified by `output_type`
-                - pipeline_module: Performance metrics for each pipeline component
-
-        Raises:
-            ValueError: If input validation fails or parameters are incompatible
-            RuntimeError: If compilation fails or QAIC devices are unavailable
-            FileNotFoundError: If custom config file is specified but not found
-
-        Example:
-            >>> from QEfficient.diffusers.pipelines.wan import QEffWanPipeline
-            >>> pipeline = QEffWanPipeline.from_pretrained("path/to/wan/model")
-            >>> result = pipeline(
-            ...     prompt="A cat playing in a sunny garden",
-            ...     height=480,
-            ...     width=832,
-            ...     num_frames=81,
-            ...     num_inference_steps=4,
-            ...     guidance_scale=3.0
-            ... )
-            >>> # Save generated video
-            >>> result.images[0].save("cat_garden.mp4")
+            device (str): Execution device. Use "cuda" or "cpu" for GPU/CPU testing,
+                          "qaic" for Qualcomm AI hardware (default).
+            cache_threshold (float, optional): Residual similarity threshold for cache.
+                Lower = more aggressive caching. Only used when enable_first_cache=True.
+            cache_warmup_steps (int, optional): Number of initial steps to skip caching.
         """
-        device = "cpu"
+        cpu_device = "cpu"
 
-        # # Compile models with custom configuration if needed
-        self.compile(
-            compile_config=custom_config_path,
-            parallel=parallel_compile,
-            use_onnx_subfunctions=use_onnx_subfunctions,
-            height=height,
-            width=width,
-            num_frames=num_frames,
-        )
+        # ----------------------------------------------------------------
+        # QAIC-only: compile models
+        # ----------------------------------------------------------------
+        if device == "qaic":
+            self.compile(
+                compile_config=custom_config_path,
+                parallel=parallel_compile,
+                use_onnx_subfunctions=use_onnx_subfunctions,
+                height=height,
+                width=width,
+                num_frames=num_frames,
+            )
 
-        # Step 1: Validate all inputs
+        # ----------------------------------------------------------------
+        # Shared: validate inputs
+        # ----------------------------------------------------------------
         self.model.check_inputs(
             prompt,
             negative_prompt,
@@ -519,10 +260,9 @@ class QEffWanPipeline:
             guidance_scale_2,
         )
 
-        # Ensure num_frames satisfies temporal divisibility requirements
         if num_frames % self.model.vae.config.scale_factor_temporal != 1:
             logger.warning(
-                f"`num_frames - 1` has to be divisible by {self.model.vae.config.scale_factor_temporal}. Rounding to the nearest number."
+                f"`num_frames - 1` has to be divisible by {self.model.vae.config.scale_factor_temporal}. Rounding."
             )
             num_frames = (
                 num_frames // self.model.vae.config.scale_factor_temporal * self.model.vae.config.scale_factor_temporal
@@ -533,14 +273,15 @@ class QEffWanPipeline:
         if self.model.config.boundary_ratio is not None and guidance_scale_2 is None:
             guidance_scale_2 = guidance_scale
 
-        # Initialize pipeline state
         self._guidance_scale = guidance_scale
         self._guidance_scale_2 = guidance_scale_2 if guidance_scale_2 is not None else guidance_scale
         self._attention_kwargs = attention_kwargs
         self._current_timestep = None
         self._interrupt = False
 
-        # Step 2: Determine batch size from inputs
+        # ----------------------------------------------------------------
+        # Shared: batch size
+        # ----------------------------------------------------------------
         if prompt is not None and isinstance(prompt, str):
             batch_size = 1
         elif prompt is not None and isinstance(prompt, list):
@@ -548,8 +289,9 @@ class QEffWanPipeline:
         else:
             batch_size = prompt_embeds.shape[0]
 
-        # Step 3: Encode input prompts using UMT5 text encoder
-        # TODO: Update UMT5 on QAIC
+        # ----------------------------------------------------------------
+        # Shared: text encoding (always on CPU)
+        # ----------------------------------------------------------------
         prompt_embeds, negative_prompt_embeds = self.model.encode_prompt(
             prompt=prompt,
             negative_prompt=negative_prompt,
@@ -558,22 +300,21 @@ class QEffWanPipeline:
             prompt_embeds=prompt_embeds,
             negative_prompt_embeds=negative_prompt_embeds,
             max_sequence_length=max_sequence_length,
-            device=device,
+            device=cpu_device,
         )
 
-        # Convert embeddings to transformer dtype for compatibility
         transformer_dtype = self.transformer.model.transformer_high.dtype
         prompt_embeds = prompt_embeds.to(transformer_dtype)
         if negative_prompt_embeds is not None:
             negative_prompt_embeds = negative_prompt_embeds.to(transformer_dtype)
 
-        # Step 4: Prepare timesteps for denoising process
-        self.scheduler.set_timesteps(num_inference_steps, device=device)
+        # ----------------------------------------------------------------
+        # Shared: timesteps and latents
+        # ----------------------------------------------------------------
+        self.scheduler.set_timesteps(num_inference_steps, device=cpu_device)
         timesteps = self.scheduler.timesteps
 
-        # Step 5: Prepare initial latent variables for video generation
         num_channels_latents = self.transformer.model.config.in_channels
-
         latents = self.model.prepare_latents(
             batch_size * num_videos_per_prompt,
             num_channels_latents,
@@ -581,71 +322,73 @@ class QEffWanPipeline:
             width,
             num_frames,
             torch.float32,
-            device,
+            cpu_device,
             generator,
             latents,
         )
 
-        # Create mask for temporal processing (used in expand_timesteps mode)
-        mask = torch.ones(latents.shape, dtype=torch.float32, device=device)
+        mask = torch.ones(latents.shape, dtype=torch.float32, device=cpu_device)
 
-        # Step 6: Configure dual-stage processing for WAN 2.2
         num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
 
-        # Calculate boundary timestep for stage switching in WAN 2.2
         if self.model.config.boundary_ratio is not None:
             boundary_timestep = self.model.config.boundary_ratio * self.scheduler.config.num_train_timesteps
         else:
             boundary_timestep = None
 
-        # Step 7: Initialize QAIC inference session for transformer
-        if self.transformer.qpc_session is None:
-            self.transformer.qpc_session = QAICInferenceSession(
-                str(self.transformer.qpc_path), device_ids=self.transformer.device_ids
+        # ----------------------------------------------------------------
+        # QAIC-only: session setup
+        # ----------------------------------------------------------------
+        if device == "qaic":
+            if self.transformer.qpc_session is None:
+                self.transformer.qpc_session = QAICInferenceSession(
+                    str(self.transformer.qpc_path), device_ids=self.transformer.device_ids
+                )
+
+            cl, _, _, _ = calculate_latent_dimensions_with_frames(
+                height, width, num_frames,
+                self.model.vae.config.scale_factor_spatial,
+                self.model.vae.config.scale_factor_temporal,
+                self.patch_height, self.patch_width,
+            )
+            output_buffer = {
+                "output": np.random.rand(batch_size, cl, constants.WAN_DIT_OUT_CHANNELS).astype(np.int32),
+            }
+            self.transformer.qpc_session.set_buffers(output_buffer)
+            self.transformer.qpc_session.skip_buffers(
+                [
+                    x
+                    for x in self.transformer.qpc_session.input_names + self.transformer.qpc_session.output_names
+                    if x.startswith("prev_") or x.endswith("_RetainedState")
+                ]
             )
 
-        # Calculate compressed latent dimension for transformer buffer allocation
-        cl, _, _, _ = calculate_latent_dimensions_with_frames(
-            height,
-            width,
-            num_frames,
-            self.model.vae.config.scale_factor_spatial,
-            self.model.vae.config.scale_factor_temporal,
-            self.patch_height,
-            self.patch_width,
-        )
-        # Allocate output buffer for QAIC inference
-        output_buffer = {
-            "output": np.random.rand(
-                batch_size,
-                cl,  # Compressed latent dimension
-                constants.WAN_DIT_OUT_CHANNELS,
-            ).astype(np.int32),
+        # ----------------------------------------------------------------
+        # GPU-only: move models to device, initialize cache state
+        # ----------------------------------------------------------------
+        else:
+            logger.info(f"Running in GPU/CPU mode on device: {device}")
+            self.unified_wrapper.to(device)
+            self.model.vae.to(device)
 
-        }
-        self.transformer.qpc_session.set_buffers(output_buffer)
-        self.transformer.qpc_session.skip_buffers(
-            [
-                x
-                for x in self.transformer.qpc_session.input_names + self.transformer.qpc_session.output_names
-                if x.startswith("prev_") or x.endswith("_RetainedState")
-            ]
-        )
-        
-        for x in self.transformer.qpc_session.input_names+self.transformer.qpc_session.output_names:
-            if x.startswith("prev_") or x.endswith("_RetainedState"):
-                print(f"Skipping buffer {x} for caching")
-        
-        transformer_perf = []
-        
-        ## 
+        # ----------------------------------------------------------------
+        # Shared: cache state tracking (CPU-side)
+        # ----------------------------------------------------------------
+        cache_enabled = getattr(self.unified_wrapper.transformer_high, "enable_first_cache", False)
+        _cache_threshold = cache_threshold if cache_threshold is not None else 0.0
+        _cache_warmup_steps = cache_warmup_steps if cache_warmup_steps is not None else 0
+
         prev_first_block_residual_high = None
         prev_first_block_residual_low = None
+        # GPU-only: retained residuals managed in Python
         prev_remaining_blocks_residual_high = None
-        prev_first_block_residual_low=None
-        ##
+        prev_remaining_blocks_residual_low = None
 
-        # Step 8: Denoising loop with dual-stage processing
+        transformer_perf = []
+
+        # ================================================================
+        # Denoising loop
+        # ================================================================
         with self.model.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
                 if self._interrupt:
@@ -653,227 +396,340 @@ class QEffWanPipeline:
 
                 self._current_timestep = t
 
-                # Determine which model to use based on boundary timestep
+                # Determine which model stage to use
                 if boundary_timestep is None or t >= boundary_timestep:
-                    # High-noise stage
                     current_model = self.transformer.model.transformer_high
                     current_guidance_scale = guidance_scale
-                    model_type = torch.ones(1, dtype=torch.int64)  # High-noise model indicator
+                    model_type = torch.ones(1, dtype=torch.int64)   # shape[0]==1 → high noise
                 else:
-                    # Low-noise stage
                     current_model = self.transformer.model.transformer_low
                     current_guidance_scale = guidance_scale_2
-                    model_type = torch.ones(2, dtype=torch.int64)  # Low-noise model indicator
+                    model_type = torch.ones(2, dtype=torch.int64)   # shape[0]==2 → low noise
 
-                # Prepare latent input with proper dtype
                 latent_model_input = latents.to(transformer_dtype)
 
-                # Handle timestep expansion for temporal consistency
+                # Timestep preparation
                 if self.model.config.expand_timesteps:
-                    # Expand timesteps spatially for better temporal modeling
                     temp_ts = (mask[0][0][:, ::2, ::2] * t).flatten()
                     timestep = temp_ts.unsqueeze(0).expand(latents.shape[0], -1)
                 else:
-                    # Standard timestep broadcasting
                     timestep = t.expand(latents.shape[0])
 
-                # Extract dimensions for patch processing
-                batch_size, num_channels, num_frames, height, width = latents.shape
+                # Patch dimensions
+                batch_size_step, num_channels, num_frames_step, h_step, w_step = latents.shape
                 p_t, p_h, p_w = current_model.config.patch_size
-                post_patch_num_frames = num_frames // p_t
-                post_patch_height = height // p_h
-                post_patch_width = width // p_w
+                post_patch_num_frames = num_frames_step // p_t
+                post_patch_height = h_step // p_h
+                post_patch_width = w_step // p_w
 
-                # Generate rotary position embeddings
+                # Rotary embeddings (computed on CPU, moved to device as needed)
                 rotary_emb = current_model.rope(latent_model_input)
-                rotary_emb = torch.cat(rotary_emb, dim=0)
+                rotary_emb = torch.cat(rotary_emb, dim=0)  # [2, cl, 1, rotary_dim]
                 ts_seq_len = None
-                timestep = timestep.flatten()
+                timestep_flat = timestep.flatten()
 
-                # Generate conditioning embeddings (time + text)
-                temb, timestep_proj, encoder_hidden_states, encoder_hidden_states_image = (
-                    current_model.condition_embedder(
-                        timestep, prompt_embeds, encoder_hidden_states_image=None, timestep_seq_len=ts_seq_len
-                    )
+                # Conditioning embeddings
+                temb, timestep_proj, encoder_hidden_states, _ = current_model.condition_embedder(
+                    timestep_flat, prompt_embeds, encoder_hidden_states_image=None, timestep_seq_len=ts_seq_len
                 )
 
-                # Generate negative conditioning for classifier-free guidance
                 if self.do_classifier_free_guidance:
-                    temb, timestep_proj, encoder_hidden_states_neg, encoder_hidden_states_image = (
-                        current_model.condition_embedder(
-                            timestep,
-                            negative_prompt_embeds,
-                            encoder_hidden_states_image=None,
-                            timestep_seq_len=ts_seq_len,
-                        )
+                    temb_neg, timestep_proj_neg, encoder_hidden_states_neg, _ = current_model.condition_embedder(
+                        timestep_flat,
+                        negative_prompt_embeds,
+                        encoder_hidden_states_image=None,
+                        timestep_seq_len=ts_seq_len,
                     )
 
-                # Reshape timestep projection for transformer input
                 timestep_proj = timestep_proj.unflatten(1, (6, -1))
 
-                # Prepare inputs for QAIC inference
-                inputs_aic = {
-                    "hidden_states": latents.detach().numpy(),
-                    "encoder_hidden_states": encoder_hidden_states.detach().numpy(),
-                    "rotary_emb": rotary_emb.detach().numpy(),
-                    "temb": temb.detach().numpy(),
-                    "timestep_proj": timestep_proj.detach().numpy(),
-                    "tsp": model_type.detach().numpy(),  # Transformer stage pointer
-                }
+                # ============================================================
+                # QAIC path
+                # ============================================================
+                if device == "qaic":
+                    # Patch embedding + block[0] on CPU
+                    hidden_states = current_model.patch_embedding(latents)
+                    hidden_states = hidden_states.flatten(2).transpose(1, 2)
 
-                # Prepare negative inputs for classifier-free guidance
-                if self.do_classifier_free_guidance:
-                    inputs_aic2 = {
-                        "hidden_states": latents.detach().numpy(),
-                        "encoder_hidden_states": encoder_hidden_states_neg.detach().numpy(),
+                    if model_type.shape[0] == 1:
+                        print(f"Running high-noise model at step {i}, timestep {t}")
+                        new_first_block_output = current_model.blocks[0](
+                            hidden_states, encoder_hidden_states, timestep_proj, rotary_emb
+                        )
+                        new_first_block_residual = new_first_block_output - hidden_states
+                        use_cache = self.check_cache_conditions(
+                            new_first_block_residual,
+                            prev_first_block_residual_high,
+                            _cache_threshold,
+                            _cache_warmup_steps,
+                            i,
+                        )
+                        prev_first_block_residual_high = new_first_block_residual.detach()
+                    else:
+                        print(f"Running low-noise model at step {i}, timestep {t}")
+                        new_first_block_output = current_model.blocks[0](
+                            hidden_states, encoder_hidden_states, timestep_proj, rotary_emb
+                        )
+                        new_first_block_residual = new_first_block_output - hidden_states
+                        use_cache = self.check_cache_conditions(
+                            new_first_block_residual,
+                            prev_first_block_residual_low,
+                            _cache_threshold,
+                            _cache_warmup_steps,
+                            i,
+                        )
+                        prev_first_block_residual_low = new_first_block_residual.detach()
+
+                    inputs_aic = {
+                        "hidden_states": new_first_block_output.detach().numpy(),
+                        "encoder_hidden_states": encoder_hidden_states.detach().numpy(),
                         "rotary_emb": rotary_emb.detach().numpy(),
                         "temb": temb.detach().numpy(),
                         "timestep_proj": timestep_proj.detach().numpy(),
+                        "tsp": model_type.detach().numpy(),
+                        "use_cache": np.array([1 if use_cache else 0], dtype=np.int64),
                     }
 
-                # Run conditional prediction with caching context
-                with current_model.cache_context("cond"):
-                    
-                    # QAIC inference for conditional prediction
-                    # Apply patch embedding and reshape for transformer processing
-                    hidden_states = current_model.patch_embedding(latents)
-                    hidden_states = hidden_states.flatten(2).transpose(1, 2)  # (B, H*W, C)
-                    
-                    if model_type.shape[0]== torch.tensor(1):
-                        print(f"Running high-noise model at step {i}, timestep {t}")
-                        new_first_block_output_high = current_model.blocks[0](hidden_states, encoder_hidden_states, timestep_proj, rotary_emb)
-                        new_first_block_residual_high = new_first_block_output_high - hidden_states
-                        use_cache=self.check_cache_conditions(
-                                                              new_first_block_residual_high,
-                                                              prev_first_block_residual_high,
-                                                              cache_threshold,
-                                                              cache_warmup_steps,
-                                                              i
-                                                              )
-                        inputs_aic['hidden_states'] = new_first_block_output_high.detach().numpy()
-                        inputs_aic["use_cache"] = np.array([use_cache], dtype=np.int64)
-                        prev_first_block_residual_high = new_first_block_residual_high.detach()
-                    else:
-                        print(f"Running low-noise model at step {i}, timestep {t}")
-                        new_first_block_output_low = current_model.blocks[0](hidden_states, encoder_hidden_states, timestep_proj, rotary_emb)
-                        new_first_block_residual_low = new_first_block_output_low - hidden_states
-                        use_cache=self.check_cache_conditions(
-                                                              new_first_block_residual_low,
-                                                              prev_first_block_residual_low,
-                                                              cache_threshold,
-                                                              cache_warmup_steps,
-                                                              i
-                                                              )
-                        inputs_aic['hidden_states'] = new_first_block_output_low.detach().numpy()
-                        inputs_aic["use_cache"] = np.array([use_cache], dtype=np.int64)
-                        prev_first_block_residual_low = new_first_block_residual_low.detach()
-                    # import ipdb; ipdb.set_trace()
                     start_transformer_step_time = time.perf_counter()
                     outputs = self.transformer.qpc_session.run(inputs_aic)
                     end_transformer_step_time = time.perf_counter()
                     transformer_perf.append(end_transformer_step_time - start_transformer_step_time)
-                    print(f"DIT {i} time {end_transformer_step_time - start_transformer_step_time:.2f} seconds")
+                    print(f"DIT step {i} time {end_transformer_step_time - start_transformer_step_time:.2f}s")
 
-                    # Process transformer output
                     hidden_states = torch.tensor(outputs["output"])
-
-                    # Reshape output from patches back to video format
                     hidden_states = hidden_states.reshape(
-                        batch_size, post_patch_num_frames, post_patch_height, post_patch_width, p_t, p_h, p_w, -1
+                        batch_size_step, post_patch_num_frames, post_patch_height, post_patch_width, p_t, p_h, p_w, -1
                     )
-
-                    # Permute dimensions to reconstruct video tensor
                     hidden_states = hidden_states.permute(0, 7, 1, 4, 2, 5, 3, 6)
                     noise_pred = hidden_states.flatten(6, 7).flatten(4, 5).flatten(2, 3)
 
-                # Run unconditional prediction for classifier-free guidance
-                if self.do_classifier_free_guidance:  # Note: CFG is False for WAN Lightning
-                    with current_model.cache_context("uncond"):
-                        # QAIC inference for unconditional prediction
+                    if self.do_classifier_free_guidance:
+                        inputs_aic2 = {
+                            "hidden_states": new_first_block_output.detach().numpy(),
+                            "encoder_hidden_states": encoder_hidden_states_neg.detach().numpy(),
+                            "rotary_emb": rotary_emb.detach().numpy(),
+                            "temb": temb_neg.detach().numpy(),
+                            "timestep_proj": timestep_proj_neg.unflatten(1, (6, -1)).detach().numpy(),
+                            "tsp": model_type.detach().numpy(),
+                        }
                         start_transformer_step_time = time.perf_counter()
-                        outputs = self.transformer.qpc_session.run(inputs_aic2)
+                        outputs2 = self.transformer.qpc_session.run(inputs_aic2)
                         end_transformer_step_time = time.perf_counter()
                         transformer_perf.append(end_transformer_step_time - start_transformer_step_time)
 
-                        # Process unconditional output
-                        hidden_states = torch.tensor(outputs["output"])
-
-                        # Reshape unconditional output
-                        hidden_states = hidden_states.reshape(
-                            batch_size, post_patch_num_frames, post_patch_height, post_patch_width, p_t, p_h, p_w, -1
+                        hidden_states2 = torch.tensor(outputs2["output"])
+                        hidden_states2 = hidden_states2.reshape(
+                            batch_size_step, post_patch_num_frames, post_patch_height, post_patch_width, p_t, p_h, p_w, -1
                         )
-
-                        hidden_states = hidden_states.permute(0, 7, 1, 4, 2, 5, 3, 6)
-                        noise_uncond = hidden_states.flatten(6, 7).flatten(4, 5).flatten(2, 3)
-
-                        # Apply classifier-free guidance
+                        hidden_states2 = hidden_states2.permute(0, 7, 1, 4, 2, 5, 3, 6)
+                        noise_uncond = hidden_states2.flatten(6, 7).flatten(4, 5).flatten(2, 3)
                         noise_pred = noise_uncond + current_guidance_scale * (noise_pred - noise_uncond)
 
-                # Update latents using scheduler (x_t -> x_t-1)
+                # ============================================================
+                # GPU / CPU path
+                # ============================================================
+                else:
+                    is_high_noise = (model_type.shape[0] == 1)
+                    print(f"[GPU] Step {i}, t={t:.1f}, {'high' if is_high_noise else 'low'}-noise model")
+
+                    # Move current_model to device (already moved via unified_wrapper.to(device))
+                    # Patch embedding + block[0] on device
+                    latent_input_dev = latents.to(device, dtype=transformer_dtype)
+                    hidden_states = current_model.patch_embedding(latent_input_dev)
+                    hidden_states = hidden_states.flatten(2).transpose(1, 2)  # (B, cl, hidden_dim)
+
+                    # Split rotary_emb into tuple for block forward
+                    rotary_emb_dev = rotary_emb.to(device)
+                    rotary_emb_tuple = torch.split(rotary_emb_dev, 1, dim=0)
+
+                    # Run block[0]
+                    new_first_block_output = current_model.blocks[0](
+                        hidden_states,
+                        encoder_hidden_states.to(device),
+                        timestep_proj.to(device),
+                        rotary_emb_tuple,
+                    )
+                    new_first_block_residual = new_first_block_output - hidden_states
+
+                    # Cache decision (similarity check on CPU)
+                    prev_first_residual = (
+                        prev_first_block_residual_high if is_high_noise else prev_first_block_residual_low
+                    )
+                    use_cache_bool = self.check_cache_conditions(
+                        new_first_block_residual.cpu().float(),
+                        prev_first_residual.cpu().float() if prev_first_residual is not None else None,
+                        _cache_threshold,
+                        _cache_warmup_steps,
+                        i,
+                    )
+                    use_cache_tensor = torch.tensor(
+                        [1 if use_cache_bool else 0], dtype=torch.int64, device=device
+                    )
+
+                    # Initialize residual cache tensors on first call
+                    if prev_remaining_blocks_residual_high is None:
+                        prev_remaining_blocks_residual_high = torch.zeros_like(new_first_block_output)
+                    if prev_remaining_blocks_residual_low is None:
+                        prev_remaining_blocks_residual_low = torch.zeros_like(new_first_block_output)
+
+                    # Forward through unified wrapper: blocks[1..N] + norm_out + proj_out
+                    start_t = time.perf_counter()
+                    with torch.no_grad():
+                        outputs = self.unified_wrapper(
+                            hidden_states=new_first_block_output,
+                            encoder_hidden_states=encoder_hidden_states.to(device),
+                            rotary_emb=rotary_emb_dev,
+                            temb=temb.to(device),
+                            timestep_proj=timestep_proj.to(device),
+                            tsp=model_type.to(device),
+                            prev_remaining_blocks_residual_high=prev_remaining_blocks_residual_high,
+                            prev_remaining_blocks_residual_low=prev_remaining_blocks_residual_low,
+                            use_cache=use_cache_tensor,
+                        )
+                    end_t = time.perf_counter()
+                    transformer_perf.append(end_t - start_t)
+                    print(f"  Transformer blocks time: {end_t - start_t:.3f}s")
+
+                    # Unpack outputs
+                    if cache_enabled:
+                        noise_pred_patched, new_remaining_high, new_remaining_low = outputs
+                        prev_remaining_blocks_residual_high = new_remaining_high.detach()
+                        prev_remaining_blocks_residual_low = new_remaining_low.detach()
+                    else:
+                        noise_pred_patched = outputs
+
+                    # Update first-block residual cache
+                    if is_high_noise:
+                        prev_first_block_residual_high = new_first_block_residual.detach()
+                    else:
+                        prev_first_block_residual_low = new_first_block_residual.detach()
+
+                    # Reshape from patch format [B, cl, out_ch] to video format
+                    noise_pred = noise_pred_patched.reshape(
+                        batch_size_step,
+                        post_patch_num_frames,
+                        post_patch_height,
+                        post_patch_width,
+                        p_t, p_h, p_w, -1,
+                    )
+                    noise_pred = noise_pred.permute(0, 7, 1, 4, 2, 5, 3, 6)
+                    noise_pred = noise_pred.flatten(6, 7).flatten(4, 5).flatten(2, 3)
+                    noise_pred = noise_pred.to(latents.dtype).cpu()
+
+                    # Classifier-free guidance (if enabled)
+                    if self.do_classifier_free_guidance:
+                        with torch.no_grad():
+                            outputs_uncond = self.unified_wrapper(
+                                hidden_states=new_first_block_output,
+                                encoder_hidden_states=encoder_hidden_states_neg.to(device),
+                                rotary_emb=rotary_emb_dev,
+                                temb=temb_neg.to(device),
+                                timestep_proj=timestep_proj_neg.unflatten(1, (6, -1)).to(device),
+                                tsp=model_type.to(device),
+                                prev_remaining_blocks_residual_high=prev_remaining_blocks_residual_high,
+                                prev_remaining_blocks_residual_low=prev_remaining_blocks_residual_low,
+                                use_cache=torch.tensor([0], dtype=torch.int64, device=device),
+                            )
+                        if cache_enabled:
+                            noise_uncond_patched = outputs_uncond[0]
+                        else:
+                            noise_uncond_patched = outputs_uncond
+
+                        noise_uncond = noise_uncond_patched.reshape(
+                            batch_size_step,
+                            post_patch_num_frames,
+                            post_patch_height,
+                            post_patch_width,
+                            p_t, p_h, p_w, -1,
+                        )
+                        noise_uncond = noise_uncond.permute(0, 7, 1, 4, 2, 5, 3, 6)
+                        noise_uncond = noise_uncond.flatten(6, 7).flatten(4, 5).flatten(2, 3)
+                        noise_uncond = noise_uncond.to(latents.dtype).cpu()
+                        noise_pred = noise_uncond + current_guidance_scale * (noise_pred - noise_uncond)
+
+                # ============================================================
+                # Shared: scheduler step
+                # ============================================================
                 latents = self.scheduler.step(noise_pred, t, latents, return_dict=False)[0]
 
-                # Execute callback if provided
                 if callback_on_step_end is not None:
                     callback_kwargs = {}
                     for k in callback_on_step_end_tensor_inputs:
                         callback_kwargs[k] = locals()[k]
                     callback_outputs = callback_on_step_end(self, i, t, callback_kwargs)
-
                     latents = callback_outputs.pop("latents", latents)
                     prompt_embeds = callback_outputs.pop("prompt_embeds", prompt_embeds)
                     negative_prompt_embeds = callback_outputs.pop("negative_prompt_embeds", negative_prompt_embeds)
 
-                # Update progress bar
                 if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
                     progress_bar.update()
 
         self._current_timestep = None
 
-        # Step 9: Decode latents to video
+        # ================================================================
+        # VAE decode
+        # ================================================================
+        vae_decoder_perf = 0.0
         if not output_type == "latent":
-            # Prepare latents for VAE decoding
-            latents = latents.to(self.vae_decoder.model.dtype)
+            latents = latents.to(self.model.vae.dtype if hasattr(self.model.vae, "dtype") else torch.float32)
 
-            # Apply VAE normalization (denormalization)
+            # Denormalize latents
             latents_mean = (
-                torch.tensor(self.vae_decoder.model.config.latents_mean)
-                .view(1, self.vae_decoder.model.config.z_dim, 1, 1, 1)
+                torch.tensor(self.model.vae.config.latents_mean)
+                .view(1, self.model.vae.config.z_dim, 1, 1, 1)
                 .to(latents.device, latents.dtype)
             )
-            latents_std = 1.0 / torch.tensor(self.vae_decoder.model.config.latents_std).view(
-                1, self.vae_decoder.model.config.z_dim, 1, 1, 1
+            latents_std = 1.0 / torch.tensor(self.model.vae.config.latents_std).view(
+                1, self.model.vae.config.z_dim, 1, 1, 1
             ).to(latents.device, latents.dtype)
             latents = latents / latents_std + latents_mean
 
-            # Initialize VAE decoder inference session
-            if self.vae_decoder.qpc_session is None:
-                self.vae_decoder.qpc_session = QAICInferenceSession(
-                    str(self.vae_decoder.qpc_path), device_ids=self.vae_decoder.device_ids
-                )
+            # ----------------------------------------------------------
+            # QAIC VAE decode
+            # ----------------------------------------------------------
+            if device == "qaic":
+                if self.vae_decoder.qpc_session is None:
+                    self.vae_decoder.qpc_session = QAICInferenceSession(
+                        str(self.vae_decoder.qpc_path), device_ids=self.vae_decoder.device_ids
+                    )
 
-            # Allocate output buffer for VAE decoder
-            output_buffer = {"sample": np.random.rand(batch_size, 3, num_frames, height, width).astype(np.int32)}
+                output_buffer = {
+                    "sample": np.random.rand(batch_size, 3, num_frames, height, width).astype(np.int32)
+                }
+                inputs = {"latent_sample": latents.numpy()}
 
-            inputs = {"latent_sample": latents.numpy()}
+                start_decode_time = time.perf_counter()
+                video_out = self.vae_decoder.qpc_session.run(inputs)
+                end_decode_time = time.perf_counter()
+                vae_decoder_perf = end_decode_time - start_decode_time
 
-            start_decode_time = time.perf_counter()
-            video = self.vae_decoder.qpc_session.run(inputs)
-            end_decode_time = time.perf_counter()
-            vae_decoder_perf = end_decode_time - start_decode_time
+                video_tensor = torch.from_numpy(video_out["sample"])
+                video = self.model.video_processor.postprocess_video(video_tensor)
 
-            # Post-process video for output
-            video_tensor = torch.from_numpy(video["sample"])
-            video = self.model.video_processor.postprocess_video(video_tensor)
+            # ----------------------------------------------------------
+            # GPU / CPU VAE decode
+            # ----------------------------------------------------------
+            else:
+                latents_dev = latents.to(device)
+                start_decode_time = time.perf_counter()
+                with torch.no_grad():
+                    video_tensor = self.model.vae.decode(latents_dev, return_dict=False)[0]
+                end_decode_time = time.perf_counter()
+                vae_decoder_perf = end_decode_time - start_decode_time
+                print(f"VAE decode time: {vae_decoder_perf:.3f}s")
+
+                video_tensor = video_tensor.cpu()
+                video = self.model.video_processor.postprocess_video(video_tensor)
         else:
             video = latents
 
-        # Step 10: Collect performance metrics
+        # ================================================================
+        # Collect performance metrics and return
+        # ================================================================
         perf_data = {
-            "transformer": transformer_perf,  # Unified transformer (QAIC)
+            "transformer": transformer_perf,
             "vae_decoder": vae_decoder_perf,
         }
-
-        # Build performance metrics for output
         perf_metrics = [ModulePerf(module_name=name, perf=perf_data[name]) for name in perf_data.keys()]
 
         return QEffPipelineOutput(
