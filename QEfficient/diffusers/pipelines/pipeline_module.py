@@ -450,9 +450,13 @@ class QEffFluxTransformerModel(QEFFBaseModel):
             # Output AdaLN embedding
             # Shape: [batch_size, FLUX_ADALN_OUTPUT_DIM] for final projection
             "adaln_out": torch.randn(batch_size, constants.FLUX_ADALN_OUTPUT_DIM, dtype=torch.float32),
+            "prev_first_block_residuals":  torch.randn(batch_size, cl, 3072, dtype=torch.float32),
+            "prev_remain_block_residuals":  torch.randn(batch_size, cl, 3072, dtype=torch.float32),
+            "prev_remain_encoder_residuals":  torch.randn(batch_size, 256, 3072, dtype=torch.float32),
+            "cache_threshold": torch.tensor(0.8, dtype=torch.float32)
         }
 
-        output_names = ["output"]
+        output_names = ["output", "prev_first_block_residuals_RetainedState","prev_remain_block_residuals_RetainedState","prev_remain_encoder_residual_RetainedState"]
 
         # Define dynamic dimensions for runtime flexibility
         dynamic_axes = {
@@ -461,6 +465,9 @@ class QEffFluxTransformerModel(QEFFBaseModel):
             "pooled_projections": {0: "batch_size"},
             "timestep": {0: "steps"},
             "img_ids": {0: "cl"},
+            "prev_first_block_residuals":{0: "batch_size", 1: "cl"},
+            "prev_remain_block_residuals": {0: "batch_size", 1: "cl"},
+            "prev_remain_encoder_residual": {0: "batch_size", 1: "txt_seq_len"}
         }
 
         return example_inputs, dynamic_axes, output_names
