@@ -35,6 +35,7 @@ from QEfficient.diffusers.pipelines.pipeline_utils import (
     config_manager,
     set_execute_params,
 )
+from QEfficient.diffusers.pipelines.wan.magcache import WanMagCacheRuntime
 from QEfficient.generation.cloud_infer import QAICInferenceSession
 from QEfficient.utils import constants
 from QEfficient.utils.logging_utils import logger
@@ -385,6 +386,12 @@ class QEffWanPipeline:
         custom_config_path: Optional[str] = None,
         use_onnx_subfunctions: bool = False,
         parallel_compile: bool = True,
+        use_magcache: bool = False,
+        magcache_thresh: float = 0.06,
+        magcache_K: int = 2,
+        magcache_retention_ratio: float = 0.4,
+        magcache_ratios: Optional[List[float]] = None,
+        magcache_verbose: bool = False,
     ):
         """
         Generate videos from text prompts using the QEfficient-optimized WAN pipeline on QAIC hardware.
@@ -427,6 +434,12 @@ class QEffWanPipeline:
             use_onnx_subfunctions (bool, optional): Whether to export transformer blocks as ONNX subfunctions.
                 Default: False.
             parallel_compile (bool, optional): Whether to compile modules in parallel. Default: True.
+            use_magcache (bool, optional): Enable WAN runtime MagCache skip/reuse logic. Default: False.
+            magcache_thresh (float, optional): MagCache accumulated error threshold. Default: 0.06.
+            magcache_K (int, optional): Maximum number of consecutive skipped calls per stream. Default: 2.
+            magcache_retention_ratio (float, optional): Stage retention ratio in [0, 1]. Default: 0.4.
+            magcache_ratios (List[float], optional): Optional custom MagCache ratio profile.
+            magcache_verbose (bool, optional): Emit per-call MagCache decisions to logger. Default: False.
 
         Returns:
             QEffPipelineOutput: A dataclass containing:
@@ -555,6 +568,22 @@ class QEffWanPipeline:
         else:
             boundary_timestep = None
 
+        magcache_runtime = None
+        if use_magcache:
+            high_noise_steps = None
+            if boundary_timestep is not None:
+                high_noise_steps = int((timesteps >= boundary_timestep).sum().item())
+            magcache_runtime = WanMagCacheRuntime(
+                num_inference_steps=num_inference_steps,
+                do_classifier_free_guidance=self.do_classifier_free_guidance,
+                threshold=magcache_thresh,
+                max_skip_steps=magcache_K,
+                retention_ratio=magcache_retention_ratio,
+                split_step=high_noise_steps,
+                ratios=magcache_ratios,
+                verbose=magcache_verbose,
+            )
+
         # Step 7: Initialize QAIC inference session for transformer
         if self.transformer.qpc_session is None:
             self.transformer.qpc_session = QAICInferenceSession(
@@ -668,48 +697,46 @@ class QEffWanPipeline:
                         "timestep_proj": timestep_proj.detach().numpy(),
                     }
 
-                # Run conditional prediction with caching context
-                with current_model.cache_context("cond"):
-                    # QAIC inference for conditional prediction
-                    start_transformer_step_time = time.perf_counter()
-                    outputs = self.transformer.qpc_session.run(inputs_aic)
-                    end_transformer_step_time = time.perf_counter()
-                    transformer_perf.append(end_transformer_step_time - start_transformer_step_time)
-                    print(f"DIT {i} time {end_transformer_step_time - start_transformer_step_time:.2f} seconds")
-
-                    # Process transformer output
-                    hidden_states = torch.tensor(outputs["output"])
-
-                    # Reshape output from patches back to video format
+                def decode_transformer_output(raw_output: np.ndarray) -> torch.Tensor:
+                    hidden_states = torch.from_numpy(raw_output)
                     hidden_states = hidden_states.reshape(
                         batch_size, post_patch_num_frames, post_patch_height, post_patch_width, p_t, p_h, p_w, -1
                     )
-
-                    # Permute dimensions to reconstruct video tensor
                     hidden_states = hidden_states.permute(0, 7, 1, 4, 2, 5, 3, 6)
-                    noise_pred = hidden_states.flatten(6, 7).flatten(4, 5).flatten(2, 3)
+                    return hidden_states.flatten(6, 7).flatten(4, 5).flatten(2, 3)
+
+                def run_transformer_with_magcache(stream_name: str, inputs: Dict[str, np.ndarray]) -> torch.Tensor:
+                    if magcache_runtime is not None and magcache_runtime.should_skip(stream_name):
+                        cached_residual = magcache_runtime.get_cached_residual(stream_name)
+                        magcache_runtime.complete_skip(stream_name)
+                        if magcache_runtime.verbose:
+                            logger.info(f"MagCache skip: step={i}, stream={stream_name}, t={float(t):.2f}")
+                        return latents.to(cached_residual.dtype) + cached_residual
+
+                    start_transformer_step_time = time.perf_counter()
+                    outputs = self.transformer.qpc_session.run(inputs)
+                    end_transformer_step_time = time.perf_counter()
+                    transformer_perf.append(end_transformer_step_time - start_transformer_step_time)
+                    if magcache_runtime is None:
+                        print(f"DIT {i} time {end_transformer_step_time - start_transformer_step_time:.2f} seconds")
+
+                    noise_pred_step = decode_transformer_output(outputs["output"])
+                    if magcache_runtime is not None:
+                        residual = noise_pred_step - latents.to(noise_pred_step.dtype)
+                        magcache_runtime.complete_call(stream_name, residual)
+                        if magcache_runtime.verbose:
+                            logger.info(f"MagCache run: step={i}, stream={stream_name}, t={float(t):.2f}")
+
+                    return noise_pred_step
+
+                # Run conditional prediction with caching context
+                with current_model.cache_context("cond"):
+                    noise_pred = run_transformer_with_magcache("cond", inputs_aic)
 
                 # Run unconditional prediction for classifier-free guidance
                 if self.do_classifier_free_guidance:  # Note: CFG is False for WAN Lightning
                     with current_model.cache_context("uncond"):
-                        # QAIC inference for unconditional prediction
-                        start_transformer_step_time = time.perf_counter()
-                        outputs = self.transformer.qpc_session.run(inputs_aic2)
-                        end_transformer_step_time = time.perf_counter()
-                        transformer_perf.append(end_transformer_step_time - start_transformer_step_time)
-
-                        # Process unconditional output
-                        hidden_states = torch.tensor(outputs["output"])
-
-                        # Reshape unconditional output
-                        hidden_states = hidden_states.reshape(
-                            batch_size, post_patch_num_frames, post_patch_height, post_patch_width, p_t, p_h, p_w, -1
-                        )
-
-                        hidden_states = hidden_states.permute(0, 7, 1, 4, 2, 5, 3, 6)
-                        noise_uncond = hidden_states.flatten(6, 7).flatten(4, 5).flatten(2, 3)
-
-                        # Apply classifier-free guidance
+                        noise_uncond = run_transformer_with_magcache("uncond", inputs_aic2)
                         noise_pred = noise_uncond + current_guidance_scale * (noise_pred - noise_uncond)
 
                 # Update latents using scheduler (x_t -> x_t-1)
