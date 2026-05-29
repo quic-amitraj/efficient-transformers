@@ -36,6 +36,20 @@ def _get_kv_states(module: nn.Module, key: torch.Tensor, value: torch.Tensor) ->
     return repeat_kv(key, num_kv_groups), repeat_kv(value, num_kv_groups)
 
 
+def _expand_kv_heads(module: nn.Module, states: torch.Tensor) -> torch.Tensor:
+    """
+    Expand a single K or V tensor for GQA (Grouped Query Attention).
+
+    This is the single-tensor counterpart of _get_kv_states.  It is used in
+    the restructured inner KV loop where K and V are loaded separately so that
+    BMM1 and the skip-softmax threshold check can happen before the V load.
+    """
+    num_kv_groups = getattr(module, "num_key_value_groups", None)
+    if num_kv_groups is None:
+        return states
+    return repeat_kv(states, num_kv_groups)
+
+
 def _normalize_int(value: Optional[torch.Tensor | int]) -> int:
     if isinstance(value, torch.Tensor):
         return int(value.item())
@@ -50,10 +64,41 @@ def update_running_softmax(
     v_block: torch.Tensor,
     skip_kv: bool = False,
     skip_future: Optional(torch.Tensor) = None,
+    block_max: Optional[torch.Tensor] = None,
 ):
-    # Update Running row maximum
+    """
+    Incrementally update the running online-softmax state for one KV block.
+
+    Parameters
+    ----------
+    current_max        : Running row-maximum accumulated so far  [B, H, Q].
+    attn_weights_block : Raw (unscaled-softmax) scores for this block [B, H, Q, K].
+    current_denominator: Running softmax denominator [B, H, Q].
+    output             : Running weighted-value accumulator [B, H, Q, D].
+    v_block            : Value tensor for this block; None when updating with
+                         attention sinks (no value projection needed).
+    skip_kv            : Whether the positional (causal future-token) skip-KV
+                         mechanism is active.
+    skip_future        : Scalar or per-position [B, H, Q] bool tensor.  When
+                         True, the running state is held at its previous value
+                         via torch.where (Qualcomm runtime executes only the
+                         live branch).  Set by two independent sources:
+                           • positional skip_kv: scalar, True for future blocks
+                           • skip-softmax:       [B,H,Q], True for low-score blocks
+                         The two are OR-ed in the calling loop before being
+                         passed here so both paths share this single gate.
+    block_max          : Pre-computed per-row maximum of attn_weights_block
+                         [B, H, Q].  When provided by the caller (who already
+                         computed it for the skip-softmax check) we reuse it here
+                         to avoid a second reduction over the same tensor.
+    """
+    # Update running row maximum.
+    # If the caller has already computed block_max for the threshold check,
+    # reuse it directly to avoid a redundant max reduction.
     prev_max = current_max
-    current_max_updated = torch.max(prev_max, attn_weights_block.max(dim=3).values)
+    if block_max is None:
+        block_max = attn_weights_block.max(dim=3).values
+    current_max_updated = torch.max(prev_max, block_max)
     delta_max = prev_max - current_max_updated
 
     current_exp = torch.exp(attn_weights_block - current_max_updated.unsqueeze(-1))
@@ -82,8 +127,17 @@ def update_running_softmax(
         current_max = torch.where(skip_future, prev_max, current_max_updated)
         current_denominator = torch.where(skip_future, prev_denominator, current_denominator_updated)
         output = torch.where(skip_future.unsqueeze(-1), prev_output, output_updated)
+    elif skip_future is not None and (torch.onnx.is_in_onnx_export() or torch.jit.is_tracing()):
+        # skip_future was provided by the skip-softmax path (not the positional
+        # skip_kv path).  The same torch.where mechanism applies: when
+        # skip_future is True the Qualcomm runtime executes only the 'keep
+        # previous state' branch, avoiding exp / rowsum / BMM2.
+        current_max = torch.where(skip_future, prev_max, current_max_updated)
+        current_denominator = torch.where(skip_future, prev_denominator, current_denominator_updated)
+        output = torch.where(skip_future.unsqueeze(-1), prev_output, output_updated)
     else:
-        # Eager mode
+        # Eager mode — state is always updated (skip is handled by 'continue'
+        # in the calling loop before this function is reached).
         current_max = current_max_updated
         current_denominator = current_denominator_updated
         output = output_updated
@@ -107,6 +161,7 @@ def blocked_kv_attention_forward(
     skip_kv: bool = False,
     position_bias: Optional[torch.Tensor] = None,
     sinks: Optional[torch.Tensor] = None,
+    skip_softmax_scale_factor: Optional[float] = None,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     # Initialize result tensor
@@ -138,6 +193,34 @@ def blocked_kv_attention_forward(
     if sinks is not None:
         sinks = sinks.reshape(1, -1, 1, 1).expand(batch_size, -1, seq_len, -1)
 
+    # Pre-compute the log-threshold for skip softmax once before the KV loop.
+    # BLASST formula: λ = scale_factor / context_length → threshold = ln(λ)
+    # A block is skipped when: block_max − running_max < threshold
+    #
+    # METHOD A — DYNAMIC THRESHOLD (key fix):
+    # The original implementation used:
+    #   log_threshold = math.log(scale_factor / past_seen_tokens)   [Python float]
+    # This bakes a CONSTANT into the ONNX graph at trace time (wrong!), because
+    # past_seen_tokens is a Python int that changes at every decode step but
+    # appears fixed during JIT tracing.
+    #
+    # Fix: compute threshold from position_ids — a real runtime tensor input.
+    # position_ids.max() + 1 ≈ past_seen_tokens at each decode step.
+    # This creates a live ONNX node that correctly scales with context length,
+    # matching the BLASST paper's adaptive formula.
+    log_threshold = None
+    if skip_softmax_scale_factor is not None:
+        # position_ids is a runtime tensor → .max() is a dynamic ONNX op
+        # Compute log in float32 — Glow does not support Log(FLOAT16).
+        # Then cast the result to query.dtype so the comparison with
+        # block_max - current_max (both float16) is type-consistent.
+        ctx_len_f32   = (position_ids.max() + 1).float()
+        log_thresh_f32 = torch.log(
+            torch.tensor(skip_softmax_scale_factor, dtype=torch.float32,
+                         device=query.device) / ctx_len_f32
+        )
+        log_threshold = log_thresh_f32.to(dtype=query.dtype)
+
     for j in range(num_kv_blocks):
         start_index = j * kv_block_size
         if j == num_kv_blocks - 1:
@@ -154,8 +237,12 @@ def blocked_kv_attention_forward(
                 if skip_future.item():
                     break
 
-        k_block, v_block = past_key_value.read_only_blockedKV(start_index, end_index, layer_idx, cache_kwargs)
-        k_block_states, v_block_states = _get_kv_states(module, k_block, v_block)
+        # ── Phase 1: K load + BMM1 ──────────────────────────────────────
+        # Load only K for this block.  V is deferred until after the
+        # skip-softmax check (to be added in the next patch) so that the
+        # V read can be skipped entirely for unimportant blocks.
+        k_block = past_key_value.read_only_blockedK(start_index, end_index, layer_idx, cache_kwargs)
+        k_block_states = _expand_kv_heads(module, k_block)
 
         attn_weights_block = torch.matmul(query, k_block_states.transpose(2, 3)) * scaling
         # position bias needed for mpt model
@@ -170,7 +257,8 @@ def blocked_kv_attention_forward(
 
         if use_causal_mask or mask_block is None:
             target_length = torch.where(
-                torch.tensor(past_seen_tokens, dtype=torch.int) < torch.tensor(end_index, dtype=torch.int),
+                torch.tensor(past_seen_tokens, dtype=torch.int, device=query.device)
+                < torch.tensor(end_index, dtype=torch.int, device=query.device),
                 past_seen_tokens,
                 end_index,
             )
@@ -188,8 +276,54 @@ def blocked_kv_attention_forward(
         if mask_block is not None:
             attn_weights_block = torch.where(mask_block, masked_tensor, attn_weights_block)
 
+        # Extract block_max here so update_running_softmax can reuse it
+        # instead of recomputing the same reduction.
+        block_max = attn_weights_block.max(dim=-1).values  # [B, H, Q]
+
+        # ── Skip-softmax check (BLASST arXiv:2512.12087) ─────────────────
+        # Condition: exp(block_max − running_max) < λ
+        #   ≡        block_max − running_max       < ln(λ)
+        # If True for a query row, the block's total unnormalised attention
+        # mass is provably negligible and can be dropped with bounded error.
+        if log_threshold is not None:
+            # Reduce to a scalar: skip this KV block only when ALL query positions
+            # agree it is safe to skip.  A scalar condition matches the existing
+            # skip_kv pattern that the Qualcomm AOT compiler recognises as a
+            # full-subgraph predicate, enabling dead-code elimination of the
+            # false branch (exp / rowsum / BMM2 / V load) at dispatch time.
+            skip_block = (block_max - current_max < log_threshold).all()
+            # Eager mode: physically skip the V load and BMM2 entirely.
+            if not torch.onnx.is_in_onnx_export() and not torch.jit.is_tracing():
+                if skip_block.item():
+                    continue
+            # AOT mode: merge with the positional skip — both are now scalar bools,
+            # matching the shape expected by the Qualcomm predicated-execution path.
+            skip_future = skip_block if skip_future is None \
+                else (skip_block | skip_future)
+
+        # ── Phase 2: V load + running-softmax update (BMM2) ────────────
+        v_block = past_key_value.read_only_blockedV(start_index, end_index, layer_idx, cache_kwargs)
+        v_block_states = _expand_kv_heads(module, v_block)
+
+        # ── METHOD B — Gate V on skip_future (data-dependency enforcement) ──
+        # NVIDIA's BLASST decode kernel defers the V HBM load until AFTER the
+        # skip decision (paper Section 3.2).  In ONNX we cannot defer a load,
+        # but we can create an explicit data-dependency so the scheduler cannot
+        # pipeline V's use with skip_future computation.
+        # Gate V with Where instead of Cast(BOOL→float16).
+        # Cast(BOOL→FLOAT16) is not supported by Glow compiler (verification failure).
+        # Where(bool, zero, one) is universally supported and semantically equivalent.
+        if skip_future is not None and (torch.onnx.is_in_onnx_export() or torch.jit.is_tracing()):
+            gate = torch.where(
+                skip_future,
+                torch.zeros([], dtype=v_block_states.dtype, device=v_block_states.device),
+                torch.ones([], dtype=v_block_states.dtype, device=v_block_states.device),
+            )
+            v_block_states = v_block_states * gate
+
         current_max, current_denominator, output = update_running_softmax(
-            current_max, attn_weights_block, current_denominator, output, v_block_states, skip_kv, skip_future
+            current_max, attn_weights_block, current_denominator, output,
+            v_block_states, skip_kv, skip_future, block_max=block_max,
         )
 
     # If present, apply Attention Sinks, needed for GPT-OSS
@@ -220,6 +354,7 @@ def blocked_qkv_attention_forward(
     skip_kv: bool = False,
     position_bias: Optional[torch.Tensor] = None,
     sinks: Optional[torch.Tensor] = None,
+    skip_softmax_scale_factor: Optional[float] = None,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     # Initialize Running Maximum and Denominator
@@ -248,6 +383,20 @@ def blocked_qkv_attention_forward(
     if sinks is not None:
         sinks = sinks.reshape(1, -1, 1, 1).expand(batch_size, -1, seq_len, -1)
 
+    # Pre-compute the log-threshold for skip softmax once — constant for all
+    # Q-blocks and KV-blocks within this single forward call.
+    log_threshold = None
+    if skip_softmax_scale_factor is not None:
+        # Compute log in float32 — Glow does not support Log(FLOAT16).
+        # Then cast the result to query.dtype so the comparison with
+        # block_max - current_max (both float16) is type-consistent.
+        ctx_len_f32   = (position_ids.max() + 1).float()
+        log_thresh_f32 = torch.log(
+            torch.tensor(skip_softmax_scale_factor, dtype=torch.float32,
+                         device=query.device) / ctx_len_f32
+        )
+        log_threshold = log_thresh_f32.to(dtype=query.dtype)
+
     for q_block_idx in range(num_q_blocks):
         q_start = q_block_positions[q_block_idx]
         if q_block_idx == num_q_blocks - 1:
@@ -272,7 +421,6 @@ def blocked_qkv_attention_forward(
             else:
                 kv_len_block = kv_block_size
             end_index = start_index + kv_len_block
-
             skip_future = None
             if skip_kv:
                 skip_future = (torch.tensor(start_index, device=query.device) > current_position).all()
@@ -281,8 +429,9 @@ def blocked_qkv_attention_forward(
                     if skip_future.item():
                         break
 
-            k_block, v_block = past_key_value.read_only_blockedKV(start_index, end_index, layer_idx, cache_kwargs)
-            k_block_states, v_block_states = _get_kv_states(module, k_block, v_block)
+            # ── Phase 1: K load + BMM1 ──────────────────────────────────────
+            k_block = past_key_value.read_only_blockedK(start_index, end_index, layer_idx, cache_kwargs)
+            k_block_states = _expand_kv_heads(module, k_block)
 
             attn_weights_block = torch.matmul(q_block, k_block_states.transpose(2, 3)) * scaling
             # position bias needed for mpt model
@@ -298,7 +447,8 @@ def blocked_qkv_attention_forward(
             if use_causal_mask or mask_block is None:
                 # target_length = min(total_seen_tokens, end_index)
                 target_length = torch.where(
-                    torch.tensor(past_seen_tokens, dtype=torch.int) < torch.tensor(end_index, dtype=torch.int),
+                    torch.tensor(past_seen_tokens, dtype=torch.int, device=query.device)
+                    < torch.tensor(end_index, dtype=torch.int, device=query.device),
                     past_seen_tokens,
                     end_index,
                 )
@@ -317,6 +467,31 @@ def blocked_qkv_attention_forward(
                 attn_mask_block = mask_block[:, :, q_start : q_start + q_len_block, :]
                 attn_weights_block = torch.where(attn_mask_block, masked_tensor, attn_weights_block)
 
+            # Pre-compute block_max for reuse in update_running_softmax.
+            block_max = attn_weights_block.max(dim=-1).values  # [B, H, Q_block]
+
+            # ── Skip-softmax check (BLASST arXiv:2512.12087) ─────────────────
+            if log_threshold is not None:
+                skip_block = (block_max - current_max < log_threshold).all()
+                if not torch.onnx.is_in_onnx_export() and not torch.jit.is_tracing():
+                    if skip_block.item():
+                        continue
+                skip_future = skip_block if skip_future is None \
+                    else (skip_block | skip_future)
+
+            # ── Phase 2: V load + running-softmax update (BMM2) ────────────
+            v_block = past_key_value.read_only_blockedV(start_index, end_index, layer_idx, cache_kwargs)
+            v_block_states = _expand_kv_heads(module, v_block)
+
+            # Gate V with Where — Cast(BOOL→float) unsupported by Glow compiler.
+            if skip_future is not None and (torch.onnx.is_in_onnx_export() or torch.jit.is_tracing()):
+                gate = torch.where(
+                    skip_future,
+                    torch.zeros([], dtype=v_block_states.dtype, device=v_block_states.device),
+                    torch.ones([], dtype=v_block_states.dtype, device=v_block_states.device),
+                )
+                v_block_states = v_block_states * gate
+
             current_max, current_denominator, output_blocks = update_running_softmax(
                 current_max,
                 attn_weights_block,
@@ -325,6 +500,7 @@ def blocked_qkv_attention_forward(
                 v_block_states,
                 skip_kv,
                 skip_future,
+                block_max=block_max,
             )
 
         # If present, apply Attention Sinks, needed for GPT-OSS
@@ -358,6 +534,7 @@ def blocked_hqkv_attention_forward(
     skip_kv: bool = False,
     position_bias: Optional[torch.Tensor] = None,
     sinks: Optional[torch.Tensor] = None,
+    skip_softmax_scale_factor: Optional[float] = None,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     # Initialize Running Maximum and Denominator
@@ -387,6 +564,19 @@ def blocked_hqkv_attention_forward(
     # needed for GPT-OSS
     if sinks is not None:
         sinks = sinks.reshape(1, -1, 1, 1).expand(batch_size, -1, seq_len, -1)
+
+    # Pre-compute the log-threshold once — constant for all H/Q/KV iterations.
+    log_threshold = None
+    if skip_softmax_scale_factor is not None:
+        # Compute log in float32 — Glow does not support Log(FLOAT16).
+        # Then cast the result to query.dtype so the comparison with
+        # block_max - current_max (both float16) is type-consistent.
+        ctx_len_f32   = (position_ids.max() + 1).float()
+        log_thresh_f32 = torch.log(
+            torch.tensor(skip_softmax_scale_factor, dtype=torch.float32,
+                         device=query.device) / ctx_len_f32
+        )
+        log_threshold = log_thresh_f32.to(dtype=query.dtype)
 
     # Process each head block independently
     for head_block_idx in range(num_head_blocks):
@@ -434,11 +624,11 @@ def blocked_hqkv_attention_forward(
                         if skip_future.item():
                             break
 
-                k_block, v_block = past_key_value.read_only_blockedKV(start_index, end_index, layer_idx, cache_kwargs)
-                k_block_states, v_block_states = _get_kv_states(module, k_block, v_block)
-
-                k_g = k_block_states[:, h_start:h_end, :, :]
-                v_g = v_block_states[:, h_start:h_end, :, :]
+                # ── Phase 1: K load + BMM1 ──────────────────────────────────────
+                # Load K for the current head-block slice, compute attention scores.
+                # V is deferred so the skip-softmax check (next patch) can gate it.
+                k_block = past_key_value.read_only_blockedK(start_index, end_index, layer_idx, cache_kwargs)
+                k_g = _expand_kv_heads(module, k_block)[:, h_start:h_end, :, :]
 
                 attn_weights_block = torch.matmul(q_block, k_g.transpose(2, 3)) * scaling
                 # position bias needed for mpt model
@@ -454,7 +644,8 @@ def blocked_hqkv_attention_forward(
                 if use_causal_mask or mask_block is None:
                     # target_length = min(total_seen_tokens, end_index)
                     target_length = torch.where(
-                        torch.tensor(past_seen_tokens, dtype=torch.int) < torch.tensor(end_index, dtype=torch.int),
+                        torch.tensor(past_seen_tokens, dtype=torch.int, device=query.device)
+                        < torch.tensor(end_index, dtype=torch.int, device=query.device),
                         past_seen_tokens,
                         end_index,
                     )
@@ -473,8 +664,35 @@ def blocked_hqkv_attention_forward(
                     mask_block_g = mask_block[:, :, q_start : q_start + q_len_block, :]
                     attn_weights_block = torch.where(mask_block_g, masked_tensor, attn_weights_block)
 
+                # Pre-compute block_max for reuse in update_running_softmax.
+                # Shape: [B, H_slice, Q_block] — one value per query row.
+                block_max = attn_weights_block.max(dim=-1).values
+
+                # ── Skip-softmax check (BLASST arXiv:2512.12087) ─────────────────
+                if log_threshold is not None:
+                    skip_block = (block_max - current_max < log_threshold).all()
+                    if not torch.onnx.is_in_onnx_export() and not torch.jit.is_tracing():
+                        if skip_block.item():
+                            continue
+                    skip_future = skip_block if skip_future is None \
+                        else (skip_block | skip_future)
+
+                # ── Phase 2: V load + running-softmax update (BMM2) ────────────
+                v_block = past_key_value.read_only_blockedV(start_index, end_index, layer_idx, cache_kwargs)
+                v_g = _expand_kv_heads(module, v_block)[:, h_start:h_end, :, :]
+
+                # Gate V with Where — Cast(BOOL→float) unsupported by Glow compiler.
+                if skip_future is not None and (torch.onnx.is_in_onnx_export() or torch.jit.is_tracing()):
+                    gate = torch.where(
+                        skip_future,
+                        torch.zeros([], dtype=v_g.dtype, device=v_g.device),
+                        torch.ones([], dtype=v_g.dtype, device=v_g.device),
+                    )
+                    v_g = v_g * gate
+
                 current_max, current_denominator, output_blocks = update_running_softmax(
-                    current_max, attn_weights_block, current_denominator, output_blocks, v_g, skip_kv, skip_future
+                    current_max, attn_weights_block, current_denominator, output_blocks,
+                    v_g, skip_kv, skip_future, block_max=block_max,
                 )
             # If present, apply Attention Sinks, needed for GPT-OSS
             if sinks is not None:
@@ -516,6 +734,7 @@ def blocked_bhqkv_attention_forward(
     skip_kv: bool = False,
     position_bias: Optional[torch.Tensor] = None,
     sinks: Optional[torch.Tensor] = None,
+    skip_softmax_scale_factor: Optional[float] = None,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     # Initialize Running Maximum and Denominator
@@ -552,6 +771,19 @@ def blocked_bhqkv_attention_forward(
     # needed for GPT-OSS
     if sinks is not None:
         sinks = sinks.reshape(1, -1, 1, 1).expand(batch_size, -1, seq_len, -1)
+
+    # Pre-compute the log-threshold once — constant across all H/Q/B/KV iterations.
+    log_threshold = None
+    if skip_softmax_scale_factor is not None:
+        # Compute log in float32 — Glow does not support Log(FLOAT16).
+        # Then cast the result to query.dtype so the comparison with
+        # block_max - current_max (both float16) is type-consistent.
+        ctx_len_f32   = (position_ids.max() + 1).float()
+        log_thresh_f32 = torch.log(
+            torch.tensor(skip_softmax_scale_factor, dtype=torch.float32,
+                         device=query.device) / ctx_len_f32
+        )
+        log_threshold = log_thresh_f32.to(dtype=query.dtype)
 
     # Process each head block independently
     for head_block_idx in range(num_head_blocks):
@@ -611,13 +843,12 @@ def blocked_bhqkv_attention_forward(
                             if skip_future.item():
                                 break
 
-                    k_block, v_block = past_key_value.read_only_blockedKV(
+                    # ── Phase 1: K load + BMM1 ──────────────────────────────────────
+                    k_block = past_key_value.read_only_blockedK(
                         start_index, end_index, layer_idx, cache_kwargs
                     )
-                    k_block_states, v_block_states = _get_kv_states(module, k_block, v_block)
-
+                    k_block_states = _expand_kv_heads(module, k_block)
                     k_g = k_block_states[batch_start : batch_start + batch_len, h_start:h_end, :, :]
-                    v_g = v_block_states[batch_start : batch_start + batch_len, h_start:h_end, :, :]
 
                     attn_weights_block = torch.matmul(q_block, k_g.transpose(2, 3)) * scaling
                     # position bias needed for mpt model
@@ -654,8 +885,37 @@ def blocked_bhqkv_attention_forward(
                         ]
                         attn_weights_block = torch.where(mask_block_g, masked_tensor, attn_weights_block)
 
+                    # Pre-compute block_max for reuse in update_running_softmax.
+                    block_max = attn_weights_block.max(dim=-1).values  # [B_slice, H_slice, Q_block]
+
+                    # ── Skip-softmax check (BLASST arXiv:2512.12087) ─────────────────
+                    if log_threshold is not None:
+                        skip_block = (block_max - current_max < log_threshold).all()
+                        if not torch.onnx.is_in_onnx_export() and not torch.jit.is_tracing():
+                            if skip_block.item():
+                                continue
+                        skip_future = skip_block if skip_future is None \
+                            else (skip_block | skip_future)
+
+                    # ── Phase 2: V load + running-softmax update (BMM2) ────────────
+                    v_block = past_key_value.read_only_blockedV(
+                        start_index, end_index, layer_idx, cache_kwargs
+                    )
+                    v_block_states = _expand_kv_heads(module, v_block)
+                    v_g = v_block_states[batch_start : batch_start + batch_len, h_start:h_end, :, :]
+
+                    # Gate V with Where — Cast(BOOL→float) unsupported by Glow compiler.
+                    if skip_future is not None and (torch.onnx.is_in_onnx_export() or torch.jit.is_tracing()):
+                        gate = torch.where(
+                            skip_future,
+                            torch.zeros([], dtype=v_g.dtype, device=v_g.device),
+                            torch.ones([], dtype=v_g.dtype, device=v_g.device),
+                        )
+                        v_g = v_g * gate
+
                     current_max, current_denominator, output_blocks = update_running_softmax(
-                        current_max, attn_weights_block, current_denominator, output_blocks, v_g, skip_kv, skip_future
+                        current_max, attn_weights_block, current_denominator, output_blocks,
+                        v_g, skip_kv, skip_future, block_max=block_max,
                     )
                 batch_output_blocks.append(output_blocks)
                 batch_attn_blocks.append(attn_weights_block)

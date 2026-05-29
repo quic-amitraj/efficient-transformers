@@ -255,7 +255,7 @@ def attention_configurator(
                 ):
                     update_best_config(num_q_blocks, num_kv_blocks, q_kv_ratio, vtcm_footprint)
                 break
-
+        
     return best_config
 
 
@@ -309,7 +309,6 @@ def build_transformer_blocking_config(
 
     resolved_mode = _normalize_attention_mode(blocking_mode or "hqkv")
     effective_mode = _resolve_effective_blocking_mode(attention_cfg, resolved_mode)
-
     return AttentionBlockingConfig(
         mode=BlockingMode(effective_mode),
         num_kv_blocks=attention_cfg["num_kv_blocks"],
@@ -375,5 +374,25 @@ def build_transformer_blocking_config_for_transform(
 
         if qaic_config.get("skip_kv", False) and enable_blocking:
             blocking_config.skip_kv = qaic_config.get("skip_kv")
+
+        # ── Skip-softmax (BLASST) threshold scale factor wiring ─────────
+        # Supports three keys in qaic_config:
+        #   "skip_softmax_scale_factor"          — single value for both phases
+        #   "skip_softmax_scale_factor_prefill"  — overrides prefill threshold
+        #   "skip_softmax_scale_factor_decode"   — overrides decode threshold
+        # The split keys take priority in generic_blocked_attention_interface.
+        if enable_blocking:
+            if qaic_config.get("skip_softmax_scale_factor") is not None:
+                blocking_config.skip_softmax_scale_factor = float(
+                    qaic_config["skip_softmax_scale_factor"]
+                )
+            if qaic_config.get("skip_softmax_scale_factor_prefill") is not None:
+                blocking_config.skip_softmax_scale_factor_prefill = float(
+                    qaic_config["skip_softmax_scale_factor_prefill"]
+                )
+            if qaic_config.get("skip_softmax_scale_factor_decode") is not None:
+                blocking_config.skip_softmax_scale_factor_decode = float(
+                    qaic_config["skip_softmax_scale_factor_decode"]
+                )
 
     return blocking_config

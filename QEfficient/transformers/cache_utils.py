@@ -178,6 +178,109 @@ class QEffDynamicLayer(CacheLayerMixin):
         v_out = torch.where(invalid_mask.unsqueeze(-1), torch.tensor(0.0, dtype=torch.float32), v_out)
         return k_out, v_out
 
+    # ------------------------------------------------------------------
+    # Split K/V helpers — prerequisite for skip-softmax optimisation.
+    # The gather index computation (ctx_indices + invalid_mask) is shared
+    # between K and V; extracting it once here avoids duplication.
+    # ------------------------------------------------------------------
+
+    def _compute_block_ctx_indices(self, start_index, end_index, cache_kwargs):
+        """
+        Compute the block gather indices and invalid mask shared by K and V reads.
+
+        Returns:
+            ctx_indices  : index tensor with out-of-range positions clamped to a
+                           safe value (INT32_MAX in ONNX export, 0 in eager).
+            invalid_mask : bool tensor, True where positions exceed current seq len.
+            batch        : batch dimension of the KV cache.
+            num_kv_heads : head dimension of the KV cache.
+            batch_index  : optional per-sample index tensor (continuous batching).
+        """
+        k_out = self.keys
+        if k_out is not None:
+            self._mark_initialized(k_out)
+        position_ids = cache_kwargs.get("position_ids")
+        batch_index = cache_kwargs.get("batch_index", None)
+        batch, num_kv_heads, _, _ = k_out.shape
+
+        # Use k_out.device so ctx_indices is on the same device as the cache
+        # tensor — required for GPU (CUDA) compatibility.
+        ctx_indices = torch.arange(start=start_index, end=end_index,
+                                    device=k_out.device)[None, None, ...]
+        gather_limit = position_ids.max(1, keepdim=True).values.unsqueeze(1)
+        invalid_mask = ctx_indices > gather_limit
+
+        # In ONNX export use INT32_MAX so the compiler can detect the sentinel;
+        # in eager mode 0 is fine because we never read those positions.
+        if torch.onnx.is_in_onnx_export():
+            invalid_idx_value = torch.iinfo(torch.int32).max
+        else:
+            invalid_idx_value = 0
+
+        ctx_indices = torch.where(invalid_mask, invalid_idx_value, ctx_indices)
+        return ctx_indices, invalid_mask, batch, num_kv_heads, batch_index
+
+    def read_only_blockedK(self, start_index, end_index, cache_kwargs):
+        """
+        Reads only the key states for the KV block [start_index, end_index).
+
+        Separating the K read from the V read allows the caller to perform
+        BMM1 (Q×K) and the skip-softmax threshold check before deciding
+        whether the V block is needed at all.
+
+        Parameters:
+            start_index: Start position of this KV block.
+            end_index:   End position of this KV block (exclusive).
+            cache_kwargs: Must contain 'position_ids'; optionally 'batch_index'.
+
+        Returns:
+            k_out: Gathered key tensor for this block.
+        """
+        ctx_indices, _, batch, num_kv_heads, batch_index = self._compute_block_ctx_indices(
+            start_index, end_index, cache_kwargs
+        )
+        k_out = self.keys
+        if batch_index is not None:
+            k_out = CtxGatherFuncBlockedKVCB.apply(k_out, batch_index, ctx_indices)
+        else:
+            k_out = CtxGatherFuncBlockedKV.apply(
+                k_out, ctx_indices.expand(batch, num_kv_heads, ctx_indices.shape[-1])
+            )
+        return k_out
+
+    def read_only_blockedV(self, start_index, end_index, cache_kwargs):
+        """
+        Reads only the value states for the KV block [start_index, end_index).
+
+        Called after the skip-softmax check passes, so V bandwidth is spent
+        only for blocks that will actually contribute to the output.
+
+        Parameters:
+            start_index: Start position of this KV block.
+            end_index:   End position of this KV block (exclusive).
+            cache_kwargs: Must contain 'position_ids'; optionally 'batch_index'.
+
+        Returns:
+            v_out: Gathered value tensor for this block, with out-of-range
+                   positions zeroed out.
+        """
+        ctx_indices, invalid_mask, batch, num_kv_heads, batch_index = self._compute_block_ctx_indices(
+            start_index, end_index, cache_kwargs
+        )
+        v_out = self.values
+        if batch_index is not None:
+            v_out = CtxGatherFuncBlockedKVCB.apply(v_out, batch_index, ctx_indices)
+        else:
+            v_out = CtxGatherFuncBlockedKV.apply(
+                v_out, ctx_indices.expand(batch, num_kv_heads, ctx_indices.shape[-1])
+            )
+        # Zero out value positions that are beyond the current sequence length
+        # so that masked positions contribute nothing to the weighted sum.
+        # Use v_out.device so the zero tensor is on the same device (CPU or CUDA).
+        v_out = torch.where(invalid_mask.unsqueeze(-1),
+                            torch.tensor(0.0, dtype=torch.float32, device=v_out.device), v_out)
+        return v_out
+
     def write_only(self, key_states, value_states, cache_kwargs):
         """
         Write in the cache with the new `key_states` and `value_states` for the layer.
@@ -580,6 +683,14 @@ class QEffDynamicCache(Cache):
             A tuple containing the updated key and value states.
         """
         return self.layers[layer_idx].read_only_blockedKV(start_index, end_index, cache_kwargs)
+
+    def read_only_blockedK(self, start_index, end_index, layer_idx, cache_kwargs):
+        """Reads only key states for the block; see QEffDynamicLayer.read_only_blockedK."""
+        return self.layers[layer_idx].read_only_blockedK(start_index, end_index, cache_kwargs)
+
+    def read_only_blockedV(self, start_index, end_index, layer_idx, cache_kwargs):
+        """Reads only value states for the block; see QEffDynamicLayer.read_only_blockedV."""
+        return self.layers[layer_idx].read_only_blockedV(start_index, end_index, cache_kwargs)
 
     def write_only(self, key_states, value_states, layer_idx, cache_kwargs):
         """
@@ -1119,8 +1230,69 @@ class QEffHybridCacheForGPTOSS:
             k_out = CtxGatherFuncBlockedKV.apply(k_out, ctx_indices)
             v_out = CtxGatherFuncBlockedKV.apply(v_out, ctx_indices)
 
-        v_out = torch.where(invalid_mask.unsqueeze(-1), torch.tensor(0.0, dtype=torch.float32), v_out)
+        v_out = torch.where(invalid_mask.unsqueeze(-1),
+                            torch.tensor(0.0, dtype=torch.float32, device=v_out.device), v_out)
         return k_out, v_out
+
+    def _compute_hybrid_block_ctx_indices(self, start_idx, end_idx, layer_idx, cache_kwargs):
+        """Shared gather-index computation for split K/V reads in QEffHybridCacheForGPTOSS."""
+        k_ref = self.key_cache[layer_idx]
+        position_ids = cache_kwargs.get("position_ids")
+        batch_index  = cache_kwargs.get("batch_index", None)
+        batch, num_kv_heads, _, _ = k_ref.shape
+
+        ctx_indices = torch.arange(start=start_idx, end=end_idx,
+                                    device=k_ref.device)[None, None, ...]
+        gather_limit = position_ids.max(1, keepdim=True).values.unsqueeze(1)
+        invalid_mask = ctx_indices > gather_limit
+
+        if torch.onnx.is_in_onnx_export():
+            invalid_idx_value = torch.iinfo(torch.int32).max
+        else:
+            invalid_idx_value = 0
+
+        ctx_indices = torch.where(invalid_mask, invalid_idx_value, ctx_indices)
+        return ctx_indices, invalid_mask, batch, num_kv_heads, batch_index
+
+    def read_only_blockedK(
+        self,
+        start_idx: torch.Tensor,
+        end_idx: torch.Tensor,
+        layer_idx: int,
+        cache_kwargs: Optional[Dict[str, Any]] = None,
+    ) -> torch.Tensor:
+        """Reads only key states for block [start_idx, end_idx). See QEffDynamicLayer.read_only_blockedK."""
+        ctx_indices, _, batch, num_kv_heads, batch_index = \
+            self._compute_hybrid_block_ctx_indices(start_idx, end_idx, layer_idx, cache_kwargs)
+        k_out = self.key_cache[layer_idx]
+        if batch_index is not None:
+            k_out = CtxGatherFuncBlockedKVCB.apply(k_out, batch_index, ctx_indices)
+        else:
+            k_out = CtxGatherFuncBlockedKV.apply(
+                k_out, ctx_indices.expand(batch, num_kv_heads, ctx_indices.shape[-1])
+            )
+        return k_out
+
+    def read_only_blockedV(
+        self,
+        start_idx: torch.Tensor,
+        end_idx: torch.Tensor,
+        layer_idx: int,
+        cache_kwargs: Optional[Dict[str, Any]] = None,
+    ) -> torch.Tensor:
+        """Reads only value states for block [start_idx, end_idx). See QEffDynamicLayer.read_only_blockedV."""
+        ctx_indices, invalid_mask, batch, num_kv_heads, batch_index = \
+            self._compute_hybrid_block_ctx_indices(start_idx, end_idx, layer_idx, cache_kwargs)
+        v_out = self.value_cache[layer_idx]
+        if batch_index is not None:
+            v_out = CtxGatherFuncBlockedKVCB.apply(v_out, batch_index, ctx_indices)
+        else:
+            v_out = CtxGatherFuncBlockedKV.apply(
+                v_out, ctx_indices.expand(batch, num_kv_heads, ctx_indices.shape[-1])
+            )
+        v_out = torch.where(invalid_mask.unsqueeze(-1),
+                            torch.tensor(0.0, dtype=torch.float32, device=v_out.device), v_out)
+        return v_out
 
     def update(
         self,

@@ -46,6 +46,19 @@ class AttentionBlockingConfig:
     head_block_size: Optional[int] = None
     skip_kv: Optional[bool] = True
     num_batch_blocks: Optional[int] = None
+    # ── Skip-softmax (BLASST) threshold scale factors ────────────────────
+    # Threshold formula: λ = scale_factor / context_length
+    # The scale factor is calibrated per model and target sparsity.
+    # Use the split prefill/decode fields for production (the attention
+    # sparsity pattern differs between the two phases, so optimal thresholds
+    # differ too).  The combined field is a convenience fallback.
+    #
+    # Reference values for Qwen3-30B-A3B-Instruct-2507 (NVIDIA TRT-LLM):
+    #   50 % sparsity → prefill=587,  decode=16.5
+    #   70 % sparsity → prefill=3293, decode=119
+    skip_softmax_scale_factor: Optional[float] = None           # used when prefill/decode not split
+    skip_softmax_scale_factor_prefill: Optional[float] = None   # seq_len > 1
+    skip_softmax_scale_factor_decode: Optional[float] = None    # seq_len == 1 (single decode step)
 
 
 def supports_blocked_kv(past_key_value: Optional[Cache]) -> bool:
@@ -151,6 +164,23 @@ def generic_blocked_attention_interface(
             )
 
     strategy = _STRATEGIES.get(blocking_config.mode)
+    # Resolve the skip-softmax scale factor for this call.
+    # Prefill (seq_len > 1) and decode (seq_len == 1) have different optimal
+    # thresholds because their attention sparsity patterns differ.
+    # Priority: split prefill/decode fields > combined field > None (disabled).
+    seq_len = query.shape[2]
+    if seq_len == 1:
+        # Decode step: single new token attending to full KV cache
+        skip_softmax_scale_factor = (
+            blocking_config.skip_softmax_scale_factor_decode
+            or blocking_config.skip_softmax_scale_factor
+        )
+    else:
+        # Prefill step: full prompt sequence
+        skip_softmax_scale_factor = (
+            blocking_config.skip_softmax_scale_factor_prefill
+            or blocking_config.skip_softmax_scale_factor
+        )
     attn_output, attn_weights = strategy(
         module=module,
         query=query,
@@ -168,6 +198,7 @@ def generic_blocked_attention_interface(
         score_mod=score_mod,
         position_bias=position_bias,
         sinks=sinks,
+        skip_softmax_scale_factor=skip_softmax_scale_factor,
     )
 
     return attn_output, attn_weights
