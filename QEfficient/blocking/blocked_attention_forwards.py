@@ -161,7 +161,9 @@ def blocked_kv_attention_forward(
     skip_kv: bool = False,
     position_bias: Optional[torch.Tensor] = None,
     sinks: Optional[torch.Tensor] = None,
-    skip_softmax_scale_factor: Optional[float] = None,
+    # Dynamic runtime tensor — shape [1] float32 — instead of a baked Python float.
+    # None disables skip-softmax entirely for this forward call.
+    skip_softmax_scale_factor: Optional[torch.Tensor] = None,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     # Initialize result tensor
@@ -216,8 +218,9 @@ def blocked_kv_attention_forward(
         # block_max - current_max (both float16) is type-consistent.
         ctx_len_f32   = (position_ids.max() + 1).float()
         log_thresh_f32 = torch.log(
-            torch.tensor(skip_softmax_scale_factor, dtype=torch.float32,
-                         device=query.device) / ctx_len_f32
+            # skip_softmax_scale_factor is now a [1] tensor (not a Python float),
+            # so no torch.tensor() wrapping needed — it is already an ONNX node.
+            skip_softmax_scale_factor.float() / ctx_len_f32
         )
         log_threshold = log_thresh_f32.to(dtype=query.dtype)
 
@@ -354,7 +357,9 @@ def blocked_qkv_attention_forward(
     skip_kv: bool = False,
     position_bias: Optional[torch.Tensor] = None,
     sinks: Optional[torch.Tensor] = None,
-    skip_softmax_scale_factor: Optional[float] = None,
+    # Dynamic runtime tensor — shape [1] float32 — instead of a baked Python float.
+    # None disables skip-softmax entirely for this forward call.
+    skip_softmax_scale_factor: Optional[torch.Tensor] = None,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     # Initialize Running Maximum and Denominator
@@ -363,11 +368,6 @@ def blocked_qkv_attention_forward(
     past_seen_tokens = cache_kwargs.get("past_seen_tokens")
     if torch.onnx.is_in_onnx_export():
         attention_mask = None
-        use_causal_mask = True
-    position_ids = cache_kwargs.get("position_ids")
-
-    num_q_blocks = max(1, num_q_blocks)
-    q_block_positions = [-(-i * seq_len) // num_q_blocks for i in range(num_q_blocks)]
     num_kv_blocks = max(1, num_kv_blocks)
     kv_block_size = -(-past_seen_tokens // num_kv_blocks)
 
@@ -392,8 +392,9 @@ def blocked_qkv_attention_forward(
         # block_max - current_max (both float16) is type-consistent.
         ctx_len_f32   = (position_ids.max() + 1).float()
         log_thresh_f32 = torch.log(
-            torch.tensor(skip_softmax_scale_factor, dtype=torch.float32,
-                         device=query.device) / ctx_len_f32
+            # skip_softmax_scale_factor is now a [1] tensor (not a Python float),
+            # so no torch.tensor() wrapping needed — it is already an ONNX node.
+            skip_softmax_scale_factor.float() / ctx_len_f32
         )
         log_threshold = log_thresh_f32.to(dtype=query.dtype)
 
@@ -534,7 +535,9 @@ def blocked_hqkv_attention_forward(
     skip_kv: bool = False,
     position_bias: Optional[torch.Tensor] = None,
     sinks: Optional[torch.Tensor] = None,
-    skip_softmax_scale_factor: Optional[float] = None,
+    # Dynamic runtime tensor — shape [1] float32 — instead of a baked Python float.
+    # None disables skip-softmax entirely for this forward call.
+    skip_softmax_scale_factor: Optional[torch.Tensor] = None,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     # Initialize Running Maximum and Denominator
@@ -573,8 +576,9 @@ def blocked_hqkv_attention_forward(
         # block_max - current_max (both float16) is type-consistent.
         ctx_len_f32   = (position_ids.max() + 1).float()
         log_thresh_f32 = torch.log(
-            torch.tensor(skip_softmax_scale_factor, dtype=torch.float32,
-                         device=query.device) / ctx_len_f32
+            # skip_softmax_scale_factor is now a [1] tensor (not a Python float),
+            # so no torch.tensor() wrapping needed — it is already an ONNX node.
+            skip_softmax_scale_factor.float() / ctx_len_f32
         )
         log_threshold = log_thresh_f32.to(dtype=query.dtype)
 
@@ -626,7 +630,7 @@ def blocked_hqkv_attention_forward(
 
                 # ── Phase 1: K load + BMM1 ──────────────────────────────────────
                 # Load K for the current head-block slice, compute attention scores.
-                # V is deferred so the skip-softmax check (next patch) can gate it.
+                # V is deferred so the skip-softmax check can gate it.
                 k_block = past_key_value.read_only_blockedK(start_index, end_index, layer_idx, cache_kwargs)
                 k_g = _expand_kv_heads(module, k_block)[:, h_start:h_end, :, :]
 
@@ -734,7 +738,9 @@ def blocked_bhqkv_attention_forward(
     skip_kv: bool = False,
     position_bias: Optional[torch.Tensor] = None,
     sinks: Optional[torch.Tensor] = None,
-    skip_softmax_scale_factor: Optional[float] = None,
+    # Dynamic runtime tensor — shape [1] float32 — instead of a baked Python float.
+    # None disables skip-softmax entirely for this forward call.
+    skip_softmax_scale_factor: Optional[torch.Tensor] = None,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     # Initialize Running Maximum and Denominator
@@ -780,8 +786,9 @@ def blocked_bhqkv_attention_forward(
         # block_max - current_max (both float16) is type-consistent.
         ctx_len_f32   = (position_ids.max() + 1).float()
         log_thresh_f32 = torch.log(
-            torch.tensor(skip_softmax_scale_factor, dtype=torch.float32,
-                         device=query.device) / ctx_len_f32
+            # skip_softmax_scale_factor is now a [1] tensor (not a Python float),
+            # so no torch.tensor() wrapping needed — it is already an ONNX node.
+            skip_softmax_scale_factor.float() / ctx_len_f32
         )
         log_threshold = log_thresh_f32.to(dtype=query.dtype)
 

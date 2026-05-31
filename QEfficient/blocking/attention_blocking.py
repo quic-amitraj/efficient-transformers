@@ -129,6 +129,14 @@ def generic_blocked_attention_interface(
     position_bias: Optional[torch.Tensor] = None,
     sinks: Optional[torch.Tensor] = None,
     sliding_window: Optional[int] = None,
+    # ── Dynamic skip-softmax inputs (optional) ───────────────────────────
+    # When provided (shape [1], float32), these tensor inputs override the
+    # static float values baked in AttentionBlockingConfig, allowing the
+    # threshold to be varied at inference time without recompiling.
+    # The ONNX graph uses torch.where + shape_as_tensor to select between
+    # them dynamically so both become live ONNX nodes (not constants).
+    skip_softmax_scale_factor_prefill_t: Optional[torch.Tensor] = None,
+    skip_softmax_scale_factor_decode_t: Optional[torch.Tensor] = None,
     **kwargs,
 ):
     use_kv_blocked = (
@@ -164,23 +172,57 @@ def generic_blocked_attention_interface(
             )
 
     strategy = _STRATEGIES.get(blocking_config.mode)
-    # Resolve the skip-softmax scale factor for this call.
-    # Prefill (seq_len > 1) and decode (seq_len == 1) have different optimal
-    # thresholds because their attention sparsity patterns differ.
-    # Priority: split prefill/decode fields > combined field > None (disabled).
-    seq_len = query.shape[2]
-    if seq_len == 1:
-        # Decode step: single new token attending to full KV cache
-        skip_softmax_scale_factor = (
-            blocking_config.skip_softmax_scale_factor_decode
-            or blocking_config.skip_softmax_scale_factor
-        )
+
+    # ── Resolve skip-softmax scale factor ────────────────────────────────
+    # Priority: dynamic tensor inputs > static values in blocking_config.
+    #
+    # Dynamic path (tensor inputs provided):
+    #   During ONNX export we use torch.onnx.operators.shape_as_tensor to
+    #   derive seq_len as a real ONNX node, then torch.where to select
+    #   between prefill and decode tensors.  This keeps BOTH inputs as live
+    #   ONNX nodes (not dead constants), so the compiler can specialise each
+    #   execution path (prefill vs decode) independently.
+    #
+    # Static fallback (no tensor inputs):
+    #   Original behaviour — reads Python floats from blocking_config and
+    #   selects based on seq_len.  The chosen float becomes a baked constant.
+    if skip_softmax_scale_factor_prefill_t is not None and skip_softmax_scale_factor_decode_t is not None:
+        if torch.onnx.is_in_onnx_export():
+            # shape_as_tensor creates an ONNX Shape op — seq_len is dynamic.
+            from torch.onnx import operators as onnx_ops
+            query_shape = onnx_ops.shape_as_tensor(query)  # [4] int64: [B, H, S, D]
+            seq_len_t = query_shape[2:3]                   # [1] int64, runtime value
+            is_decode = seq_len_t <= torch.ones(1, dtype=seq_len_t.dtype, device=query.device)
+            skip_softmax_scale_factor = torch.where(
+                is_decode,
+                skip_softmax_scale_factor_decode_t,
+                skip_softmax_scale_factor_prefill_t,
+            ).squeeze()
+        else:
+            # Eager mode: plain Python branch is fine.
+            seq_len = query.shape[2]
+            skip_softmax_scale_factor = (
+                skip_softmax_scale_factor_decode_t.squeeze()
+                if seq_len == 1
+                else skip_softmax_scale_factor_prefill_t.squeeze()
+            )
     else:
-        # Prefill step: full prompt sequence
-        skip_softmax_scale_factor = (
-            blocking_config.skip_softmax_scale_factor_prefill
-            or blocking_config.skip_softmax_scale_factor
+        # Static fallback — baked floats from blocking_config.
+        # Prefill (seq_len > 1) and decode (seq_len == 1) have different optimal
+        # thresholds; split fields take priority over the combined field.
+        seq_len = query.shape[2]
+        sf_static = (
+            (blocking_config.skip_softmax_scale_factor_decode or blocking_config.skip_softmax_scale_factor)
+            if seq_len == 1
+            else (blocking_config.skip_softmax_scale_factor_prefill or blocking_config.skip_softmax_scale_factor)
         )
+        # Wrap float → tensor so downstream functions always receive a tensor or None.
+        skip_softmax_scale_factor = (
+            torch.tensor([sf_static], dtype=torch.float32, device=query.device)
+            if sf_static is not None
+            else None
+        )
+
     attn_output, attn_weights = strategy(
         module=module,
         query=query,

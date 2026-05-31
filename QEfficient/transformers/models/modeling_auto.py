@@ -3137,6 +3137,22 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
             example_inputs["comp_ctx_lengths"] = torch.randint(0, 127, (512,), dtype=torch.int8)
             dynamic_axes["comp_ctx_lengths"] = {0: "comp_ctx_lengths"}
 
+        # ── Dynamic skip-softmax inputs ───────────────────────────────────────
+        # When the model was compiled with skip-softmax enabled, add both scale-
+        # factor tensors as real ONNX inputs so they can be varied at inference
+        # time without recompiling.  Shape [1] is fixed — no dynamic axis needed.
+        # Read from hash_params["blocking_kwargs"] (AttentionBlockingConfig set by
+        # transform()) instead of qaic_config, because compile() may pass qaic_config
+        # directly without it being stored on self.model.qaic_config.
+        _blocking = self.hash_params.get("blocking_kwargs")
+        if _blocking is not None and any([
+            getattr(_blocking, "skip_softmax_scale_factor", None) is not None,
+            getattr(_blocking, "skip_softmax_scale_factor_prefill", None) is not None,
+            getattr(_blocking, "skip_softmax_scale_factor_decode", None) is not None,
+        ]):
+            example_inputs["skip_softmax_scale_factor_prefill"] = torch.ones(1, dtype=torch.float32)
+            example_inputs["skip_softmax_scale_factor_decode"]  = torch.ones(1, dtype=torch.float32)
+
         if len(kv_cache_shape) == 3:  # For GPTBigCode arch the pkv is 3d
             pkv_dynamic_axes = {
                 0: "full_batch_size" if self.continuous_batching else "batch_size",

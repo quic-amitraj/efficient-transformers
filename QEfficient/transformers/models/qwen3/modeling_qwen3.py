@@ -165,6 +165,9 @@ class QEffQwen3Attention(Qwen3Attention):
                 batch_index=batch_index,
                 position_ids=position_ids,
                 past_seen_tokens=past_seen_tokens,
+                # Forward dynamic scale-factor tensors when caller provided them.
+                skip_softmax_scale_factor_prefill_t=kwargs.get("skip_softmax_scale_factor_prefill"),
+                skip_softmax_scale_factor_decode_t=kwargs.get("skip_softmax_scale_factor_decode"),
             )
         else:
             key_states, value_states, attention_mask, _ = past_key_value_update(
@@ -284,6 +287,9 @@ class QEffQwen3Model(Qwen3Model):
         use_cache: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         cache_position: Optional[torch.LongTensor] = None,
+        # ── Dynamic skip-softmax scale factors (see generic_blocked_attention_interface) ──
+        skip_softmax_scale_factor_prefill: Optional[torch.Tensor] = None,
+        skip_softmax_scale_factor_decode: Optional[torch.Tensor] = None,
         **kwargs,
     ) -> Union[Tuple, BaseModelOutputWithPast]:
         output_hidden_states = (
@@ -339,6 +345,9 @@ class QEffQwen3Model(Qwen3Model):
                 cache_position=cache_position,
                 sin_cached=sin,
                 cos_cached=cos,
+                # Propagate dynamic scale-factor tensors so attention can pick them up via **kwargs.
+                skip_softmax_scale_factor_prefill=skip_softmax_scale_factor_prefill,
+                skip_softmax_scale_factor_decode=skip_softmax_scale_factor_decode,
             )
 
         hidden_states = self.norm(hidden_states)
@@ -387,6 +396,13 @@ class QEffQwen3ForCausalLM(Qwen3ForCausalLM):
         output_hidden_states: Optional[bool] = None,
         cache_position: Optional[torch.LongTensor] = None,
         logits_to_keep: Union[int, torch.Tensor] = 0,
+        # ── Dynamic skip-softmax scale factors ───────────────────────────────
+        # Shape [1], float32.  When provided they become live ONNX input nodes
+        # (not baked constants), enabling threshold tuning without recompiling.
+        # The model selects between prefill/decode at runtime (see
+        # generic_blocked_attention_interface for details).
+        skip_softmax_scale_factor_prefill: Optional[torch.Tensor] = None,
+        skip_softmax_scale_factor_decode: Optional[torch.Tensor] = None,
         **kwargs,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
         output_hidden_states = (
@@ -404,6 +420,8 @@ class QEffQwen3ForCausalLM(Qwen3ForCausalLM):
             inputs_embeds=inputs_embeds,
             use_cache=use_cache,
             output_hidden_states=output_hidden_states,
+            skip_softmax_scale_factor_prefill=skip_softmax_scale_factor_prefill,
+            skip_softmax_scale_factor_decode=skip_softmax_scale_factor_decode,
         )
 
         # Cast to INT32 to avoid issue while running in ONNXRT
