@@ -34,11 +34,33 @@ python blocked_attention_inference.py \\
 """
 
 import argparse
+import shutil
+from pathlib import Path
 
 import numpy as np
 from transformers import AutoTokenizer
 
 from QEfficient import QEFFAutoModelForCausalLM
+
+
+def _cleanup_onnx(qpc_path: str) -> None:
+    """
+    Delete ONNX external weight files after QPC is compiled.
+
+    The big files are the split weight tensors (onnx__MatMul_*, model.*)
+    stored as ONNX external data — typically 6-10 GB per run. Once the QPC
+    exists they are no longer needed. The tiny ONNX graph file (<1 MB) and
+    all JSON metadata are kept so the export hash can still be checked.
+    """
+    export_dir = Path(qpc_path).parent.parent  # .../ModelName-<hash>/
+    deleted_mb = 0
+    for f in export_dir.iterdir():
+        if f.is_file() and f.suffix not in {".json", ".onnx", ".yaml"}:
+            size_mb = f.stat().st_size / 1e6
+            f.unlink()
+            deleted_mb += size_mb
+    if deleted_mb > 0:
+        print(f"  [cleanup] Removed {deleted_mb:.0f} MB of ONNX weight files from {export_dir.name}")
 
 
 def _print_hw_debug(exec_info, args):
@@ -226,6 +248,7 @@ def main():
             compile_dir=args.output_dir,
         )
         print(f"  Compiled : {qpc_path}")
+        _cleanup_onnx(qpc_path)
         exec_info = model.generate(
             tokenizer=tokenizer,
             prompts=[args.prompt],
@@ -289,6 +312,7 @@ def main():
         compile_dir=args.output_dir,
     )
     print(f"  Compiled : {qpc_path_blocked}")
+    _cleanup_onnx(qpc_path_blocked)
 
     exec_info_blocked = model_blocked.generate(
         tokenizer=tokenizer,

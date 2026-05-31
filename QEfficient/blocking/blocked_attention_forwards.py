@@ -164,6 +164,9 @@ def blocked_kv_attention_forward(
     # Dynamic runtime tensor — shape [1] float32 — instead of a baked Python float.
     # None disables skip-softmax entirely for this forward call.
     skip_softmax_scale_factor: Optional[torch.Tensor] = None,
+    # When False (production), skip_blocks are not computed → no dead ONNX Stack nodes
+    # that cause compiler failures for certain num_kv_blocks values.
+    collect_debug: bool = False,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor], torch.Tensor, torch.Tensor]:
     # Initialize result tensor
@@ -224,10 +227,8 @@ def blocked_kv_attention_forward(
         )
         log_threshold = log_thresh_f32.to(dtype=query.dtype)
 
-    # Debug: collect per-block skip decisions (1.0 = skipped, 0.0 = computed).
-    # In ONNX mode the loop always completes num_kv_blocks iterations (no break/continue),
-    # so this list is always exactly num_kv_blocks long after the loop.
-    skip_blocks_list = []
+    # Collect skip decisions only when debug is active (avoids dead ONNX nodes).
+    skip_blocks_list = [] if collect_debug else None
 
     for j in range(num_kv_blocks):
         start_index = j * kv_block_size
@@ -301,7 +302,7 @@ def blocked_kv_attention_forward(
             # false branch (exp / rowsum / BMM2 / V load) at dispatch time.
             skip_block = (block_max - current_max < log_threshold).all()
             # Debug: record skip decision before any early-exit (1.0=skipped, 0.0=computed).
-            skip_blocks_list.append(skip_block.float())
+            if collect_debug and skip_blocks_list is not None: skip_blocks_list.append(skip_block.float())
             # Eager mode: physically skip the V load and BMM2 entirely.
             if not torch.onnx.is_in_onnx_export() and not torch.jit.is_tracing():
                 if skip_block.item():
@@ -311,7 +312,7 @@ def blocked_kv_attention_forward(
             skip_future = skip_block if skip_future is None \
                 else (skip_block | skip_future)
         else:
-            skip_blocks_list.append(torch.zeros([], dtype=torch.float32, device=query.device))
+            if collect_debug and skip_blocks_list is not None: skip_blocks_list.append(torch.zeros([], dtype=torch.float32, device=query.device))
 
         # ── Phase 2: V load + running-softmax update (BMM2) ────────────
         v_block = past_key_value.read_only_blockedV(start_index, end_index, layer_idx, cache_kwargs)
@@ -345,13 +346,15 @@ def blocked_kv_attention_forward(
     attn_output = output.transpose(1, 2).contiguous()
     attn_weights = None
 
-    # Pad with zeros for any KV blocks skipped early by skip_kv (eager break path).
-    # In ONNX mode this padding never fires — the list is already full.
-    while len(skip_blocks_list) < num_kv_blocks:
-        skip_blocks_list.append(torch.zeros([], dtype=torch.float32, device=query.device))
-    skip_blocks = torch.stack(skip_blocks_list)  # [num_kv_blocks]
-    log_thresh_out = log_threshold.float() if log_threshold is not None \
-        else torch.zeros(1, dtype=torch.float32, device=query.device)
+    if collect_debug and skip_blocks_list is not None:
+        while len(skip_blocks_list) < num_kv_blocks:
+            skip_blocks_list.append(torch.zeros([], dtype=torch.float32, device=query.device))
+        skip_blocks = torch.stack(skip_blocks_list)  # [num_kv_blocks]
+        log_thresh_out = log_threshold.float() if log_threshold is not None \
+            else torch.zeros(1, dtype=torch.float32, device=query.device)
+    else:
+        skip_blocks = None
+        log_thresh_out = None
 
     return attn_output, attn_weights, log_thresh_out, skip_blocks
 
@@ -377,6 +380,9 @@ def blocked_qkv_attention_forward(
     # Dynamic runtime tensor — shape [1] float32 — instead of a baked Python float.
     # None disables skip-softmax entirely for this forward call.
     skip_softmax_scale_factor: Optional[torch.Tensor] = None,
+    # When False (production), skip_blocks are not computed → no dead ONNX Stack nodes
+    # that cause compiler failures for certain num_kv_blocks values.
+    collect_debug: bool = False,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor], torch.Tensor, torch.Tensor]:
     # Initialize Running Maximum and Denominator
@@ -555,6 +561,9 @@ def blocked_hqkv_attention_forward(
     # Dynamic runtime tensor — shape [1] float32 — instead of a baked Python float.
     # None disables skip-softmax entirely for this forward call.
     skip_softmax_scale_factor: Optional[torch.Tensor] = None,
+    # When False (production), skip_blocks are not computed → no dead ONNX Stack nodes
+    # that cause compiler failures for certain num_kv_blocks values.
+    collect_debug: bool = False,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor], torch.Tensor, torch.Tensor]:
     # Initialize Running Maximum and Denominator
@@ -758,6 +767,9 @@ def blocked_bhqkv_attention_forward(
     # Dynamic runtime tensor — shape [1] float32 — instead of a baked Python float.
     # None disables skip-softmax entirely for this forward call.
     skip_softmax_scale_factor: Optional[torch.Tensor] = None,
+    # When False (production), skip_blocks are not computed → no dead ONNX Stack nodes
+    # that cause compiler failures for certain num_kv_blocks values.
+    collect_debug: bool = False,
     **kwargs,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor], torch.Tensor, torch.Tensor]:
     # Initialize Running Maximum and Denominator
@@ -851,8 +863,8 @@ def blocked_bhqkv_attention_forward(
                     (batch_len, h_end - h_start, q_len_block, DH), device=query.device, dtype=query.dtype
                 )
 
-                # Debug: collect per-block skip decisions (1.0=skipped, 0.0=computed).
-                skip_blocks_list = []
+                # Collect skip decisions only when debug is active (avoids dead ONNX nodes).
+                skip_blocks_list = [] if collect_debug else None
 
                 for j in range(num_kv_blocks):
                     start_index = j * kv_block_size
@@ -919,14 +931,14 @@ def blocked_bhqkv_attention_forward(
                     if log_threshold is not None:
                         skip_block = (block_max - current_max < log_threshold).all()
                         # Debug: record before any early-exit (1.0=skipped, 0.0=computed).
-                        skip_blocks_list.append(skip_block.float())
+                        if collect_debug and skip_blocks_list is not None: skip_blocks_list.append(skip_block.float())
                         if not torch.onnx.is_in_onnx_export() and not torch.jit.is_tracing():
                             if skip_block.item():
                                 continue
                         skip_future = skip_block if skip_future is None \
                             else (skip_block | skip_future)
                     else:
-                        skip_blocks_list.append(torch.zeros([], dtype=torch.float32, device=query.device))
+                        if collect_debug and skip_blocks_list is not None: skip_blocks_list.append(torch.zeros([], dtype=torch.float32, device=query.device))
 
                     # ── Phase 2: V load + running-softmax update (BMM2) ────────────
                     v_block = past_key_value.read_only_blockedV(
@@ -966,12 +978,16 @@ def blocked_bhqkv_attention_forward(
     attn_output = torch.cat(h_output_blocks, dim=1).transpose(1, 2).contiguous()
     attn_weights = torch.cat(h_attn_blocks, dim=1)
 
-    # Pad for any skip_kv early breaks (eager only); no-op in ONNX mode.
-    while len(skip_blocks_list) < num_kv_blocks:
-        skip_blocks_list.append(torch.zeros([], dtype=torch.float32, device=query.device))
-    skip_blocks = torch.stack(skip_blocks_list)  # [num_kv_blocks]
-    log_thresh_out = log_threshold.float() if log_threshold is not None \
-        else torch.zeros(1, dtype=torch.float32, device=query.device)
+    # Build debug tensors only when collect_debug=True.
+    if collect_debug and skip_blocks_list is not None:
+        while len(skip_blocks_list) < num_kv_blocks:
+            if collect_debug and skip_blocks_list is not None: skip_blocks_list.append(torch.zeros([], dtype=torch.float32, device=query.device))
+        skip_blocks = torch.stack(skip_blocks_list)  # [num_kv_blocks]
+        log_thresh_out = log_threshold.float() if log_threshold is not None \
+            else torch.zeros(1, dtype=torch.float32, device=query.device)
+    else:
+        skip_blocks = None
+        log_thresh_out = None
 
     return attn_output, attn_weights, log_thresh_out, skip_blocks
 

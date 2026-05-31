@@ -241,6 +241,10 @@ def generic_blocked_attention_interface(
         position_bias=position_bias,
         sinks=sinks,
         skip_softmax_scale_factor=skip_softmax_scale_factor,
+        # Only collect skip_blocks when debug mode is active.
+        # Without this gate the dead Stack nodes in the ONNX cause compiler
+        # failures (Invalid index) for certain num_kv_blocks values.
+        collect_debug=getattr(module, "_debug_output", False),
     )
 
     return attn_output, attn_weights, log_thresh_out, skip_blocks

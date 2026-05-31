@@ -360,7 +360,8 @@ class QEffQwen3Model(Qwen3Model):
                 skip_softmax_scale_factor_prefill=skip_softmax_scale_factor_prefill,
                 skip_softmax_scale_factor_decode=skip_softmax_scale_factor_decode,
             )
-            _skip_blocks_per_layer.append(_skip_blocks_layer)
+            if _skip_blocks_layer is not None:
+                _skip_blocks_per_layer.append(_skip_blocks_layer)
 
         hidden_states = self.norm(hidden_states)
 
