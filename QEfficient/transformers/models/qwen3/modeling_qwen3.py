@@ -151,7 +151,7 @@ class QEffQwen3Attention(Qwen3Attention):
         blocking_config = getattr(self, "attn_blocking_config", AttentionBlockingConfig())
         use_blocking = blocking_config is not None and (blocking_config.mode != BlockingMode.NONE)
         if use_blocking:
-            attn_output, attn_weights = generic_blocked_attention_interface(
+            attn_output, attn_weights, log_thresh_out, skip_blocks = generic_blocked_attention_interface(
                 module=self,
                 query=query_states,
                 key=key_states,
@@ -189,10 +189,14 @@ class QEffQwen3Attention(Qwen3Attention):
                 scaling=self.scaling,
                 **kwargs,
             )
+            # Debug tensors are zeros when not using blocking (skip-softmax inactive).
+            num_kv_blocks = getattr(blocking_config, "num_kv_blocks", None) or 1
+            log_thresh_out = torch.zeros(1, dtype=torch.float32, device=query_states.device)
+            skip_blocks = torch.zeros(num_kv_blocks, dtype=torch.float32, device=query_states.device)
 
         attn_output = attn_output.reshape(*input_shape, -1).contiguous()
         attn_output = self.o_proj(attn_output)
-        return attn_output, attn_weights
+        return attn_output, attn_weights, log_thresh_out, skip_blocks
 
 
 class QEffQwen3DecoderLayer(Qwen3DecoderLayer):
@@ -238,7 +242,7 @@ class QEffQwen3DecoderLayer(Qwen3DecoderLayer):
         hidden_states = self.input_layernorm(hidden_states)
 
         # Self Attention
-        hidden_states, _ = self.self_attn(
+        hidden_states, _, log_thresh_out, skip_blocks = self.self_attn(
             hidden_states=hidden_states,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -259,7 +263,8 @@ class QEffQwen3DecoderLayer(Qwen3DecoderLayer):
         hidden_states = self.mlp(hidden_states)
         hidden_states = residual + hidden_states
 
-        return hidden_states
+        # Pass debug tensors up so QEffQwen3Model can aggregate them across layers.
+        return hidden_states, log_thresh_out, skip_blocks
 
 
 class QEffQwen3Model(Qwen3Model):
@@ -330,11 +335,17 @@ class QEffQwen3Model(Qwen3Model):
         sin = self.sin_cached[position_ids].unsqueeze(1)
         cos = self.cos_cached[position_ids].unsqueeze(1)
 
+        # Debug: accumulate per-layer log_threshold and skip_blocks.
+        # log_threshold is identical across all layers; we keep the last value.
+        # skip_blocks_per_layer is stacked after the loop → [num_layers, num_kv_blocks].
+        _log_thresh_out = None
+        _skip_blocks_per_layer = []
+
         for decoder_layer in self.layers:
             if output_hidden_states:
                 all_hidden_states += (hidden_states,)
 
-            hidden_states = decoder_layer(
+            hidden_states, _log_thresh_out, _skip_blocks_layer = decoder_layer(
                 hidden_states,
                 attention_mask=causal_mask,
                 position_ids=position_ids,
@@ -349,6 +360,7 @@ class QEffQwen3Model(Qwen3Model):
                 skip_softmax_scale_factor_prefill=skip_softmax_scale_factor_prefill,
                 skip_softmax_scale_factor_decode=skip_softmax_scale_factor_decode,
             )
+            _skip_blocks_per_layer.append(_skip_blocks_layer)
 
         hidden_states = self.norm(hidden_states)
 
@@ -359,11 +371,16 @@ class QEffQwen3Model(Qwen3Model):
         if return_legacy_cache:
             past_key_values = past_key_values.to_legacy_cache()
 
+        # Stack per-layer skip_blocks → [num_layers, num_kv_blocks] for debug output.
+        _all_skip_blocks = torch.stack(_skip_blocks_per_layer) if _skip_blocks_per_layer else None
+        _log_thresh_out = _log_thresh_out if _log_thresh_out is not None \
+            else torch.zeros(1, dtype=torch.float32, device=hidden_states.device)
+
         return BaseModelOutputWithPast(
             last_hidden_state=hidden_states,
             past_key_values=past_key_values if use_cache else None,
             hidden_states=all_hidden_states,
-        )
+        ), _log_thresh_out, _all_skip_blocks
 
 
 class QEffQwen3ForCausalLM(Qwen3ForCausalLM):
@@ -410,7 +427,7 @@ class QEffQwen3ForCausalLM(Qwen3ForCausalLM):
         )
 
         # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
-        outputs = self.model(
+        outputs, _log_thresh_out, _all_skip_blocks = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -429,10 +446,20 @@ class QEffQwen3ForCausalLM(Qwen3ForCausalLM):
         hidden_states = outputs.last_hidden_state[torch.arange(position_ids.shape[0]).view(-1, 1), logit_index]
         logits = self.lm_head(hidden_states).float()
 
+        # ── Debug outputs ────────────────────────────────────────────────────
+        # When qaic_config["debug_output"] = True, surface log_threshold and
+        # skip_blocks via the `attentions` field (currently always None in the
+        # blocked-attention path).  The ONNX exporter flattens non-None attentions
+        # into the output list, so `output_names` can assign "log_threshold" and
+        # "skip_blocks" to these two additional ONNX outputs.
+        attentions = None
+        if getattr(self, "_debug_output", False) and _all_skip_blocks is not None:
+            attentions = (_log_thresh_out.reshape(1), _all_skip_blocks)
+
         return CausalLMOutputWithPast(
             loss=None,
             logits=logits,
             past_key_values=outputs.past_key_values,
             hidden_states=outputs.hidden_states,
-            attentions=outputs.attentions,
+            attentions=attentions,
         )

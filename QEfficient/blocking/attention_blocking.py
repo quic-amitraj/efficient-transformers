@@ -223,7 +223,7 @@ def generic_blocked_attention_interface(
             else None
         )
 
-    attn_output, attn_weights = strategy(
+    attn_output, attn_weights, log_thresh_out, skip_blocks = strategy(
         module=module,
         query=query,
         key=key,
@@ -243,7 +243,7 @@ def generic_blocked_attention_interface(
         skip_softmax_scale_factor=skip_softmax_scale_factor,
     )
 
-    return attn_output, attn_weights
+    return attn_output, attn_weights, log_thresh_out, skip_blocks
 
 
 def generic_blocked_mla_attention_interface(

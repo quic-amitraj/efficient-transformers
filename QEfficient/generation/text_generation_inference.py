@@ -57,6 +57,11 @@ class CloudAI100ExecInfo:
     generated_texts: Union[List[str], List[List[str]]]
     generated_ids: Union[List[np.ndarray], np.ndarray]
     perf_metrics: PerfMetrics
+    # ── Skip-softmax debug outputs ───────────────────────────────────────────
+    # Populated per decode step when qaic_config["debug_output"] = True.
+    # None when not compiled with debug_output (no overhead in production).
+    log_threshold_history: Optional[np.ndarray] = None  # shape [num_decode_steps]
+    skip_blocks_history: Optional[np.ndarray] = None    # shape [num_decode_steps, num_layers, num_kv_blocks]
 
     def __repr__(self):
         return f"Average Prefill time a.k.a TTFT is= {round(self.perf_metrics.prefill_time, 2)} sec\
@@ -417,11 +422,18 @@ def cloud_ai_100_exec_kv(
             generated_texts = [info.generated_texts for info in exec_info]
             generated_ids = [info.generated_ids for info in exec_info]
 
+            # Carry debug histories through from the per-batch results.
+            # For single-prompt runs (the common debug case) this is exec_info[0].
+            # For multi-batch runs we stack along the step axis.
+            _lth_list = [i.log_threshold_history for i in exec_info if i.log_threshold_history is not None]
+            _skb_list = [i.skip_blocks_history    for i in exec_info if i.skip_blocks_history    is not None]
             exec_info = CloudAI100ExecInfo(
                 batch_size=batch_size,
                 generated_texts=generated_texts,
                 generated_ids=generated_ids,
                 perf_metrics=PerfMetrics(prefill_time, decode_perf, total_perf, total_time),
+                log_threshold_history=np.concatenate(_lth_list, axis=0) if _lth_list else None,
+                skip_blocks_history=np.concatenate(_skb_list, axis=0) if _skb_list else None,
             )
         else:
             exec_info = generate_text.generate(
@@ -1009,6 +1021,11 @@ class QEffTextGenerationBase:
         finished_sequences = decode_inputs["input_ids"] == self.tokenizer.eos_token_id
         num_token = 0
 
+        # Reset debug history for this decode run (per-step HW values).
+        # These remain empty lists when not compiled with debug_output=True.
+        self._log_threshold_history = []
+        self._skip_blocks_history = []
+
         if self.comp_ctx_lengths_decode is not None:
             ccl_id, max_ccl_id = self.initialize_ccl(decode_inputs)
             decode_inputs["comp_ctx_lengths"] = self.list_of_comp_ctx_lengths_decode[ccl_id]
@@ -1023,6 +1040,14 @@ class QEffTextGenerationBase:
             if streamer:
                 streamer.put(decode_inputs["input_ids"][0])
             outputs = self._session.run(decode_inputs)
+
+            # Capture debug tensors from hardware when compiled with debug_output=True.
+            # session.run() returns ALL ONNX outputs; these are pre-allocated by the
+            # Qualcomm runtime from QPC binding info and are never in the skip list.
+            if "log_threshold" in outputs:
+                self._log_threshold_history.append(outputs["log_threshold"].copy())
+            if "skip_blocks" in outputs:
+                self._skip_blocks_history.append(outputs["skip_blocks"].copy())
 
             if self._write_io_dir is not None:
                 write_io_files(decode_inputs, outputs, self._write_io_dir, "decode", "aic_batch_io", True, False)
@@ -1325,5 +1350,16 @@ class TextGeneration:
             generated_texts=generated_texts,
             generated_ids=self._qaic_model.generated_ids,
             perf_metrics=perf_metrics,
+            # Stack per-step lists → arrays; None when debug_output was not enabled.
+            log_threshold_history=(
+                np.stack(self._qaic_model._log_threshold_history)
+                if getattr(self._qaic_model, "_log_threshold_history", None)
+                else None
+            ),
+            skip_blocks_history=(
+                np.stack(self._qaic_model._skip_blocks_history)
+                if getattr(self._qaic_model, "_skip_blocks_history", None)
+                else None
+            ),
         )
         return latency_stats

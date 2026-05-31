@@ -13,24 +13,81 @@ Examples
 python blocked_attention_inference.py --device-group 0,1,2,3
 
 # Blocking + skip softmax, ~50% sparsity, separate prefill/decode thresholds
-python blocked_attention_inference.py \
-    --device-group 0,1,2,3 \
-    --skip-softmax-scale-factor-prefill 587 \
+python blocked_attention_inference.py \\
+    --device-group 0,1,2,3 \\
+    --skip-softmax-scale-factor-prefill 587 \\
     --skip-softmax-scale-factor-decode 16.5
 
+# Debug mode: observe log_threshold + skip_blocks from Qualcomm AI 100 hardware
+python blocked_attention_inference.py \\
+    --device-group 0,1,2,3 \\
+    --skip-softmax-scale-factor-prefill 587 \\
+    --skip-softmax-scale-factor-decode 16.5 \\
+    --debug-output
+
 # Compare against non-blocking baseline as well
-python blocked_attention_inference.py \
-    --device-group 0,1,2,3 \
-    --skip-softmax-scale-factor-prefill 587 \
-    --skip-softmax-scale-factor-decode 16.5 \
+python blocked_attention_inference.py \\
+    --device-group 0,1,2,3 \\
+    --skip-softmax-scale-factor-prefill 587 \\
+    --skip-softmax-scale-factor-decode 16.5 \\
     --compare-non-blocking
 """
 
 import argparse
 
+import numpy as np
 from transformers import AutoTokenizer
 
 from QEfficient import QEFFAutoModelForCausalLM
+
+
+def _print_hw_debug(exec_info, args):
+    """
+    Print log_threshold and skip_blocks captured from Qualcomm AI 100 hardware
+    at every decode step during model.generate().
+
+    Shows three snapshots (first, mid, last decode step) plus an overall skip
+    rate summary so you can see how the threshold and block-skipping pattern
+    evolve as the KV cache fills up.
+    """
+    lth = exec_info.log_threshold_history   # np array [num_decode_steps]
+    skb = exec_info.skip_blocks_history     # np array [num_decode_steps, num_layers, num_kv_blocks]
+
+    if lth is None or skb is None:
+        print("  [debug] No HW debug outputs collected — was the model compiled with debug_output=True?")
+        return
+
+    num_steps  = len(lth)
+    num_layers = skb.shape[1]
+    num_blocks = skb.shape[2]
+    sf_decode  = args.skip_softmax_scale_factor_decode or args.skip_softmax_scale_factor or "?"
+
+    snapshot_steps = sorted({0, num_steps // 2, num_steps - 1})
+
+    print("\n" + "=" * 70)
+    print("  HW Debug: log_threshold + skip_blocks  (values from Qualcomm AI 100)")
+    print(f"  {num_steps} decode steps  |  layers={num_layers}  |  kv_blocks={num_blocks}  |  sf_decode={sf_decode}")
+    print("=" * 70)
+    print(f"  {'step':>6}  {'ctx_pos':>8}  {'log_thresh':>12}  {'skip_rate':>10}  skip_blocks (layer × block)")
+    print(f"  {'-'*6}  {'-'*8}  {'-'*12}  {'-'*10}  {'-'*40}")
+
+    for s in snapshot_steps:
+        thresh = float(lth[s].flat[0])
+        rate   = float(skb[s].mean())
+        # Each row = one layer, each col = one KV block (1.0 = skipped, 0.0 = computed)
+        matrix = "  ".join(
+            "[" + " ".join(f"{v:.0f}" for v in row) + "]"
+            for row in skb[s].tolist()
+        )
+        ctx_pos = args.prefill_seq_len + s
+        print(f"  {s:>6}  {ctx_pos:>8}  {thresh:>12.4f}  {rate:>9.0%}  {matrix}")
+
+    overall_skip = float(skb.mean())
+    print(f"\n  Overall skip rate across all steps × all layers × all blocks: {overall_skip:.1%}")
+    if overall_skip == 0.0:
+        print("  Note: 0% skip rate means the threshold is never met at this context depth.")
+        print(f"        Expected threshold = log({sf_decode} / ctx) — try longer ctx or higher sf_decode.")
+    print("=" * 70 + "\n")
 
 
 def main():
@@ -133,8 +190,20 @@ def main():
         type=float, default=None,
         help="Decode threshold scale factor. Overrides --skip-softmax-scale-factor for decode.",
     )
+    parser.add_argument(
+        "--debug-output", action="store_true",
+        help="Enable debug outputs (log_threshold + skip_blocks). Runs a short eager-mode "
+             "simulation before the hardware run to show how many blocks are skipped at "
+             "each decode step as context grows.",
+    )
 
     args = parser.parse_args()
+
+    # ── Log the full command so every tee'd log is self-contained ────────────
+    import sys, datetime
+    print(f"# Command  : {' '.join(sys.argv)}")
+    print(f"# Timestamp: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print()
 
     # Determine the actual number of layers to load.
     # -1 means full model: do not pass num_hidden_layers so the config default is used.
@@ -195,6 +264,12 @@ def main():
         or args.skip_softmax_scale_factor_prefill is not None
         or args.skip_softmax_scale_factor_decode is not None
     )
+
+    # Wire debug output flag — surfaces log_threshold + skip_blocks as model outputs.
+    # Only meaningful when skip_softmax is also active.
+    if args.debug_output and skip_active:
+        qaic_config["debug_output"] = True
+
     run_label = f"blocking/{args.blocking_mode}" + (" + skip-softmax" if skip_active else "")
 
     print("\n" + "=" * 60)
@@ -203,6 +278,7 @@ def main():
     print(f"  qaic_config : {qaic_config}")
 
     model_blocked = QEFFAutoModelForCausalLM.from_pretrained(args.model_name, **load_kwargs)
+
     qpc_path_blocked = model_blocked.compile(
         onnx_path=args.onnx_path,
         prefill_seq_len=args.prefill_seq_len,
@@ -220,6 +296,11 @@ def main():
         device_id=args.device_group,
         generation_len=args.generation_len,
     )
+
+    # ── Hardware debug output ─────────────────────────────────────────────────
+    # log_threshold and skip_blocks come directly from the Qualcomm AI 100 hardware.
+    if args.debug_output and skip_active:
+        _print_hw_debug(exec_info_blocked, args)
 
     print(f"\n  Prompt    : {args.prompt}")
     print(f"  Generated : {exec_info_blocked.generated_texts[0]}")

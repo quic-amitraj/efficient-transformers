@@ -2865,6 +2865,13 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
             if mla_absorption := qaic_config.get("mla_absorption", None):
                 self.hash_params["mla_absorption"] = mla_absorption
                 setattr(self.model, "mla_absorption", mla_absorption)
+            # ── Debug output flag ────────────────────────────────────────────
+            # When True, log_threshold and skip_blocks are added as ONNX outputs.
+            # Only active when skip_softmax is also enabled (see export()).
+            self.model._debug_output = qaic_config.get("debug_output", False)
+            # Include in hash so that enabling/disabling debug forces a fresh export.
+            if self.model._debug_output:
+                self.hash_params["debug_output"] = True
         self.comp_ctx_lengths_prefill, self.comp_ctx_lengths_decode = None, None
         self.hash_params["max_seq_len_cached"] = max_seq_len_cached
 
@@ -3265,6 +3272,20 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
                 vocab_size=self.model.config.vocab_size,
                 qaic_config=self.model.qaic_config,
             )
+
+        # ── Debug outputs: log_threshold + skip_blocks ───────────────────────
+        # Added only when BOTH conditions are true:
+        #   1. qaic_config["debug_output"] = True
+        #   2. skip_softmax is active (at least one scale factor set)
+        # Uses the attentions field in CausalLMOutputWithPast (otherwise always None).
+        _skip_active = _blocking is not None and any([
+            getattr(_blocking, "skip_softmax_scale_factor", None),
+            getattr(_blocking, "skip_softmax_scale_factor_prefill", None),
+            getattr(_blocking, "skip_softmax_scale_factor_decode", None),
+        ])
+        if _skip_active and getattr(self.model, "_debug_output", False):
+            output_names.append("log_threshold")   # shape [1]: threshold value this step
+            output_names.append("skip_blocks")      # shape [num_layers, num_kv_blocks]: 1.0=skipped
 
         return self._export(
             example_inputs,

@@ -474,6 +474,12 @@ class QEFFBaseModel(ABC):
             self.model, _ = BlockingAttentionTransform.apply(self.model, attn_blocking_config=blocking_config)
             self.hash_params["blocking_kwargs"] = blocking_config
 
+        # Propagate debug_output from qaic_config so export() picks it up even
+        # when qaic_config is only passed to compile() (not from_pretrained()).
+        if qaic_config and qaic_config.get("debug_output", False):
+            self.model._debug_output = True
+            self.hash_params["debug_output"] = True
+
     @dump_qconfig
     def _compile(
         self,
