@@ -339,6 +339,9 @@ def cloud_ai_100_exec_kv(
     return_pdfs: bool = False,
     include_guided_decoding: bool = False,
     sampling_params: Optional[Dict[str, Any]] = None,
+    # Pre-seeded skip_softmax scale factors — passed to the session so hardware
+    # receives calibrated threshold values at every decode step.
+    skip_softmax_inputs: Optional[Dict[str, float]] = None,
 ):
     """
     This method generates output until ``eos`` or ``generation_len`` by executing the compiled ``qpc`` on ``Cloud AI 100`` Hardware cards.
@@ -407,6 +410,7 @@ def cloud_ai_100_exec_kv(
         return_pdfs=return_pdfs,
         include_guided_decoding=include_guided_decoding,
         sampling_params=sampling_params,
+        skip_softmax_inputs=skip_softmax_inputs,
     )
 
     for _ in range(0, int(iteration)):
@@ -464,6 +468,7 @@ class QEffTextGenerationBase:
         include_guided_decoding: bool = False,
         sampling_params: Optional[Dict[str, Any]] = None,
         activate: bool = True,
+        skip_softmax_inputs: Optional[Dict[str, float]] = None,
     ) -> None:
         self._ctx_len = ctx_len
         self.comp_ctx_lengths_prefill = comp_ctx_lengths_prefill
@@ -520,6 +525,52 @@ class QEffTextGenerationBase:
         self._session.skip_buffers(
             [x for x in self._session.input_names + self._session.output_names if x.startswith("k_pe")]
         )
+
+        # Pre-seed skip_softmax scale factor buffers once so they persist for
+        # all session.run() calls (run() only updates keys in decode_inputs).
+        if skip_softmax_inputs:
+            self._seed_scale_factor_buffers(skip_softmax_inputs)
+
+    def _seed_scale_factor_buffers(self, skip_softmax_inputs: Dict[str, float]) -> None:
+        """
+        Pre-set the skip_softmax scale factor buffer on the session.
+
+        We look for the scale-factor input by name first; if the Qualcomm compiler
+        has renamed it (e.g. `skip_softmax_scale_factor_prefill` → `onnx::Squeeze_N`
+        after optimising the Squeeze node), we fall back to finding any float32
+        shape=[1] input that is not a standard model input.
+        """
+        import numpy as np
+        sf_decode = skip_softmax_inputs.get("skip_softmax_scale_factor_decode")
+        if sf_decode is None:
+            return
+
+        # ── Try the named input first ─────────────────────────────────────
+        if "skip_softmax_scale_factor_prefill" in self._session.input_names:
+            self._session.set_buffers({
+                "skip_softmax_scale_factor_prefill": np.array([sf_decode], dtype=np.float32)
+            })
+            logger.info(f"Pre-seeded skip_softmax_scale_factor_prefill = {sf_decode}")
+            return
+
+        # ── Fallback: compiler may have renamed the input ─────────────────
+        # Find any float32 shape=[1] input that is not a standard model tensor.
+        _standard = {
+            "input_ids", "position_ids", "batch_index", "comp_ctx_lengths",
+            "skip_softmax_scale_factor_prefill", "skip_softmax_scale_factor_decode",
+        }
+        for inp_name in self._session.input_names:
+            if inp_name in _standard or inp_name.startswith("past_"):
+                continue
+            idx = self._session.binding_index_map.get(inp_name)
+            if idx is None:
+                continue
+            b = self._session.bindings[idx]
+            if (self._session.aic_to_np_dtype_mapping.get(b.type) == np.float32
+                    and list(b.dims) == [1]):
+                self._session.set_buffers({inp_name: np.array([sf_decode], dtype=np.float32)})
+                logger.info(f"Pre-seeded scale factor buffer '{inp_name}' = {sf_decode}")
+                return
 
     def _set_tokenizer_params(self):
         """
@@ -864,6 +915,12 @@ class QEffTextGenerationBase:
 
             outputs = self._session.run(chunk_inputs)
 
+            # Capture prefill debug tensors (single shot — one prefill call total).
+            if "log_threshold" in outputs:
+                self._prefill_log_threshold = outputs["log_threshold"].copy()
+            if "skip_blocks" in outputs:
+                self._prefill_skip_blocks = outputs["skip_blocks"].copy()
+
             if self._write_io_dir is not None:
                 write_io_files(inputs, outputs, self._write_io_dir, "prefill", "aic_batch_io", True, False)
         return (
@@ -1025,6 +1082,9 @@ class QEffTextGenerationBase:
         # These remain empty lists when not compiled with debug_output=True.
         self._log_threshold_history = []
         self._skip_blocks_history = []
+        # Prefill debug values are populated by run_prefill(); reset for safety.
+        self._prefill_log_threshold = getattr(self, "_prefill_log_threshold", None)
+        self._prefill_skip_blocks   = getattr(self, "_prefill_skip_blocks",   None)
 
         if self.comp_ctx_lengths_decode is not None:
             ccl_id, max_ccl_id = self.initialize_ccl(decode_inputs)
@@ -1116,6 +1176,7 @@ class TextGeneration:
         return_pdfs: bool = False,
         include_guided_decoding: bool = False,
         sampling_params: Optional[Dict[str, Any]] = None,
+        skip_softmax_inputs: Optional[Dict[str, float]] = None,
     ) -> None:
         self._qaic_model = QEffTextGenerationBase(
             tokenizer=tokenizer,
@@ -1132,6 +1193,7 @@ class TextGeneration:
             return_pdfs=return_pdfs,
             include_guided_decoding=include_guided_decoding,
             sampling_params=sampling_params,
+            skip_softmax_inputs=skip_softmax_inputs,
         )
         self._full_batch_size = self._qaic_model.full_batch_size
         self._tokenizer = self._qaic_model.tokenizer

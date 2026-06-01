@@ -479,6 +479,11 @@ class QEFFBaseModel(ABC):
         if qaic_config and qaic_config.get("debug_output", False):
             self.model._debug_output = True
             self.hash_params["debug_output"] = True
+            # Also set on every attention module so generic_blocked_attention_interface
+            # sees _debug_output=True when it calls getattr(module, "_debug_output", False).
+            for m in self.model.modules():
+                if hasattr(m, "attn_blocking_config"):
+                    m._debug_output = True
 
     @dump_qconfig
     def _compile(

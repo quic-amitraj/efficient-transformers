@@ -3144,13 +3144,11 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
             example_inputs["comp_ctx_lengths"] = torch.randint(0, 127, (512,), dtype=torch.int8)
             dynamic_axes["comp_ctx_lengths"] = {0: "comp_ctx_lengths"}
 
-        # ── Dynamic skip-softmax inputs ───────────────────────────────────────
-        # When the model was compiled with skip-softmax enabled, add both scale-
-        # factor tensors as real ONNX inputs so they can be varied at inference
-        # time without recompiling.  Shape [1] is fixed — no dynamic axis needed.
-        # Read from hash_params["blocking_kwargs"] (AttentionBlockingConfig set by
-        # transform()) instead of qaic_config, because compile() may pass qaic_config
-        # directly without it being stored on self.model.qaic_config.
+        # ── Dynamic skip-softmax input ────────────────────────────────────────
+        # Single tensor input: skip_softmax_scale_factor_prefill carries the
+        # pre-selected scale factor value.  The session seeds it with the correct
+        # decode (or prefill) value before each step — no Where/shape_as_tensor
+        # needed in the ONNX, eliminating the hardware branch-selection bug.
         _blocking = self.hash_params.get("blocking_kwargs")
         if _blocking is not None and any([
             getattr(_blocking, "skip_softmax_scale_factor", None) is not None,
@@ -3158,7 +3156,8 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
             getattr(_blocking, "skip_softmax_scale_factor_decode", None) is not None,
         ]):
             example_inputs["skip_softmax_scale_factor_prefill"] = torch.ones(1, dtype=torch.float32)
-            example_inputs["skip_softmax_scale_factor_decode"]  = torch.ones(1, dtype=torch.float32)
+            # skip_softmax_scale_factor_decode is no longer a separate ONNX input;
+            # the single prefill tensor carries the caller-selected value.
 
         if len(kv_cache_shape) == 3:  # For GPTBigCode arch the pkv is 3d
             pkv_dynamic_axes = {
@@ -3755,6 +3754,15 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
             if not isinstance(self.qpc_path, Path):
                 raise TypeError("Please run compile API first!")
             generation_len = kwargs.pop("generation_len", None)
+            # Extract skip_softmax scale factors from qaic_config so the hardware
+            # session receives the calibrated threshold values at every decode step.
+            _qcfg = getattr(self.model, "qaic_config", None) or {}
+            _skip_sf = {
+                k: float(_qcfg[k])
+                for k in ("skip_softmax_scale_factor_prefill",
+                          "skip_softmax_scale_factor_decode")
+                if _qcfg.get(k) is not None
+            }
             return QEfficient.cloud_ai_100_exec_kv(
                 tokenizer=tokenizer,
                 qpc_path=self.qpc_path,
@@ -3767,6 +3775,7 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
                 iteration=kwargs.pop("iteration", 1),
                 is_tlm=self.is_tlm,
                 write_io_dir=self._write_io_dir,
+                skip_softmax_inputs=_skip_sf if _skip_sf else None,
                 **kwargs,
             )
         else:
