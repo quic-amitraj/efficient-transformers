@@ -113,6 +113,7 @@ jobs:
 
           echo "doc_version=${DOC_VERSION}" >> "${GITHUB_OUTPUT}"
           echo "update_latest=${UPDATE_LATEST}" >> "${GITHUB_OUTPUT}"
+          echo "build_release_branches=${BUILD_RELEASE_BRANCHES}" >> "${GITHUB_OUTPUT}"
           echo "site_base=${SITE_BASE}" >> "${GITHUB_OUTPUT}"
           echo "available_versions=${AVAILABLE_VERSIONS_CSV}" >> "${GITHUB_OUTPUT}"
           {
@@ -143,6 +144,7 @@ jobs:
         env:
           DOC_VERSION: ${{ steps.meta.outputs.doc_version }}
           UPDATE_LATEST: ${{ steps.meta.outputs.update_latest }}
+          BUILD_RELEASE_BRANCHES: ${{ steps.meta.outputs.build_release_branches }}
           SITE_BASE: ${{ steps.meta.outputs.site_base }}
           AVAILABLE_VERSIONS: ${{ steps.meta.outputs.available_versions }}
           RELEASE_PAIRS: ${{ steps.meta.outputs.release_pairs }}
@@ -163,7 +165,7 @@ jobs:
           fi
 
           # Mainline pushes also refresh release/* branches so all published versions stay in sync.
-          if [[ "${UPDATE_LATEST}" == "true" && -n "${RELEASE_PAIRS}" ]]; then
+          if [[ "${BUILD_RELEASE_BRANCHES}" == "true" && -n "${RELEASE_PAIRS}" ]]; then
             while IFS=: read -r release_version release_ref; do
               [[ -n "${release_version}" && -n "${release_ref}" ]] || continue
               echo "Building docs for ${release_ref} -> versions/${release_version}"
