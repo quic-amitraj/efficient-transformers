@@ -48,6 +48,10 @@ jobs:
             DOC_VERSION="main"
             UPDATE_LATEST="true"
             BUILD_RELEASE_BRANCHES="true"
+          elif [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            DOC_VERSION="${GITHUB_REF_NAME//\//-}"
+            UPDATE_LATEST="false"
+            BUILD_RELEASE_BRANCHES="true"
           elif [[ "${GITHUB_REF_NAME}" == release/* ]]; then
             DOC_VERSION="${GITHUB_REF_NAME//\//-}"
             UPDATE_LATEST="false"
