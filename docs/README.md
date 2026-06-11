@@ -26,3 +26,9 @@ cd build/html
 python -m http.server
 ```
 You can visit the page with your web browser with url `http://localhost:8080`.
+
+## CI/CD automation
+
+- PRs run `.github/workflows/docs-check.yml` to validate docs build.
+- Pushes to `main` run `.github/workflows/docs-deploy.yml` and publish latest docs to `gh-pages` root.
+- Pushes of tags matching `v*` publish a version snapshot at `versions/<tag>/` on `gh-pages`.

@@ -29,7 +29,7 @@ project = "efficient-transformers"
 copyright = "2025, Qualcomm"
 
 # The full version, including alpha/beta/rc tags
-release = "main"
+release = os.getenv("DOC_VERSION", "main")
 
 
 # -- General configuration ---------------------------------------------------
@@ -73,6 +73,11 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 # source = [".md"] # This line was commented out/incorrect syntax for source_suffix
 todo_include_todos = True
+html_context = {
+    "doc_version": release,
+    "versions_index_url": os.getenv("DOCS_VERSIONS_INDEX_URL", "versions/index.html"),
+    "latest_docs_url": os.getenv("DOCS_LATEST_URL", "./"),
+}
 
 suppress_warnings = [
     "ref.rst_pilog",  # Suppress warnings about excluded toctree entries

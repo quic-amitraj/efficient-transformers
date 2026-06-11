@@ -1,0 +1,158 @@
+name: Docs Deploy
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+
+      - name: Resolve doc metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            DOC_VERSION="${GITHUB_REF_NAME}"
+            UPDATE_LATEST="false"
+          else
+            DOC_VERSION="main"
+            UPDATE_LATEST="true"
+          fi
+
+          SITE_BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
+          echo "doc_version=${DOC_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "update_latest=${UPDATE_LATEST}" >> "${GITHUB_OUTPUT}"
+          echo "site_base=${SITE_BASE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install docs dependencies
+        run: pip install -r docs/requirements.txt
+
+      - name: Build docs
+        env:
+          DOC_VERSION: ${{ steps.meta.outputs.doc_version }}
+          DOCS_VERSIONS_INDEX_URL: ${{ steps.meta.outputs.site_base }}/versions/index.html
+          DOCS_LATEST_URL: ${{ steps.meta.outputs.site_base }}/
+        run: sphinx-build --keep-going -b html docs docs/build/html
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Publish docs to gh-pages
+        shell: bash
+        env:
+          DOC_VERSION: ${{ steps.meta.outputs.doc_version }}
+          UPDATE_LATEST: ${{ steps.meta.outputs.update_latest }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p "gh-pages/versions/${DOC_VERSION}"
+          rsync -a --delete docs/build/html/ "gh-pages/versions/${DOC_VERSION}/"
+
+          if [[ "${UPDATE_LATEST}" == "true" ]]; then
+            rsync -a --delete \
+              --exclude ".git/" \
+              --exclude "versions/" \
+              --exclude "source/release/" \
+              --exclude ".nojekyll" \
+              --exclude "CNAME" \
+              docs/build/html/ gh-pages/
+          fi
+
+          touch gh-pages/.nojekyll
+
+          python - <<'PY'
+          from html import escape
+          from pathlib import Path
+          import re
+
+          versions_dir = Path("gh-pages/versions")
+          versions_dir.mkdir(parents=True, exist_ok=True)
+
+          versions = [p.name for p in versions_dir.iterdir() if p.is_dir()]
+
+          def sort_key(version: str):
+              if version == "main":
+                  return (0, 0, 0, 0, "")
+              match = re.fullmatch(r"v?(\d+)(?:\.(\d+))?(?:\.(\d+))?([\-+].*)?", version)
+              if match:
+                  major = int(match.group(1))
+                  minor = int(match.group(2) or 0)
+                  patch = int(match.group(3) or 0)
+                  suffix = match.group(4) or ""
+                  return (1, -major, -minor, -patch, suffix)
+              return (2, 0, 0, 0, version)
+
+          versions = sorted(set(versions), key=sort_key)
+
+          links = "\n".join(
+              f'        <li><a href="{escape(version)}/index.html">{escape(version)}</a></li>'
+              for version in versions
+          )
+
+          html = f"""<!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>efficient-transformers docs versions</title>
+            <style>
+              body {{
+                margin: 2rem auto;
+                max-width: 760px;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+                line-height: 1.5;
+                padding: 0 1rem;
+              }}
+              h1 {{ margin-bottom: 0.25rem; }}
+              p {{ margin-top: 0; color: #555; }}
+            </style>
+          </head>
+          <body>
+            <h1>Documentation Versions</h1>
+            <p>Select a published version.</p>
+            <ul>
+          {links}
+            </ul>
+          </body>
+          </html>
+          """
+
+          (versions_dir / "index.html").write_text(html, encoding="utf-8")
+          PY
+
+          cd gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No documentation changes to publish."
+            exit 0
+          fi
+
+          git commit -m "docs: publish ${DOC_VERSION} (${GITHUB_SHA::7})"
+          git push origin gh-pages
