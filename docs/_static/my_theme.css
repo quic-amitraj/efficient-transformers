@@ -1,40 +1,44 @@
-/* Limit content width for better readability on very wide screens,
-   while allowing it to be larger than the default RTD theme. */
+:root {
+  --qeff-accent: #0a6cff;
+  --qeff-accent-dark: #074ab0;
+  --qeff-border: #d7deea;
+}
+
 .wy-nav-content {
-    max-width: 1200px !important;
+  max-width: 1080px;
 }
 
-/* Make Parameters, Returns, and Example sections align with page content */
-.wy-nav-content .rst-content .field-list,
-.wy-nav-content .rst-content .field-list .field-name,
-.wy-nav-content .rst-content .field-list .field-body,
-.wy-nav-content .rst-content .field-list p,
-.wy-nav-content .rst-content .field-list ul,
-.wy-nav-content .rst-content .field-list li {
-    margin-left: 0 !important;
-    padding-left: 0 !important;
-    max-width: 100% !important;
-    white-space: normal !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
+.wy-nav-content-wrap {
+  background: linear-gradient(180deg, #f7f9fc 0%, #ffffff 240px);
 }
 
-/* Make code blocks (examples) use full width and wrap if needed */
-.wy-nav-content .rst-content pre {
-    white-space: pre-wrap !important;
-    word-break: break-word !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
+a {
+  color: var(--qeff-accent);
 }
 
+a:hover {
+  color: var(--qeff-accent-dark);
+}
 
-/* Force table cells to wrap long text, overriding RTD theme */
-.rst-content table.docutils td,
-.rst-content table.docutils th,
-.wy-table-responsive table td,
-.wy-table-responsive table th,
-.docutils .list-table td,
-.docutils .list-table th {
-    white-space: normal !important;
-    word-break: break-word !important;
+.rst-content h1,
+.rst-content h2,
+.rst-content h3 {
+  letter-spacing: 0.01em;
+}
+
+.rst-content code.literal,
+.rst-content tt.literal {
+  border: 1px solid var(--qeff-border);
+  border-radius: 4px;
+  background: #f4f7fb;
+  padding: 0.1rem 0.3rem;
+}
+
+.rst-content pre.literal-block,
+.rst-content div[class^="highlight"] pre {
+  border-radius: 8px;
+}
+
+.rst-versions .rst-current-version {
+  background: #2a3040;
 }

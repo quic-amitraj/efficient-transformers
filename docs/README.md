@@ -1,36 +1,55 @@
 # Docs
 
-This directory contains the instructions for building static html documentations based on [sphinx](https://www.sphinx-doc.org/en/master/).
+This directory contains the Sphinx-based documentation system for efficient-transformers.
 
+## Documentation Architecture
 
-## Build the docs
-Install the packages required for building documentation:
+The docs are organized into two layers:
 
-```sh
- pip install -r docs/requirements.txt
-```
+1. **Primary docs (`docs/source/v2/`)**
+   - New information architecture for onboarding, concepts, guides, and operations.
+2. **Legacy docs (`docs/source/*.md|*.rst`)**
+   - Existing pages retained for compatibility and deep historical references.
 
-And then, change directory to docs folder to build the docs.
+The root toctree is defined in `docs/index.rst`.
 
-```sh
-cd docs/
-# To build docs specific to branch
-sphinx-build -M html . build
-# [Optional] To build docs for all the supporting branches
-sphinx-multiversion . build
-```
-## Preview the docs locally
- 
+## Local Build
+
+Install dependencies:
+
 ```bash
-cd build/html
-python -m http.server
+pip install -r docs/requirements.txt
 ```
-You can visit the page with your web browser with url `http://localhost:8080`.
 
-## CI/CD automation
+Build HTML:
 
-- PRs run `.github/workflows/docs-check.yml` to validate docs build.
-- Pushes to `main` run `.github/workflows/docs-deploy.yml`, publish latest docs to `gh-pages` root, and refresh all `release/*` branch docs under `versions/`.
-- Pushes to `release/*` publish/update that release docs snapshot under `versions/release-<version>/`.
-- Pushes of tags matching `v*` publish a version snapshot at `versions/<tag>/`.
-- `.github/workflows/docs-linkcheck.yml` runs link verification and publishes a broken-link report artifact.
+```bash
+make -C docs html
+```
+
+Run linkcheck:
+
+```bash
+make -C docs linkcheck
+```
+
+Preview locally:
+
+```bash
+make -C docs serve
+```
+
+## Environment Variables
+
+These are used by local builds and CI workflows:
+
+- `DOC_VERSION`
+- `DOCS_VERSIONS_INDEX_URL`
+- `DOCS_LATEST_URL`
+- `DOCS_AVAILABLE_VERSIONS`
+
+## CI/CD Automation
+
+- PRs run `.github/workflows/docs-check.yml`.
+- Pushes to `main`, `release/*`, and tags `v*` are handled by `.github/workflows/docs-deploy.yml`.
+- Link validation runs in `.github/workflows/docs-linkcheck.yml`.

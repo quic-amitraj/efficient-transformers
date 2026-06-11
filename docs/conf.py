@@ -5,18 +5,6 @@
 #
 # -----------------------------------------------------------------------------
 
-# Configuration file for the Sphinx documentation builder.
-#
-# This file only contains a selection of the most common options. For a full
-# list see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
-
-# -- Path setup --------------------------------------------------------------
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
 import os
 import re
 import sys
@@ -27,10 +15,10 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 
 project = "efficient-transformers"
+author = "Qualcomm"
 copyright = "2025, Qualcomm"
-
-# The full version, including alpha/beta/rc tags
 release = os.getenv("DOC_VERSION", "main")
+html_title = f"{project} ({release})"
 
 
 def _sort_versions(versions):
@@ -51,49 +39,63 @@ def _sort_versions(versions):
 
 # -- General configuration ---------------------------------------------------
 
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
 extensions = [
     "myst_parser",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
     "sphinx.ext.autodoc",
-    "sphinx_multiversion",
+    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
+    "sphinx_multiversion",
 ]
 
-# The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
-#
-source_suffix = [".rst", ".md"]  # This tells Sphinx to process both .rst and .md files
-
-# Add any paths that contain templates here, relative to this directory.
+source_suffix = [".rst", ".md"]
 templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "README.md"]
+language = "en"
 
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+    "fieldlist",
+    "substitution",
+]
+myst_heading_anchors = 3
+
+autosummary_generate = True
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": False,
+    "show-inheritance": False,
+}
+
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+}
 
 
-# -- Options for HTML output -------------------------------------------------
+# -- HTML output -------------------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
 html_theme = "sphinx_rtd_theme"
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-# source = [".md"] # This line was commented out/incorrect syntax for source_suffix
+html_theme_options = {
+    "collapse_navigation": False,
+    "navigation_depth": 4,
+    "sticky_navigation": True,
+    "style_external_links": True,
+}
+
 todo_include_todos = True
+
 available_versions = [v.strip() for v in os.getenv("DOCS_AVAILABLE_VERSIONS", "").split(",") if v.strip()]
 if release not in available_versions:
     available_versions.append(release)
 available_versions = _sort_versions(available_versions)
+
 html_context = {
     "doc_version": release,
     "available_versions": available_versions,
@@ -102,12 +104,16 @@ html_context = {
 }
 
 suppress_warnings = [
-    "ref.rst_pilog",  # Suppress warnings about excluded toctree entries
+    "ref.rst_pilog",
 ]
 
 # OpenCompute blocks automated bots and returns 403 to linkcheck,
 # so we keep the public URL but ignore it during CI link verification.
-linkcheck_ignore = [r"https://www\.opencompute\.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf"]
+linkcheck_ignore = [
+    r"https://www\.opencompute\.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf",
+]
+linkcheck_timeout = 10
+linkcheck_retries = 2
 
 
 def setup(app):
