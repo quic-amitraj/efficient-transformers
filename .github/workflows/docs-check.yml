@@ -1,0 +1,26 @@
+name: Docs Check
+
+on:
+  pull_request:
+
+jobs:
+  docs-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install docs dependencies
+        run: pip install -r docs/requirements.txt
+
+      - name: Build docs
+        env:
+          DOC_VERSION: pr-preview
+          DOCS_VERSIONS_INDEX_URL: versions/index.html
+          DOCS_LATEST_URL: ./
+        run: sphinx-build --keep-going -b html docs docs/build/html
