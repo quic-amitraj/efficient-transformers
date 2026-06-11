@@ -148,9 +148,9 @@
 <td><p>Optimizes inference by using different context lengths during prefill and decode phases, reducing memory footprint and computation for shorter sequences while maintaining support for longer contexts. Supports both text-only and vision-language models. Refer <a class="reference external" href="https://github.com/quic/efficient-transformers/blob/main/examples/performance/compute_context_length/basic_inference.py">sample script</a> for more <strong>details</strong>.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Sentence embedding, Flexible Pooling configuration and compilation with multiple sequence lengths</p></td>
-<td><p>Supports standard/custom pooling with AI 100 acceleration and sentence embedding. Enables efficient sentence embeddings via Efficient-Transformers. Compile with one or multiple seq_len; optimal graph auto-selected at runtime. Refer <a class="reference external" href="https://github.com/quic/efficient-transformers/blob/main/examples/embeddings/sentence_embeddings.py">sample script</a> for more <strong>details</strong>.</p></td>
+<td><p>Supports standard/custom pooling with AI 100 acceleration and sentence embedding. Enables efficient sentence embeddings via Efficient-Transformers. Compile with one or multiple seq_len; optimal graph auto-selected at runtime. Refer <a class="reference external" href="https://github.com/quic/efficient-transformers/blob/main/examples/embeddings/text_embeddings.py">sample script</a> for more <strong>details</strong>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://quic.github.io/efficient-transformers/source/quick_start.html#draft-based-speculative-decoding">SpD, multiprojection heads</a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="features_enablement.html#id-draft-based-speculative-decoding"><span class="std std-ref">SpD, multiprojection heads</span></a></p></td>
 <td><p>Implemented post-attention hidden size projections to speculate tokens ahead of the base model. Refer <a class="reference external" href="https://github.com/quic/efficient-transformers/blob/main/examples/performance/speculative_decoding/multi_projection.py">sample script</a> for more <strong>details</strong>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference external" href="https://github.com/quic/efficient-transformers/pull/374">QNN Compilation support</a></p></td>
@@ -184,7 +184,7 @@
 <td><p>Enhances inference speed by caching key-value pairs for shared prefixes, reducing redundant computations and improving efficiency.</p></td>
 </tr>
 <tr class="row-odd"><td><p>On Device Sampling</p></td>
-<td><p>Enables sampling operations to be executed directly on the QAIC device rather than the host CPU for QEffForCausalLM models. This enhancement significantly reduces host-device communication overhead and improves inference throughput and scalability. Refer <a class="reference external" href="https://github.com/quic/efficient-transformers/blob/main/examples/on_device_sampling.py">sample script</a> for more <strong>details</strong>.</p></td>
+<td><p>Enables sampling operations to be executed directly on the QAIC device rather than the host CPU for QEffForCausalLM models. This enhancement significantly reduces host-device communication overhead and improves inference throughput and scalability. Refer <a class="reference external" href="https://github.com/quic/efficient-transformers/blob/main/examples/performance/on_device_sampling.py">sample script</a> for more <strong>details</strong>.</p></td>
 </tr>
 <tr class="row-even"><td><p>Prompt-Lookup Decoding</p></td>
 <td><p>Speeds up text generation by using overlapping parts of the input prompt and the generated text, making the process faster without losing quality. Refer <a class="reference external" href="https://github.com/quic/efficient-transformers/blob/main/examples/performance/speculative_decoding/prompt_lookup.py">sample script</a> for more <strong>details</strong>.</p></td>
@@ -259,6 +259,17 @@
       Versions
       <dl>
         <dd><a href="https://quic-amitraj.github.io/efficient-transformers/">main (latest)</a></dd>
+        
+        
+        
+        
+        <dd><a href="https://quic-amitraj.github.io/efficient-transformers/versions/release-v1.21.6/index.html">release-v1.21.6</a></dd>
+        
+        
+        
+        <dd><a href="https://quic-amitraj.github.io/efficient-transformers/versions/doc_automation/index.html">doc_automation</a></dd>
+        
+        
         <dd><a href="https://quic-amitraj.github.io/efficient-transformers/versions/index.html">all published versions</a></dd>
       </dl>
     </div>

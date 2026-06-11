@@ -249,4 +249,4 @@ tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=local_mo
 
 model.generate(prompts=["Hi there!!"], tokenizer=tokenizer)
 ```
-End to End demo examples for various models are available in [**notebooks**](https://github.com/quic/efficient-transformers/tree/main/notebooks) directory. Please check them out.
+End-to-end demo examples for various models are available in the [**examples**](https://github.com/quic/efficient-transformers/tree/main/examples) directory. Please check them out.
