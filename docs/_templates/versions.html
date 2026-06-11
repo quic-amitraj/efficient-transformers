@@ -7,6 +7,11 @@
       Versions
       <dl>
         <dd><a href="{{ latest_docs_url }}">main (latest)</a></dd>
+        {% for version in available_versions %}
+        {% if version != "main" %}
+        <dd><a href="{{ latest_docs_url }}versions/{{ version }}/index.html">{{ version }}</a></dd>
+        {% endif %}
+        {% endfor %}
         <dd><a href="{{ versions_index_url }}">all published versions</a></dd>
       </dl>
     </div>

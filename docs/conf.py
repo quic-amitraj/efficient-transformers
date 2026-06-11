@@ -18,6 +18,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.abspath(".."))
@@ -30,6 +31,22 @@ copyright = "2025, Qualcomm"
 
 # The full version, including alpha/beta/rc tags
 release = os.getenv("DOC_VERSION", "main")
+
+
+def _sort_versions(versions):
+    def key(version):
+        if version == "main":
+            return (0, 0, 0, 0, "")
+        match = re.fullmatch(r"(?:release-)?v?(\d+)(?:\.(\d+))?(?:\.(\d+))?([\-\+].*)?", version)
+        if match:
+            major = int(match.group(1))
+            minor = int(match.group(2) or 0)
+            patch = int(match.group(3) or 0)
+            suffix = match.group(4) or ""
+            return (1, -major, -minor, -patch, suffix)
+        return (2, 0, 0, 0, version)
+
+    return sorted(set(versions), key=key)
 
 
 # -- General configuration ---------------------------------------------------
@@ -73,8 +90,13 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 # source = [".md"] # This line was commented out/incorrect syntax for source_suffix
 todo_include_todos = True
+available_versions = [v.strip() for v in os.getenv("DOCS_AVAILABLE_VERSIONS", "").split(",") if v.strip()]
+if release not in available_versions:
+    available_versions.append(release)
+available_versions = _sort_versions(available_versions)
 html_context = {
     "doc_version": release,
+    "available_versions": available_versions,
     "versions_index_url": os.getenv("DOCS_VERSIONS_INDEX_URL", "versions/index.html"),
     "latest_docs_url": os.getenv("DOCS_LATEST_URL", "./"),
 }
@@ -82,6 +104,10 @@ html_context = {
 suppress_warnings = [
     "ref.rst_pilog",  # Suppress warnings about excluded toctree entries
 ]
+
+# OpenCompute blocks automated bots and returns 403 to linkcheck,
+# so we keep the public URL but ignore it during CI link verification.
+linkcheck_ignore = [r"https://www\.opencompute\.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf"]
 
 
 def setup(app):

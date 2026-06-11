@@ -130,7 +130,7 @@ Welcome to the official release of **Efficient Transformer Library v1.20.0**! Th
   - Text & Image+Text support
   - Chunk attention, Single/Dual QPC support
   - Multi-image prompts enabled via VLLM interface
-  - [Llama4 Example Script](https://github.com/quic/efficient-transformers/blob/main/examples/image_text_to_text/models/llama_vision/single_image.py)
+  - [Llama4 Example Script](https://github.com/quic/efficient-transformers/blob/main/examples/image_text_to_text/models/llama4/single_image.py)
 
 - **Grok-1**
   - Executable via [`QEffAutoModelForCausalLM`](#QEffAutoModelForCausalLM)
@@ -139,7 +139,7 @@ Welcome to the official release of **Efficient Transformer Library v1.20.0**! Th
   - Executable via [`QEFFAutoModelForImageTextToText`](#QEFFAutoModelForImageTextToText)
   - Text & Image+Text support
   - Sliding window support
-  - [Gemma3 Example Script](https://github.com/quic/efficient-transformers/blob/main/examples/image_text_to_text/models/gemma_vision/inference.py)
+  - [Gemma3 Example Script](https://github.com/quic/efficient-transformers/blob/main/examples/image_text_to_text/models/gemma_vision/gemma3_example.py)
 
 
 - **SwiftKV (Llama-3.1-SwiftKV-8B-Instruct)**

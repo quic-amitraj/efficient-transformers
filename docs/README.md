@@ -30,5 +30,7 @@ You can visit the page with your web browser with url `http://localhost:8080`.
 ## CI/CD automation
 
 - PRs run `.github/workflows/docs-check.yml` to validate docs build.
-- Pushes to `main` run `.github/workflows/docs-deploy.yml` and publish latest docs to `gh-pages` root.
-- Pushes of tags matching `v*` publish a version snapshot at `versions/<tag>/` on `gh-pages`.
+- Pushes to `main` run `.github/workflows/docs-deploy.yml`, publish latest docs to `gh-pages` root, and refresh all `release/*` branch docs under `versions/`.
+- Pushes to `release/*` publish/update that release docs snapshot under `versions/release-<version>/`.
+- Pushes of tags matching `v*` publish a version snapshot at `versions/<tag>/`.
+- `.github/workflows/docs-linkcheck.yml` runs link verification and publishes a broken-link report artifact.

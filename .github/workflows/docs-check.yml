@@ -23,4 +23,5 @@ jobs:
           DOC_VERSION: pr-preview
           DOCS_VERSIONS_INDEX_URL: versions/index.html
           DOCS_LATEST_URL: ./
+          DOCS_AVAILABLE_VERSIONS: main
         run: sphinx-build --keep-going -b html docs docs/build/html

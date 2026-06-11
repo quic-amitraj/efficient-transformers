@@ -1,0 +1,45 @@
+name: Docs Link Check
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs-linkcheck.yml"
+      - ".github/workflows/docs-deploy.yml"
+      - ".github/workflows/docs-check.yml"
+  schedule:
+    - cron: "15 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  linkcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install docs dependencies
+        run: pip install -r docs/requirements.txt
+
+      - name: Run Sphinx linkcheck
+        env:
+          DOC_VERSION: main
+          DOCS_VERSIONS_INDEX_URL: versions/index.html
+          DOCS_LATEST_URL: ./
+          DOCS_AVAILABLE_VERSIONS: main
+        run: sphinx-build -b linkcheck docs docs/build/linkcheck
+
+      - name: Upload linkcheck report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-linkcheck-report
+          path: docs/build/linkcheck/output.txt

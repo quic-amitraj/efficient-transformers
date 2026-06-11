@@ -19,7 +19,6 @@
 .. automethod:: QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate
 ```
 
----
 (QEFFAutoModel)=
 ## `QEFFAutoModel`
 
@@ -39,7 +38,6 @@
 .. automethod:: QEfficient.transformers.models.modeling_auto.QEFFAutoModel.generate
 ```
 
----
 (QEFFAutoModelForSequenceClassification)=
 ## `QEFFAutoModelForSequenceClassification`
 
@@ -59,7 +57,6 @@
 .. automethod:: QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.generate
 ```
 
----
 (QEffAutoPeftModelForCausalLM)=
 ## `QEffAutoPeftModelForCausalLM`
 
@@ -79,7 +76,6 @@
 .. automethod:: QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.generate
 ```
 
----
 (QEffAutoLoraModelForCausalLM)=
 ## `QEffAutoLoraModelForCausalLM`
 
@@ -99,7 +95,6 @@
 .. automethod:: QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM.generate
 ```
 
----
 (QEFFAutoModelForImageTextToText)=
 ## `QEFFAutoModelForImageTextToText`
 
@@ -116,7 +111,6 @@
 .. automethod:: QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained
 ```
 
----
 (QEFFAutoModelForSpeechSeq2Seq)=
 ## `QEFFAutoModelForSpeechSeq2Seq`
 

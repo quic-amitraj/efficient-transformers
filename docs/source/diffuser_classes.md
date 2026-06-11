@@ -12,7 +12,6 @@
    :no-show-inheritance:
 ```
 
----
 
 (QEffUNet)=
 ### `QEffUNet`
@@ -23,7 +22,6 @@
    :no-show-inheritance:
 ```
 
----
 
 (QEffVAE)=
 ### `QEffVAE`
@@ -34,7 +32,6 @@
    :no-show-inheritance:
 ```
 
----
 
 (QEffFluxTransformerModel)=
 ### `QEffFluxTransformerModel`
@@ -45,7 +42,6 @@
    :no-show-inheritance:
 ```
 
-----
 
 (QEffWanUnifiedTransformer)=
 ### `QEffWanUnifiedTransformer`
@@ -56,7 +52,6 @@
    :no-show-inheritance:
 ```
 
-----
 
 
 ## Model Classes
@@ -108,7 +103,6 @@ See examples:
    :members:
    :no-show-inheritance:
 ```
-----
 
 (QEffFluxPipeline)=
 ### `QEffFluxPipeline`
@@ -144,4 +138,3 @@ See examples:
    :no-show-inheritance:
 ```
 
-----
