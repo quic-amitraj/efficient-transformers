@@ -80,28 +80,28 @@ jobs:
           export DOC_VERSION EXISTING_VERSIONS RELEASE_VERSIONS
           AVAILABLE_VERSIONS="$(
             python - <<'PY'
-            import os
-            import re
+          import os
+          import re
 
-            doc_version = os.getenv("DOC_VERSION", "").strip()
-            existing = [line.strip() for line in os.getenv("EXISTING_VERSIONS", "").splitlines() if line.strip()]
-            release_versions = [line.strip() for line in os.getenv("RELEASE_VERSIONS", "").splitlines() if line.strip()]
-            versions = [doc_version, *existing, *release_versions]
+          doc_version = os.getenv("DOC_VERSION", "").strip()
+          existing = [line.strip() for line in os.getenv("EXISTING_VERSIONS", "").splitlines() if line.strip()]
+          release_versions = [line.strip() for line in os.getenv("RELEASE_VERSIONS", "").splitlines() if line.strip()]
+          versions = [doc_version, *existing, *release_versions]
 
-            def sort_key(version: str):
-                if version == "main":
-                    return (0, 0, 0, 0, "")
-                match = re.fullmatch(r"(?:release-)?v?(\d+)(?:\.(\d+))?(?:\.(\d+))?([\-\+].*)?", version)
-                if match:
-                    major = int(match.group(1))
-                    minor = int(match.group(2) or 0)
-                    patch = int(match.group(3) or 0)
-                    suffix = match.group(4) or ""
-                    return (1, -major, -minor, -patch, suffix)
-                return (2, 0, 0, 0, version)
+          def sort_key(version: str):
+              if version == "main":
+                  return (0, 0, 0, 0, "")
+              match = re.fullmatch(r"(?:release-)?v?(\d+)(?:\.(\d+))?(?:\.(\d+))?([\-\+].*)?", version)
+              if match:
+                  major = int(match.group(1))
+                  minor = int(match.group(2) or 0)
+                  patch = int(match.group(3) or 0)
+                  suffix = match.group(4) or ""
+                  return (1, -major, -minor, -patch, suffix)
+              return (2, 0, 0, 0, version)
 
-            for version in sorted(set(v for v in versions if v), key=sort_key):
-                print(version)
+          for version in sorted(set(v for v in versions if v), key=sort_key):
+              print(version)
           PY
           )"
 
