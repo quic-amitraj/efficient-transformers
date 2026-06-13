@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/latest/source/features_enablement/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Features Enablement - Efficient Transformers</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Features Enablement";
+        var mkdocs_page_input_path = "source/features_enablement.md";
+        var mkdocs_page_url = "/efficient-transformers/latest/source/features_enablement/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Efficient Transformers
+        </a>
+        <div class="version">
+          {'provider': 'mike', 'default': 'latest'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../introduction/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Features Enablement</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#continuous-batching">Continuous Batching</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#multi-qranium-inference">Multi-Qranium Inference</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#qnn-compilation-via-python-api">QNN Compilation via Python API</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#we-can-now-export-the-modified-models-to-onnx-framework-this-will-generate-single-onnx-model-for-both-prefill-and-decode-variations-which-are-optimized-for-cloud-ai-100-platform-from-qefficient-import-qeffautomodelforcausallm-as-automodelforcausallm-model-card-name-this-is-hf-model-card-name-httpshuggingfacecogpt2-xl-model_name-gpt2-similar-we-can-change-model-name-and-generate-corresponding-models-if-we-have-added-the-support-in-the-lib-qeff_model-automodelforcausallmfrom_pretrainedmodel_name-qnn_config_file_path-qefficientcompileqnn_configjson-generated_qpc_path-qeff_modelcompile-num_cores14-mxfp6true-enable_qnntrue-qnn_config-qnn_config_file_path-qnn-compilation-configuration-is-passed"># We can now export the modified models to ONNX framework # This will generate single ONNX Model for both Prefill and Decode Variations which are optimized for # Cloud AI 100 Platform. from QEfficient import QEFFAutoModelForCausalLM as AutoModelForCausalLM # Model-Card name (This is HF Model Card name) : https://huggingface.co/gpt2-xl model_name = &quot;gpt2&quot; # Similar, we can change model name and generate corresponding models, if we have added the support in the lib. qeff_model = AutoModelForCausalLM.from_pretrained(model_name) qnn_config_file_path = &quot;QEfficient/compile/qnn_config.json&quot; generated_qpc_path = qeff_model.compile( num_cores=14, mxfp6=True, enable_qnn=True, qnn_config = qnn_config_file_path # QNN compilation configuration is passed. )</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#draft-based-speculative-decoding">Draft-Based Speculative Decoding</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">Auto Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Efficient Transformers</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Inference on Cloud AI 100</li>
+      <li class="breadcrumb-item active">Features Enablement</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/quic/efficient-transformers/edit/main/source/features_enablement.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="fetaures-enablement-guide">Fetaures Enablement Guide<a class="headerlink" href="#fetaures-enablement-guide" title="Permanent link">&para;</a></h1>
+<p>Below guide highlights the steps to enable supported features in QEfficient.</p>
+<p>(id-continuous-batching)=</p>
+<h2 id="continuous-batching">Continuous Batching<a class="headerlink" href="#continuous-batching" title="Permanent link">&para;</a></h2>
+<p>Users can compile a model utilizing the continuous batching feature by specifying full_batch_size <full_batch_size_value> in the infer and compiler APIs. If full_batch_size is not provided, the model will be compiled in the regular way.</p>
+<p>When enabling continuous batching, batch size should not be specified.</p>
+<p>Users can leverage multi-Qranium and other supported features along with continuous batching.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-m<span class="w"> </span>QEfficient.cloud.infer<span class="w"> </span>--model_name<span class="w"> </span>TinyLlama/TinyLlama_v1.1<span class="w"> </span>--prompt_len<span class="w"> </span><span class="m">32</span><span class="w"> </span>--ctx_len<span class="w"> </span><span class="m">128</span><span class="w"> </span>--num_cores<span class="w"> </span><span class="m">16</span><span class="w"> </span>--device_group<span class="w"> </span><span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="w"> </span>--prompt<span class="w"> </span><span class="s2">&quot;My name is|The flat earth theory is the belief that|The sun rises from&quot;</span><span class="w"> </span>--mxfp6<span class="w"> </span>--mos<span class="w"> </span><span class="m">1</span><span class="w"> </span>--aic_enable_depth_first<span class="w"> </span>--full_batch_size<span class="w"> </span><span class="m">3</span>
+</code></pre></div>
+<hr />
+<p>(id-multi-qranium-inference)=</p>
+<h2 id="multi-qranium-inference">Multi-Qranium Inference<a class="headerlink" href="#multi-qranium-inference" title="Permanent link">&para;</a></h2>
+<p>You can also enable MQ, just based on the number of devices. Based on the <code>--device-group</code> as input it will create TS config on the fly. If <code>--device-group [0,1]</code> it will create TS config for 2 devices and use it for compilation, if <code>--device-group [0]</code> then TS compilation is skipped and single soc execution is enabled.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-m<span class="w"> </span>QEfficient.cloud.infer<span class="w"> </span>--model_name<span class="w"> </span>Salesforce/codegen-2B-mono<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">1</span><span class="w"> </span>--prompt_len<span class="w"> </span><span class="m">32</span><span class="w"> </span>--ctx_len<span class="w"> </span><span class="m">128</span><span class="w"> </span>--mxfp6<span class="w"> </span>--num_cores<span class="w"> </span><span class="m">16</span><span class="w"> </span>--device-group<span class="w"> </span><span class="o">[</span><span class="m">0</span>,1<span class="o">]</span><span class="w"> </span>--prompt<span class="w"> </span><span class="s2">&quot;def fibonacci(n):&quot;</span><span class="w"> </span>--mos<span class="w"> </span><span class="m">2</span><span class="w"> </span>--aic_enable_depth_first
+</code></pre></div>
+<p>Above step will save the <code>qpc</code> files under <code>efficient-transformers/qeff_models/{model_card_name}</code>, you can use the execute API to run for different prompts. This will automatically pick the pre-compiled <code>qpc</code> files.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>QEfficient.cloud.execute<span class="w"> </span>--model_name<span class="w"> </span>Salesforce/codegen-2B-mono<span class="w"> </span>--qpc-path<span class="w"> </span>qeff_models/Salesforce/codegen-2B-mono/qpc_16cores_1BS_32PL_128CL_2devices_mxfp6/qpcs<span class="w"> </span>--prompt<span class="w"> </span><span class="s2">&quot;def binary_search(array: np.array, k: int):&quot;</span><span class="w"> </span>--device-group<span class="w"> </span><span class="o">[</span><span class="m">0</span>,1<span class="o">]</span>
+</code></pre></div>
+<p>To disable MQ, just pass single soc like below, below step will compile the model again and reuse the <code>ONNX</code> file as only compilation argument are different from above commands.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>QEfficient.cloud.infer<span class="w"> </span>--model_name<span class="w"> </span>gpt2<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">1</span><span class="w"> </span>--prompt_len<span class="w"> </span><span class="m">32</span><span class="w"> </span>--ctx_len<span class="w"> </span><span class="m">128</span><span class="w"> </span>--mxfp6<span class="w"> </span>--num_cores<span class="w"> </span><span class="m">16</span><span class="w"> </span>--device-group<span class="w"> </span><span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="w"> </span>--prompt<span class="w"> </span><span class="s2">&quot;My name is&quot;</span><span class="w"> </span>--mos<span class="w"> </span><span class="m">1</span><span class="w"> </span>--aic_enable_depth_first
+</code></pre></div>
+<hr />
+<p>(id-qnn-compilation-via-python-api)=</p>
+<h2 id="qnn-compilation-via-python-api">QNN Compilation via Python API<a class="headerlink" href="#qnn-compilation-via-python-api" title="Permanent link">&para;</a></h2>
+<p>Users can also use python API to export, compile and execute onnx models using QNN SDK.</p>
+<h2 id="we-can-now-export-the-modified-models-to-onnx-framework-this-will-generate-single-onnx-model-for-both-prefill-and-decode-variations-which-are-optimized-for-cloud-ai-100-platform-from-qefficient-import-qeffautomodelforcausallm-as-automodelforcausallm-model-card-name-this-is-hf-model-card-name-httpshuggingfacecogpt2-xl-model_name-gpt2-similar-we-can-change-model-name-and-generate-corresponding-models-if-we-have-added-the-support-in-the-lib-qeff_model-automodelforcausallmfrom_pretrainedmodel_name-qnn_config_file_path-qefficientcompileqnn_configjson-generated_qpc_path-qeff_modelcompile-num_cores14-mxfp6true-enable_qnntrue-qnn_config-qnn_config_file_path-qnn-compilation-configuration-is-passed"><div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># We can now export the modified models to ONNX framework</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># This will generate single ONNX Model for both Prefill and Decode Variations which are optimized for</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># Cloud AI 100 Platform.</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">QEfficient</span><span class="w"> </span><span class="kn">import</span> <span class="n">QEFFAutoModelForCausalLM</span> <span class="k">as</span> <span class="n">AutoModelForCausalLM</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># Model-Card name (This is HF Model Card name) : https://huggingface.co/gpt2-xl</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;gpt2&quot;</span>  <span class="c1"># Similar, we can change model name and generate corresponding models, if we have added the support in the lib.</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">qeff_model</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="n">qnn_config_file_path</span> <span class="o">=</span> <span class="s2">&quot;QEfficient/compile/qnn_config.json&quot;</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="n">generated_qpc_path</span> <span class="o">=</span> <span class="n">qeff_model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">num_cores</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="n">mxfp6</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    <span class="n">enable_qnn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    <span class="n">qnn_config</span> <span class="o">=</span> <span class="n">qnn_config_file_path</span> <span class="c1"># QNN compilation configuration is passed.</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="p">)</span>
+</code></pre></div><a class="headerlink" href="#we-can-now-export-the-modified-models-to-onnx-framework-this-will-generate-single-onnx-model-for-both-prefill-and-decode-variations-which-are-optimized-for-cloud-ai-100-platform-from-qefficient-import-qeffautomodelforcausallm-as-automodelforcausallm-model-card-name-this-is-hf-model-card-name-httpshuggingfacecogpt2-xl-model_name-gpt2-similar-we-can-change-model-name-and-generate-corresponding-models-if-we-have-added-the-support-in-the-lib-qeff_model-automodelforcausallmfrom_pretrainedmodel_name-qnn_config_file_path-qefficientcompileqnn_configjson-generated_qpc_path-qeff_modelcompile-num_cores14-mxfp6true-enable_qnntrue-qnn_config-qnn_config_file_path-qnn-compilation-configuration-is-passed" title="Permanent link">&para;</a></h2>
+<p>(id-draft-based-speculative-decoding)=</p>
+<h2 id="draft-based-speculative-decoding">Draft-Based Speculative Decoding<a class="headerlink" href="#draft-based-speculative-decoding" title="Permanent link">&para;</a></h2>
+<p>Draft-based speculative decoding is a technique where a small Draft Language Model (DLM) makes <code>num_speculative_tokens</code> autoregressive speculations ahead of the Target Language Model (TLM). The objective is to predict what the TLM would have predicted if it would have been used instead of the DLM. This approach is beneficial when the autoregressive decode phase of the TLM is memory bound and thus, we can leverage the extra computing resources of our hardware by batching the speculations of the DLM as an input to TLM to validate the speculations.</p>
+<p>To export and compile both DLM/TLM, add corresponding <code>qaic_config</code> and <code>num_speculative_tokens</code> for TLM and export DLM as you would any other QEfficient LLM model:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">QEfficient</span><span class="w"> </span><span class="kn">import</span> <span class="n">QEFFAutoModelForCausalLM</span> <span class="k">as</span> <span class="n">AutoModelForCausalLM</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">tlm_name</span> <span class="o">=</span> <span class="s2">&quot;meta-llama/Llama-2-70b-chat-hf&quot;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">dlm_name</span> <span class="o">=</span> <span class="s2">&quot;TinyLlama/TinyLlama-1.1B-Chat-v1.0&quot;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">k</span> <span class="o">=</span> <span class="mi">3</span> <span class="c1"># DLM will make `k` speculations</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">qaic_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">speculative_model_type</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">tlm</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">tlm_name</span><span class="p">,</span> <span class="n">qaic_config</span><span class="o">=</span><span class="n">qaic_config</span><span class="p">)</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">dlm</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">dlm_name</span><span class="p">)</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">tlm</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">num_speculative_tokens</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">dlm</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+</code></pre></div>
+<p>The <code>qaic_config</code> dictionary is fed during the instantiation of the model because slight changes to the ONNX graph are required. Once complete, the user can specify <code>num_speculative_tokens</code> to define the actual number of speculations that the TLM will take as input during the decode phase. As for the DLM, no new changes are required at the ONNX or compile level.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/quic/efficient-transformers" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../quick_start/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../qeff_autoclasses/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

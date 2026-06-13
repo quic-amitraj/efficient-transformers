@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="QEfficient - Inference optimization library for Qualcomm Cloud AI 100" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/latest/" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>Efficient Transformers</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Home";
+        var mkdocs_page_input_path = "index.md";
+        var mkdocs_page_url = "/efficient-transformers/latest/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="." class="icon icon-home"> Efficient Transformers
+        </a>
+        <div class="version">
+          {'provider': 'mike', 'default': 'latest'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Home</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#whats-new-fire">What's New :fire:</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quick-install">Quick Install</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quick-example">Quick Example</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#navigation">Navigation</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="source/release_docs/">Release Notes</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="source/introduction/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="source/supported_features/">Supported Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="source/validate/">Validate</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="source/installation/">Installation</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="source/quick_start/">Quick Start</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="source/features_enablement/">Features Enablement</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="source/qeff_autoclasses/">Auto Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="source/diffuser_classes/">Diffuser Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="source/cli_api/">CLI API</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="source/finetune/">Finetune</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="source/blogs/">Blogs</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="source/reference/">Reference</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".">Efficient Transformers</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Home</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/quic/efficient-transformers/edit/main/index.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="efficient-transformers-library">Efficient Transformers Library<a class="headerlink" href="#efficient-transformers-library" title="Permanent link">&para;</a></h1>
+<div align="center">
+  <img src="image/Cloud_AI_100.png" alt="Qualcomm Cloud AI 100" width="300"/>
+</div>
+
+<p><strong>Train anywhere, Infer on Qualcomm Cloud AI with a Developer-centric Toolchain</strong></p>
+<p>QEfficient (<code>QEfficient</code>) is the library interface for Hugging Face Transformer models for efficient inference on <a href="https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100">Qualcomm Cloud AI 100</a>.</p>
+<hr />
+<h2 id="whats-new-fire">What's New :fire:<a class="headerlink" href="#whats-new-fire" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>[04/2026]</strong> Added WAN non-unified execution support in <code>QEffWanPipeline</code> with separate <code>transformer_high</code> and <code>transformer_low</code> modules</li>
+<li><strong>[04/2026]</strong> Added first-block-cache support for WAN non-unified mode and FLUX (<code>QEffWanPipeline</code>, <code>QEffFluxPipeline</code>)</li>
+<li><strong>[12/2025]</strong> Enabled <a href="https://github.com/quic/efficient-transformers/tree/main/examples/disagg_serving">disaggregated serving</a> for GPT-OSS model</li>
+<li><strong>[12/2025]</strong> Added support for wav2vec2 Audio Model <a href="https://huggingface.co/facebook/wav2vec2-base-960h">facebook/wav2vec2-base-960h</a></li>
+<li><strong>[12/2025]</strong> Added support for diffuser video generation model <a href="https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B-Diffusers">WAN 2.2</a></li>
+<li><strong>[12/2025]</strong> Added support for diffuser image generation model <a href="https://huggingface.co/black-forest-labs/FLUX.1-schnell">FLUX.1</a></li>
+<li><strong>[10/2025]</strong> Added support for Qwen3 MOE Model, Qwen2.5VL, Mistral3, Molmo Multi-Models</li>
+</ul>
+<details>
+<summary>View full history</summary>
+
+- [06/2025] Llama4, Gemma3, grok-1 Multi-Model support
+- [06/2025] Sentence embedding with Flexible/Custom Pooling and multi-sequence-length compilation
+- [04/2025] SpD multiprojection heads for speculative decoding
+- [04/2025] QNN Compilation support for AutoModel classes
+- [04/2025] Separate prefill/decode compilation for disaggregated serving
+- [04/2025] SwiftKV continuous and non-continuous batching
+- [04/2025] GGUF model execution support
+- [04/2025] Gradient checkpointing in finetuning
+- [02/2025] VLM support — InternVL-1B, Llava, Mllama
+- [01/2025] FP8 models support
+- [11/2024] Finite adapters for mixed PEFT adapter usage
+- [11/2024] Speculative decoding TLM
+- [09/2024] AWQ/GPTQ 4-bit quantized models
+- [09/2024] PEFT model support
+- [08/2024] Continuous batching
+- [04/2024] Initial release
+
+</details>
+
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The library provides:</p>
+<ol>
+<li><strong>Reimplemented LLM blocks</strong> — optimized for on-device retention of intermediate states</li>
+<li><strong>Graph transformations</strong> — lower-precision execution, mathematically equivalent op replacements</li>
+<li><strong>Underflow/overflow handling</strong> — safe lower-precision computation</li>
+<li><strong>Weight patching</strong> — maps original model weights to updated model operations</li>
+<li><strong>ONNX export</strong> — exports model source to an ONNX graph</li>
+<li><strong>Example applications</strong> — tutorials, demo notebooks, CLI scripts</li>
+<li><strong>Unit test templates</strong> — reproducible quality gates</li>
+</ol>
+<hr />
+<h2 id="quick-install">Quick Install<a class="headerlink" href="#quick-install" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Create Python virtual env (Python 3.12 recommended)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python3.12<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>qeff_env
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">source</span><span class="w"> </span>qeff_env/bin/activate
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip<span class="w"> </span>install<span class="w"> </span>QEfficient
+</code></pre></div>
+<p>Or from source:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/quic/efficient-transformers
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>efficient-transformers
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</code></pre></div>
+<hr />
+<h2 id="quick-example">Quick Example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">QEfficient</span><span class="w"> </span><span class="kn">import</span> <span class="n">QEFFAutoModelForCausalLM</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTokenizer</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen2-1.5B-Instruct&quot;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">model</span> <span class="o">=</span> <span class="n">QEFFAutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Compile for Cloud AI 100</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">prefill_seq_len</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">ctx_len</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">num_cores</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Generate</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">tokenizer</span><span class="o">=</span><span class="n">tokenizer</span><span class="p">,</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">prompts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;What is Qualcomm Cloud AI 100?&quot;</span><span class="p">],</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">generated_texts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</code></pre></div>
+<hr />
+<h2 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="source/introduction/">Getting Started</a></td>
+<td>Overview, architecture, key concepts</td>
+</tr>
+<tr>
+<td><a href="source/installation/">Installation</a></td>
+<td>Step-by-step setup</td>
+</tr>
+<tr>
+<td><a href="source/quick_start/">Quick Start</a></td>
+<td>Export, compile, and run your first model</td>
+</tr>
+<tr>
+<td><a href="source/qeff_autoclasses/">API Reference</a></td>
+<td>Full Python API docs</td>
+</tr>
+<tr>
+<td><a href="source/supported_features/">Supported Features</a></td>
+<td>All enabled features</td>
+</tr>
+<tr>
+<td><a href="source/finetune/">Finetune</a></td>
+<td>Fine-tuning on Cloud AI 100</td>
+</tr>
+<tr>
+<td><a href="source/release_docs/">Release Notes</a></td>
+<td>What's new in each release</td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/quic/efficient-transformers" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+      <span><a href="source/release_docs/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = ".";</script>
+    <script src="js/theme_extra.js"></script>
+    <script src="js/theme.js"></script>
+      <script src="search/main.js"></script>
+      <script src="js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2026-06-13 15:34:10.807263+00:00
+-->
