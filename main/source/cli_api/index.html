@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/main/source/cli_api/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>CLI API - Efficient Transformers</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "CLI API";
+        var mkdocs_page_input_path = "source/cli_api.md";
+        var mkdocs_page_url = "/efficient-transformers/main/source/cli_api/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Efficient Transformers
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../introduction/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">Auto Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">CLI API</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#infer_api">QEfficient.cloud.infer</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.cloud.infer.main">main</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.infer.main--parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.infer.main--other-parameters">Other Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.infer.main--example">Example</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#execute_api">QEfficient.cloud.execute</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.cloud.execute.main">main</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.execute.main--parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.execute.main--other-parameters">Other Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.execute.main--example">Example</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#compile_api">QEfficient.compile</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile">compile</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--other-parameters">Other Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--returns">Returns</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--raises">Raises</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--warnings">Warnings</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#export_api">QEfficient.cloud.export</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.cloud.export.main">main</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.export.main--parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.export.main--other-parameters">Other Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.export.main--example">Example</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#finetune_api">QEfficient.cloud.finetune</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.cloud.finetune.main">main</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.finetune.main--parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.finetune.main--example">Example</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Efficient Transformers</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+      <li class="breadcrumb-item active">CLI API</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/quic/efficient-transformers/edit/main/source/cli_api.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cli-api-reference">CLI API Reference<a class="headerlink" href="#cli-api-reference" title="Permanent link">&para;</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Use <code>bash</code> terminal. If using <code>zsh</code>, wrap <code>--device_group</code> in single quotes, e.g. <code>'--device_group [0]'</code>.</p>
+</div>
+<hr />
+<h2 id="infer_api"><code>QEfficient.cloud.infer</code><a class="headerlink" href="#infer_api" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<a id="QEfficient.cloud.infer.main"></a>
+    <div class="doc doc-contents first">
+
+        <p>Main entry point for the QEfficient inference script.</p>
+<p>This function handles the end-to-end process of downloading, optimizing,
+compiling, and executing a HuggingFace model on Cloud AI 100 hardware.
+The process follows these steps:</p>
+<ol>
+<li>Checks for an existing compiled QPC package. If found, it jumps directly to execution.</li>
+<li>Checks for an existing exported ONNX file. If true, it proceeds to compilation then execution.</li>
+<li>Checks if the HuggingFace model exists in the cache. If true, it performs model transformation, ONNX export, compilation, and then execution.</li>
+<li>If none of the above, it downloads the HuggingFace model, then performs transformation, ONNX export, compilation, and execution.</li>
+</ol>
+<h4 id="QEfficient.cloud.infer.main--parameters">Parameters<a class="headerlink" href="#QEfficient.cloud.infer.main--parameters" title="Permanent link">&para;</a></h4>
+<p>model_name : str
+    Hugging Face Model Card name (e.g., <code>gpt2</code>) or path to a local model.
+num_cores : int
+    Number of cores to compile the model on.</p>
+<h4 id="QEfficient.cloud.infer.main--other-parameters">Other Parameters<a class="headerlink" href="#QEfficient.cloud.infer.main--other-parameters" title="Permanent link">&para;</a></h4>
+<p>device_group : List[int], optional
+    List of device IDs to be used for compilation and inference. If <code>len(device_group) &gt; 1</code>,
+    a multiple card setup is enabled. Default is None.
+prompt : str, optional
+    Sample prompt(s) for the model text generation. For batch size &gt; 1,
+    pass multiple prompts separated by a pipe (<code>|</code>) symbol. Default is None.
+prompts_txt_file_path : str, optional
+    Path to a text file containing multiple input prompts, one per line. Default is None.
+aic_enable_depth_first : bool, optional
+    Enables Depth-First Search (DFS) with default memory size during compilation. Default is False.
+mos : int, optional
+    Effort level to reduce on-chip memory. Default is 1.
+batch_size : int, optional
+    Batch size to compile the model for. Default is 1.
+full_batch_size : int, optional
+    Sets the full batch size to enable continuous batching mode. Default is None.
+prompt_len : int, optional
+    Prompt length for the model to compile. Default is 32.
+ctx_len : int, optional
+    Maximum context length to compile the model for. Default is 128.
+generation_len : int, optional
+    Maximum number of tokens to be generated during inference. Default is None.
+mxfp6 : bool, optional
+    Enables compilation for MXFP6 precision for constant MatMul weights. Default is False.
+    A warning is issued as <code>--mxfp6</code> is deprecated; use <code>--mxfp6-matmul</code> instead.
+mxint8 : bool, optional
+    Compresses Present/Past KV to <code>MXINT8</code> using <code>CustomIO</code> config. Default is False.
+    A warning is issued as <code>--mxint8</code> is deprecated; use <code>--mxint8-kv-cache</code> instead.
+local_model_dir : str, optional
+    Path to custom model weights and config files. Default is None.
+cache_dir : str, optional
+    Cache directory where downloaded HuggingFace files are stored. Default is None.
+hf_token : str, optional
+    HuggingFace login token to access private repositories. Default is None.
+allow_mxint8_mdp_io : bool, optional
+    Allows MXINT8 compression of MDP IO traffic during compilation. Default is False.
+enable_qnn : bool or str, optional
+    Enables QNN compilation. Can be passed as a flag (True) or with a configuration file path (str).
+    If a string path is provided, it's treated as <code>qnn_config</code>. Default is False.
+qnn_config : str, optional
+    Path of the QNN Config parameters file. Default is None.
+trust_remote_code : bool, optional
+    If True, trusts remote code when loading models from HuggingFace. Default is False.
+use_onnx_subfunctions : bool, optional
+    Enables ONNX subfunctions during export and compile. Default is False.
+**kwargs :
+    Additional compiler options passed directly to <code>qaic-compile</code>. Any flag supported by
+    <code>qaic-compile</code> can be passed. Parameters are converted to flags as follows:</p>
+<div class="highlight"><pre><span></span><code>- ``-allocator_dealloc_delay=1`` -&gt; ``-allocator-dealloc-delay=1``
+- ``-qpc_crc=True`` -&gt; ``-qpc-crc``
+</code></pre></div>
+<h4 id="QEfficient.cloud.infer.main--example">Example<a class="headerlink" href="#QEfficient.cloud.infer.main--example" title="Permanent link">&para;</a></h4>
+<p>To run inference from the command line:</p>
+<p>.. code-block:: bash</p>
+<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.infer --model-name gpt2 --num-cores 16 --prompt &quot;Hello world&quot;
+</code></pre></div>
+<p>For advanced compilation options:</p>
+<p>.. code-block:: bash</p>
+<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.infer --model-name meta-llama/Llama-3.2-11B-Vision-Instruct \
+    --num-cores 16 --prompt &quot;Describe this image.&quot; --image-url &quot;https://example.com/image.jpg&quot; \
+    --ctx-len 512 --img-size 560 --mxfp6-matmul
+</code></pre></div>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>QEfficient/cloud/infer.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-119">119</a></span>
+<span class="normal"><a href="#__codelineno-0-120">120</a></span>
+<span class="normal"><a href="#__codelineno-0-121">121</a></span>
+<span class="normal"><a href="#__codelineno-0-122">122</a></span>
+<span class="normal"><a href="#__codelineno-0-123">123</a></span>
+<span class="normal"><a href="#__codelineno-0-124">124</a></span>
+<span class="normal"><a href="#__codelineno-0-125">125</a></span>
+<span class="normal"><a href="#__codelineno-0-126">126</a></span>
+<span class="normal"><a href="#__codelineno-0-127">127</a></span>
+<span class="normal"><a href="#__codelineno-0-128">128</a></span>
+<span class="normal"><a href="#__codelineno-0-129">129</a></span>
+<span class="normal"><a href="#__codelineno-0-130">130</a></span>
+<span class="normal"><a href="#__codelineno-0-131">131</a></span>
+<span class="normal"><a href="#__codelineno-0-132">132</a></span>
+<span class="normal"><a href="#__codelineno-0-133">133</a></span>
+<span class="normal"><a href="#__codelineno-0-134">134</a></span>
+<span class="normal"><a href="#__codelineno-0-135">135</a></span>
+<span class="normal"><a href="#__codelineno-0-136">136</a></span>
+<span class="normal"><a href="#__codelineno-0-137">137</a></span>
+<span class="normal"><a href="#__codelineno-0-138">138</a></span>
+<span class="normal"><a href="#__codelineno-0-139">139</a></span>
+<span class="normal"><a href="#__codelineno-0-140">140</a></span>
+<span class="normal"><a href="#__codelineno-0-141">141</a></span>
+<span class="normal"><a href="#__codelineno-0-142">142</a></span>
+<span class="normal"><a href="#__codelineno-0-143">143</a></span>
+<span class="normal"><a href="#__codelineno-0-144">144</a></span>
+<span class="normal"><a href="#__codelineno-0-145">145</a></span>
+<span class="normal"><a href="#__codelineno-0-146">146</a></span>
+<span class="normal"><a href="#__codelineno-0-147">147</a></span>
+<span class="normal"><a href="#__codelineno-0-148">148</a></span>
+<span class="normal"><a href="#__codelineno-0-149">149</a></span>
+<span class="normal"><a href="#__codelineno-0-150">150</a></span>
+<span class="normal"><a href="#__codelineno-0-151">151</a></span>
+<span class="normal"><a href="#__codelineno-0-152">152</a></span>
+<span class="normal"><a href="#__codelineno-0-153">153</a></span>
+<span class="normal"><a href="#__codelineno-0-154">154</a></span>
+<span class="normal"><a href="#__codelineno-0-155">155</a></span>
+<span class="normal"><a href="#__codelineno-0-156">156</a></span>
+<span class="normal"><a href="#__codelineno-0-157">157</a></span>
+<span class="normal"><a href="#__codelineno-0-158">158</a></span>
+<span class="normal"><a href="#__codelineno-0-159">159</a></span>
+<span class="normal"><a href="#__codelineno-0-160">160</a></span>
+<span class="normal"><a href="#__codelineno-0-161">161</a></span>
+<span class="normal"><a href="#__codelineno-0-162">162</a></span>
+<span class="normal"><a href="#__codelineno-0-163">163</a></span>
+<span class="normal"><a href="#__codelineno-0-164">164</a></span>
+<span class="normal"><a href="#__codelineno-0-165">165</a></span>
+<span class="normal"><a href="#__codelineno-0-166">166</a></span>
+<span class="normal"><a href="#__codelineno-0-167">167</a></span>
+<span class="normal"><a href="#__codelineno-0-168">168</a></span>
+<span class="normal"><a href="#__codelineno-0-169">169</a></span>
+<span class="normal"><a href="#__codelineno-0-170">170</a></span>
+<span class="normal"><a href="#__codelineno-0-171">171</a></span>
+<span class="normal"><a href="#__codelineno-0-172">172</a></span>
+<span class="normal"><a href="#__codelineno-0-173">173</a></span>
+<span class="normal"><a href="#__codelineno-0-174">174</a></span>
+<span class="normal"><a href="#__codelineno-0-175">175</a></span>
+<span class="normal"><a href="#__codelineno-0-176">176</a></span>
+<span class="normal"><a href="#__codelineno-0-177">177</a></span>
+<span class="normal"><a href="#__codelineno-0-178">178</a></span>
+<span class="normal"><a href="#__codelineno-0-179">179</a></span>
+<span class="normal"><a href="#__codelineno-0-180">180</a></span>
+<span class="normal"><a href="#__codelineno-0-181">181</a></span>
+<span class="normal"><a href="#__codelineno-0-182">182</a></span>
+<span class="normal"><a href="#__codelineno-0-183">183</a></span>
+<span class="normal"><a href="#__codelineno-0-184">184</a></span>
+<span class="normal"><a href="#__codelineno-0-185">185</a></span>
+<span class="normal"><a href="#__codelineno-0-186">186</a></span>
+<span class="normal"><a href="#__codelineno-0-187">187</a></span>
+<span class="normal"><a href="#__codelineno-0-188">188</a></span>
+<span class="normal"><a href="#__codelineno-0-189">189</a></span>
+<span class="normal"><a href="#__codelineno-0-190">190</a></span>
+<span class="normal"><a href="#__codelineno-0-191">191</a></span>
+<span class="normal"><a href="#__codelineno-0-192">192</a></span>
+<span class="normal"><a href="#__codelineno-0-193">193</a></span>
+<span class="normal"><a href="#__codelineno-0-194">194</a></span>
+<span class="normal"><a href="#__codelineno-0-195">195</a></span>
+<span class="normal"><a href="#__codelineno-0-196">196</a></span>
+<span class="normal"><a href="#__codelineno-0-197">197</a></span>
+<span class="normal"><a href="#__codelineno-0-198">198</a></span>
+<span class="normal"><a href="#__codelineno-0-199">199</a></span>
+<span class="normal"><a href="#__codelineno-0-200">200</a></span>
+<span class="normal"><a href="#__codelineno-0-201">201</a></span>
+<span class="normal"><a href="#__codelineno-0-202">202</a></span>
+<span class="normal"><a href="#__codelineno-0-203">203</a></span>
+<span class="normal"><a href="#__codelineno-0-204">204</a></span>
+<span class="normal"><a href="#__codelineno-0-205">205</a></span>
+<span class="normal"><a href="#__codelineno-0-206">206</a></span>
+<span class="normal"><a href="#__codelineno-0-207">207</a></span>
+<span class="normal"><a href="#__codelineno-0-208">208</a></span>
+<span class="normal"><a href="#__codelineno-0-209">209</a></span>
+<span class="normal"><a href="#__codelineno-0-210">210</a></span>
+<span class="normal"><a href="#__codelineno-0-211">211</a></span>
+<span class="normal"><a href="#__codelineno-0-212">212</a></span>
+<span class="normal"><a href="#__codelineno-0-213">213</a></span>
+<span class="normal"><a href="#__codelineno-0-214">214</a></span>
+<span class="normal"><a href="#__codelineno-0-215">215</a></span>
+<span class="normal"><a href="#__codelineno-0-216">216</a></span>
+<span class="normal"><a href="#__codelineno-0-217">217</a></span>
+<span class="normal"><a href="#__codelineno-0-218">218</a></span>
+<span class="normal"><a href="#__codelineno-0-219">219</a></span>
+<span class="normal"><a href="#__codelineno-0-220">220</a></span>
+<span class="normal"><a href="#__codelineno-0-221">221</a></span>
+<span class="normal"><a href="#__codelineno-0-222">222</a></span>
+<span class="normal"><a href="#__codelineno-0-223">223</a></span>
+<span class="normal"><a href="#__codelineno-0-224">224</a></span>
+<span class="normal"><a href="#__codelineno-0-225">225</a></span>
+<span class="normal"><a href="#__codelineno-0-226">226</a></span>
+<span class="normal"><a href="#__codelineno-0-227">227</a></span>
+<span class="normal"><a href="#__codelineno-0-228">228</a></span>
+<span class="normal"><a href="#__codelineno-0-229">229</a></span>
+<span class="normal"><a href="#__codelineno-0-230">230</a></span>
+<span class="normal"><a href="#__codelineno-0-231">231</a></span>
+<span class="normal"><a href="#__codelineno-0-232">232</a></span>
+<span class="normal"><a href="#__codelineno-0-233">233</a></span>
+<span class="normal"><a href="#__codelineno-0-234">234</a></span>
+<span class="normal"><a href="#__codelineno-0-235">235</a></span>
+<span class="normal"><a href="#__codelineno-0-236">236</a></span>
+<span class="normal"><a href="#__codelineno-0-237">237</a></span>
+<span class="normal"><a href="#__codelineno-0-238">238</a></span>
+<span class="normal"><a href="#__codelineno-0-239">239</a></span>
+<span class="normal"><a href="#__codelineno-0-240">240</a></span>
+<span class="normal"><a href="#__codelineno-0-241">241</a></span>
+<span class="normal"><a href="#__codelineno-0-242">242</a></span>
+<span class="normal"><a href="#__codelineno-0-243">243</a></span>
+<span class="normal"><a href="#__codelineno-0-244">244</a></span>
+<span class="normal"><a href="#__codelineno-0-245">245</a></span>
+<span class="normal"><a href="#__codelineno-0-246">246</a></span>
+<span class="normal"><a href="#__codelineno-0-247">247</a></span>
+<span class="normal"><a href="#__codelineno-0-248">248</a></span>
+<span class="normal"><a href="#__codelineno-0-249">249</a></span>
+<span class="normal"><a href="#__codelineno-0-250">250</a></span>
+<span class="normal"><a href="#__codelineno-0-251">251</a></span>
+<span class="normal"><a href="#__codelineno-0-252">252</a></span>
+<span class="normal"><a href="#__codelineno-0-253">253</a></span>
+<span class="normal"><a href="#__codelineno-0-254">254</a></span>
+<span class="normal"><a href="#__codelineno-0-255">255</a></span>
+<span class="normal"><a href="#__codelineno-0-256">256</a></span>
+<span class="normal"><a href="#__codelineno-0-257">257</a></span>
+<span class="normal"><a href="#__codelineno-0-258">258</a></span>
+<span class="normal"><a href="#__codelineno-0-259">259</a></span>
+<span class="normal"><a href="#__codelineno-0-260">260</a></span>
+<span class="normal"><a href="#__codelineno-0-261">261</a></span>
+<span class="normal"><a href="#__codelineno-0-262">262</a></span>
+<span class="normal"><a href="#__codelineno-0-263">263</a></span>
+<span class="normal"><a href="#__codelineno-0-264">264</a></span>
+<span class="normal"><a href="#__codelineno-0-265">265</a></span>
+<span class="normal"><a href="#__codelineno-0-266">266</a></span>
+<span class="normal"><a href="#__codelineno-0-267">267</a></span>
+<span class="normal"><a href="#__codelineno-0-268">268</a></span>
+<span class="normal"><a href="#__codelineno-0-269">269</a></span>
+<span class="normal"><a href="#__codelineno-0-270">270</a></span>
+<span class="normal"><a href="#__codelineno-0-271">271</a></span>
+<span class="normal"><a href="#__codelineno-0-272">272</a></span>
+<span class="normal"><a href="#__codelineno-0-273">273</a></span>
+<span class="normal"><a href="#__codelineno-0-274">274</a></span>
+<span class="normal"><a href="#__codelineno-0-275">275</a></span>
+<span class="normal"><a href="#__codelineno-0-276">276</a></span>
+<span class="normal"><a href="#__codelineno-0-277">277</a></span>
+<span class="normal"><a href="#__codelineno-0-278">278</a></span>
+<span class="normal"><a href="#__codelineno-0-279">279</a></span>
+<span class="normal"><a href="#__codelineno-0-280">280</a></span>
+<span class="normal"><a href="#__codelineno-0-281">281</a></span>
+<span class="normal"><a href="#__codelineno-0-282">282</a></span>
+<span class="normal"><a href="#__codelineno-0-283">283</a></span>
+<span class="normal"><a href="#__codelineno-0-284">284</a></span>
+<span class="normal"><a href="#__codelineno-0-285">285</a></span>
+<span class="normal"><a href="#__codelineno-0-286">286</a></span>
+<span class="normal"><a href="#__codelineno-0-287">287</a></span>
+<span class="normal"><a href="#__codelineno-0-288">288</a></span>
+<span class="normal"><a href="#__codelineno-0-289">289</a></span>
+<span class="normal"><a href="#__codelineno-0-290">290</a></span>
+<span class="normal"><a href="#__codelineno-0-291">291</a></span>
+<span class="normal"><a href="#__codelineno-0-292">292</a></span>
+<span class="normal"><a href="#__codelineno-0-293">293</a></span>
+<span class="normal"><a href="#__codelineno-0-294">294</a></span>
+<span class="normal"><a href="#__codelineno-0-295">295</a></span>
+<span class="normal"><a href="#__codelineno-0-296">296</a></span>
+<span class="normal"><a href="#__codelineno-0-297">297</a></span>
+<span class="normal"><a href="#__codelineno-0-298">298</a></span>
+<span class="normal"><a href="#__codelineno-0-299">299</a></span>
+<span class="normal"><a href="#__codelineno-0-300">300</a></span>
+<span class="normal"><a href="#__codelineno-0-301">301</a></span>
+<span class="normal"><a href="#__codelineno-0-302">302</a></span>
+<span class="normal"><a href="#__codelineno-0-303">303</a></span>
+<span class="normal"><a href="#__codelineno-0-304">304</a></span>
+<span class="normal"><a href="#__codelineno-0-305">305</a></span>
+<span class="normal"><a href="#__codelineno-0-306">306</a></span>
+<span class="normal"><a href="#__codelineno-0-307">307</a></span>
+<span class="normal"><a href="#__codelineno-0-308">308</a></span>
+<span class="normal"><a href="#__codelineno-0-309">309</a></span>
+<span class="normal"><a href="#__codelineno-0-310">310</a></span>
+<span class="normal"><a href="#__codelineno-0-311">311</a></span>
+<span class="normal"><a href="#__codelineno-0-312">312</a></span>
+<span class="normal"><a href="#__codelineno-0-313">313</a></span>
+<span class="normal"><a href="#__codelineno-0-314">314</a></span>
+<span class="normal"><a href="#__codelineno-0-315">315</a></span>
+<span class="normal"><a href="#__codelineno-0-316">316</a></span>
+<span class="normal"><a href="#__codelineno-0-317">317</a></span>
+<span class="normal"><a href="#__codelineno-0-318">318</a></span>
+<span class="normal"><a href="#__codelineno-0-319">319</a></span>
+<span class="normal"><a href="#__codelineno-0-320">320</a></span>
+<span class="normal"><a href="#__codelineno-0-321">321</a></span>
+<span class="normal"><a href="#__codelineno-0-322">322</a></span>
+<span class="normal"><a href="#__codelineno-0-323">323</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-119" name="__codelineno-0-119"></a><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
+<a id="__codelineno-0-120" name="__codelineno-0-120"></a>    <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-0-121" name="__codelineno-0-121"></a>    <span class="n">num_cores</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-0-122" name="__codelineno-0-122"></a>    <span class="n">device_group</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-123" name="__codelineno-0-123"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+<a id="__codelineno-0-124" name="__codelineno-0-124"></a>    <span class="n">prompts_txt_file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-125" name="__codelineno-0-125"></a>    <span class="n">aic_enable_depth_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-126" name="__codelineno-0-126"></a>    <span class="n">mos</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-127" name="__codelineno-0-127"></a>    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-128" name="__codelineno-0-128"></a>    <span class="n">full_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-129" name="__codelineno-0-129"></a>    <span class="n">prompt_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+<a id="__codelineno-0-130" name="__codelineno-0-130"></a>    <span class="n">ctx_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+<a id="__codelineno-0-131" name="__codelineno-0-131"></a>    <span class="n">generation_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-132" name="__codelineno-0-132"></a>    <span class="n">mxfp6</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-133" name="__codelineno-0-133"></a>    <span class="n">mxint8</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-134" name="__codelineno-0-134"></a>    <span class="n">local_model_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-135" name="__codelineno-0-135"></a>    <span class="n">cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-136" name="__codelineno-0-136"></a>    <span class="n">hf_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-137" name="__codelineno-0-137"></a>    <span class="n">allow_mxint8_mdp_io</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-138" name="__codelineno-0-138"></a>    <span class="n">enable_qnn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-139" name="__codelineno-0-139"></a>    <span class="n">qnn_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-140" name="__codelineno-0-140"></a>    <span class="n">trust_remote_code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-141" name="__codelineno-0-141"></a>    <span class="n">ccl_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-142" name="__codelineno-0-142"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-143" name="__codelineno-0-143"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-0-144" name="__codelineno-0-144"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-145" name="__codelineno-0-145"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-146" name="__codelineno-0-146"></a><span class="sd">    Main entry point for the QEfficient inference script.</span>
+<a id="__codelineno-0-147" name="__codelineno-0-147"></a>
+<a id="__codelineno-0-148" name="__codelineno-0-148"></a><span class="sd">    This function handles the end-to-end process of downloading, optimizing,</span>
+<a id="__codelineno-0-149" name="__codelineno-0-149"></a><span class="sd">    compiling, and executing a HuggingFace model on Cloud AI 100 hardware.</span>
+<a id="__codelineno-0-150" name="__codelineno-0-150"></a><span class="sd">    The process follows these steps:</span>
+<a id="__codelineno-0-151" name="__codelineno-0-151"></a>
+<a id="__codelineno-0-152" name="__codelineno-0-152"></a><span class="sd">    1. Checks for an existing compiled QPC package. If found, it jumps directly to execution.</span>
+<a id="__codelineno-0-153" name="__codelineno-0-153"></a><span class="sd">    2. Checks for an existing exported ONNX file. If true, it proceeds to compilation then execution.</span>
+<a id="__codelineno-0-154" name="__codelineno-0-154"></a><span class="sd">    3. Checks if the HuggingFace model exists in the cache. If true, it performs model transformation, ONNX export, compilation, and then execution.</span>
+<a id="__codelineno-0-155" name="__codelineno-0-155"></a><span class="sd">    4. If none of the above, it downloads the HuggingFace model, then performs transformation, ONNX export, compilation, and execution.</span>
+<a id="__codelineno-0-156" name="__codelineno-0-156"></a>
+<a id="__codelineno-0-157" name="__codelineno-0-157"></a><span class="sd">    Parameters</span>
+<a id="__codelineno-0-158" name="__codelineno-0-158"></a><span class="sd">    ----------</span>
+<a id="__codelineno-0-159" name="__codelineno-0-159"></a><span class="sd">    model_name : str</span>
+<a id="__codelineno-0-160" name="__codelineno-0-160"></a><span class="sd">        Hugging Face Model Card name (e.g., ``gpt2``) or path to a local model.</span>
+<a id="__codelineno-0-161" name="__codelineno-0-161"></a><span class="sd">    num_cores : int</span>
+<a id="__codelineno-0-162" name="__codelineno-0-162"></a><span class="sd">        Number of cores to compile the model on.</span>
+<a id="__codelineno-0-163" name="__codelineno-0-163"></a>
+<a id="__codelineno-0-164" name="__codelineno-0-164"></a><span class="sd">    Other Parameters</span>
+<a id="__codelineno-0-165" name="__codelineno-0-165"></a><span class="sd">    ----------------</span>
+<a id="__codelineno-0-166" name="__codelineno-0-166"></a><span class="sd">    device_group : List[int], optional</span>
+<a id="__codelineno-0-167" name="__codelineno-0-167"></a><span class="sd">        List of device IDs to be used for compilation and inference. If ``len(device_group) &gt; 1``,</span>
+<a id="__codelineno-0-168" name="__codelineno-0-168"></a><span class="sd">        a multiple card setup is enabled. Default is None.</span>
+<a id="__codelineno-0-169" name="__codelineno-0-169"></a><span class="sd">    prompt : str, optional</span>
+<a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="sd">        Sample prompt(s) for the model text generation. For batch size &gt; 1,</span>
+<a id="__codelineno-0-171" name="__codelineno-0-171"></a><span class="sd">        pass multiple prompts separated by a pipe (``|``) symbol. Default is None.</span>
+<a id="__codelineno-0-172" name="__codelineno-0-172"></a><span class="sd">    prompts_txt_file_path : str, optional</span>
+<a id="__codelineno-0-173" name="__codelineno-0-173"></a><span class="sd">        Path to a text file containing multiple input prompts, one per line. Default is None.</span>
+<a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="sd">    aic_enable_depth_first : bool, optional</span>
+<a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="sd">        Enables Depth-First Search (DFS) with default memory size during compilation. Default is False.</span>
+<a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="sd">    mos : int, optional</span>
+<a id="__codelineno-0-177" name="__codelineno-0-177"></a><span class="sd">        Effort level to reduce on-chip memory. Default is 1.</span>
+<a id="__codelineno-0-178" name="__codelineno-0-178"></a><span class="sd">    batch_size : int, optional</span>
+<a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="sd">        Batch size to compile the model for. Default is 1.</span>
+<a id="__codelineno-0-180" name="__codelineno-0-180"></a><span class="sd">    full_batch_size : int, optional</span>
+<a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="sd">        Sets the full batch size to enable continuous batching mode. Default is None.</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182"></a><span class="sd">    prompt_len : int, optional</span>
+<a id="__codelineno-0-183" name="__codelineno-0-183"></a><span class="sd">        Prompt length for the model to compile. Default is 32.</span>
+<a id="__codelineno-0-184" name="__codelineno-0-184"></a><span class="sd">    ctx_len : int, optional</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a><span class="sd">        Maximum context length to compile the model for. Default is 128.</span>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a><span class="sd">    generation_len : int, optional</span>
+<a id="__codelineno-0-187" name="__codelineno-0-187"></a><span class="sd">        Maximum number of tokens to be generated during inference. Default is None.</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a><span class="sd">    mxfp6 : bool, optional</span>
+<a id="__codelineno-0-189" name="__codelineno-0-189"></a><span class="sd">        Enables compilation for MXFP6 precision for constant MatMul weights. Default is False.</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a><span class="sd">        A warning is issued as ``--mxfp6`` is deprecated; use ``--mxfp6-matmul`` instead.</span>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a><span class="sd">    mxint8 : bool, optional</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a><span class="sd">        Compresses Present/Past KV to ``MXINT8`` using ``CustomIO`` config. Default is False.</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a><span class="sd">        A warning is issued as ``--mxint8`` is deprecated; use ``--mxint8-kv-cache`` instead.</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a><span class="sd">    local_model_dir : str, optional</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a><span class="sd">        Path to custom model weights and config files. Default is None.</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a><span class="sd">    cache_dir : str, optional</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a><span class="sd">        Cache directory where downloaded HuggingFace files are stored. Default is None.</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198"></a><span class="sd">    hf_token : str, optional</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a><span class="sd">        HuggingFace login token to access private repositories. Default is None.</span>
+<a id="__codelineno-0-200" name="__codelineno-0-200"></a><span class="sd">    allow_mxint8_mdp_io : bool, optional</span>
+<a id="__codelineno-0-201" name="__codelineno-0-201"></a><span class="sd">        Allows MXINT8 compression of MDP IO traffic during compilation. Default is False.</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a><span class="sd">    enable_qnn : bool or str, optional</span>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a><span class="sd">        Enables QNN compilation. Can be passed as a flag (True) or with a configuration file path (str).</span>
+<a id="__codelineno-0-204" name="__codelineno-0-204"></a><span class="sd">        If a string path is provided, it&#39;s treated as ``qnn_config``. Default is False.</span>
+<a id="__codelineno-0-205" name="__codelineno-0-205"></a><span class="sd">    qnn_config : str, optional</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a><span class="sd">        Path of the QNN Config parameters file. Default is None.</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a><span class="sd">    trust_remote_code : bool, optional</span>
+<a id="__codelineno-0-208" name="__codelineno-0-208"></a><span class="sd">        If True, trusts remote code when loading models from HuggingFace. Default is False.</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a><span class="sd">    use_onnx_subfunctions : bool, optional</span>
+<a id="__codelineno-0-210" name="__codelineno-0-210"></a><span class="sd">        Enables ONNX subfunctions during export and compile. Default is False.</span>
+<a id="__codelineno-0-211" name="__codelineno-0-211"></a><span class="sd">    **kwargs :</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a><span class="sd">        Additional compiler options passed directly to `qaic-compile`. Any flag supported by</span>
+<a id="__codelineno-0-213" name="__codelineno-0-213"></a><span class="sd">        `qaic-compile` can be passed. Parameters are converted to flags as follows:</span>
+<a id="__codelineno-0-214" name="__codelineno-0-214"></a>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a><span class="sd">        - ``-allocator_dealloc_delay=1`` -&gt; ``-allocator-dealloc-delay=1``</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a><span class="sd">        - ``-qpc_crc=True`` -&gt; ``-qpc-crc``</span>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a><span class="sd">    Example</span>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a><span class="sd">    -------</span>
+<a id="__codelineno-0-220" name="__codelineno-0-220"></a><span class="sd">    To run inference from the command line:</span>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a><span class="sd">    .. code-block:: bash</span>
+<a id="__codelineno-0-223" name="__codelineno-0-223"></a>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a><span class="sd">        python -m QEfficient.cloud.infer --model-name gpt2 --num-cores 16 --prompt &quot;Hello world&quot;</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a><span class="sd">    For advanced compilation options:</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a><span class="sd">    .. code-block:: bash</span>
+<a id="__codelineno-0-229" name="__codelineno-0-229"></a>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a><span class="sd">        python -m QEfficient.cloud.infer --model-name meta-llama/Llama-3.2-11B-Vision-Instruct \\</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a><span class="sd">            --num-cores 16 --prompt &quot;Describe this image.&quot; --image-url &quot;https://example.com/image.jpg&quot; \\</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a><span class="sd">            --ctx-len 512 --img-size 560 --mxfp6-matmul</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a>    <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">check_and_assign_cache_dir</span><span class="p">(</span><span class="n">local_model_dir</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">)</span>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a>    <span class="k">if</span> <span class="s2">&quot;--mxfp6&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">and</span> <span class="n">mxfp6</span><span class="p">:</span>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;mxfp6 is going to be deprecated in a future release, use -mxfp6_matmul instead.&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-239" name="__codelineno-0-239"></a>    <span class="k">if</span> <span class="s2">&quot;--mxint8&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">and</span> <span class="n">mxint8</span><span class="p">:</span>
+<a id="__codelineno-0-240" name="__codelineno-0-240"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;mxint8 is going to be deprecated in a future release, use -mxint8_kv_cache instead.&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-241" name="__codelineno-0-241"></a>
+<a id="__codelineno-0-242" name="__codelineno-0-242"></a>    <span class="n">qaic_config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ccl_enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span> <span class="k">if</span> <span class="n">ccl_enabled</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-243" name="__codelineno-0-243"></a>
+<a id="__codelineno-0-244" name="__codelineno-0-244"></a>    <span class="n">qeff_model</span> <span class="o">=</span> <span class="n">QEFFCommonLoader</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+<a id="__codelineno-0-245" name="__codelineno-0-245"></a>        <span class="n">pretrained_model_name_or_path</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a>        <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a>        <span class="n">hf_token</span><span class="o">=</span><span class="n">hf_token</span><span class="p">,</span>
+<a id="__codelineno-0-248" name="__codelineno-0-248"></a>        <span class="n">full_batch_size</span><span class="o">=</span><span class="n">full_batch_size</span><span class="p">,</span>
+<a id="__codelineno-0-249" name="__codelineno-0-249"></a>        <span class="n">local_model_dir</span><span class="o">=</span><span class="n">local_model_dir</span><span class="p">,</span>
+<a id="__codelineno-0-250" name="__codelineno-0-250"></a>        <span class="n">trust_remote_code</span><span class="o">=</span><span class="n">trust_remote_code</span><span class="p">,</span>
+<a id="__codelineno-0-251" name="__codelineno-0-251"></a>        <span class="n">qaic_config</span><span class="o">=</span><span class="n">qaic_config</span><span class="p">,</span>
+<a id="__codelineno-0-252" name="__codelineno-0-252"></a>    <span class="p">)</span>
+<a id="__codelineno-0-253" name="__codelineno-0-253"></a>
+<a id="__codelineno-0-254" name="__codelineno-0-254"></a>    <span class="n">image_path</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;image_path&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-255" name="__codelineno-0-255"></a>    <span class="n">image_url</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;image_url&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-256" name="__codelineno-0-256"></a>    <span class="n">iteration</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;iteration&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-257" name="__codelineno-0-257"></a>    <span class="n">automation</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;automation&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-0-258" name="__codelineno-0-258"></a>
+<a id="__codelineno-0-259" name="__codelineno-0-259"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">qeff_model</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">config</span>
+<a id="__codelineno-0-260" name="__codelineno-0-260"></a>    <span class="n">architecture</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">architectures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">architectures</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-261" name="__codelineno-0-261"></a>
+<a id="__codelineno-0-262" name="__codelineno-0-262"></a>    <span class="k">if</span> <span class="n">architecture</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">MODEL_FOR_IMAGE_TEXT_TO_TEXT_MAPPING_NAMES</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span>
+<a id="__codelineno-0-263" name="__codelineno-0-263"></a>        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;img_size&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">image_path</span> <span class="ow">or</span> <span class="n">image_url</span>
+<a id="__codelineno-0-264" name="__codelineno-0-264"></a>    <span class="p">):</span>
+<a id="__codelineno-0-265" name="__codelineno-0-265"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping image arguments as they are not valid for </span><span class="si">{</span><span class="n">architecture</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-266" name="__codelineno-0-266"></a>
+<a id="__codelineno-0-267" name="__codelineno-0-267"></a>    <span class="c1">#########</span>
+<a id="__codelineno-0-268" name="__codelineno-0-268"></a>    <span class="c1"># Compile</span>
+<a id="__codelineno-0-269" name="__codelineno-0-269"></a>    <span class="c1">#########</span>
+<a id="__codelineno-0-270" name="__codelineno-0-270"></a>    <span class="n">_</span> <span class="o">=</span> <span class="n">qeff_model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+<a id="__codelineno-0-271" name="__codelineno-0-271"></a>        <span class="n">prefill_seq_len</span><span class="o">=</span><span class="n">prompt_len</span><span class="p">,</span>
+<a id="__codelineno-0-272" name="__codelineno-0-272"></a>        <span class="n">ctx_len</span><span class="o">=</span><span class="n">ctx_len</span><span class="p">,</span>
+<a id="__codelineno-0-273" name="__codelineno-0-273"></a>        <span class="n">num_cores</span><span class="o">=</span><span class="n">num_cores</span><span class="p">,</span>
+<a id="__codelineno-0-274" name="__codelineno-0-274"></a>        <span class="n">mxfp6_matmul</span><span class="o">=</span><span class="n">mxfp6</span><span class="p">,</span>
+<a id="__codelineno-0-275" name="__codelineno-0-275"></a>        <span class="n">aic_enable_depth_first</span><span class="o">=</span><span class="n">aic_enable_depth_first</span><span class="p">,</span>
+<a id="__codelineno-0-276" name="__codelineno-0-276"></a>        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+<a id="__codelineno-0-277" name="__codelineno-0-277"></a>        <span class="n">mos</span><span class="o">=</span><span class="n">mos</span><span class="p">,</span>
+<a id="__codelineno-0-278" name="__codelineno-0-278"></a>        <span class="n">mxint8_kv_cache</span><span class="o">=</span><span class="n">mxint8</span><span class="p">,</span>
+<a id="__codelineno-0-279" name="__codelineno-0-279"></a>        <span class="n">num_devices</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">device_group</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">device_group</span><span class="p">)),</span>
+<a id="__codelineno-0-280" name="__codelineno-0-280"></a>        <span class="n">full_batch_size</span><span class="o">=</span><span class="n">full_batch_size</span><span class="p">,</span>
+<a id="__codelineno-0-281" name="__codelineno-0-281"></a>        <span class="n">allow_mxint8_mdp_io</span><span class="o">=</span><span class="n">allow_mxint8_mdp_io</span><span class="p">,</span>
+<a id="__codelineno-0-282" name="__codelineno-0-282"></a>        <span class="n">enable_qnn</span><span class="o">=</span><span class="n">enable_qnn</span><span class="p">,</span>
+<a id="__codelineno-0-283" name="__codelineno-0-283"></a>        <span class="n">qnn_config</span><span class="o">=</span><span class="n">qnn_config</span><span class="p">,</span>
+<a id="__codelineno-0-284" name="__codelineno-0-284"></a>        <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="n">use_onnx_subfunctions</span><span class="p">,</span>
+<a id="__codelineno-0-285" name="__codelineno-0-285"></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-0-286" name="__codelineno-0-286"></a>    <span class="p">)</span>
+<a id="__codelineno-0-287" name="__codelineno-0-287"></a>
+<a id="__codelineno-0-288" name="__codelineno-0-288"></a>    <span class="c1">#  If the io-encrypt flag is passed we will exit after QPC generation.</span>
+<a id="__codelineno-0-289" name="__codelineno-0-289"></a>    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;io_encrypt&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-0-290" name="__codelineno-0-290"></a>        <span class="n">exit</span><span class="p">()</span>
+<a id="__codelineno-0-291" name="__codelineno-0-291"></a>
+<a id="__codelineno-0-292" name="__codelineno-0-292"></a>    <span class="c1">#########</span>
+<a id="__codelineno-0-293" name="__codelineno-0-293"></a>    <span class="c1"># Execute</span>
+<a id="__codelineno-0-294" name="__codelineno-0-294"></a>    <span class="c1">#########</span>
+<a id="__codelineno-0-295" name="__codelineno-0-295"></a>    <span class="k">if</span> <span class="n">architecture</span> <span class="ow">in</span> <span class="n">MODEL_FOR_IMAGE_TEXT_TO_TEXT_MAPPING_NAMES</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+<a id="__codelineno-0-296" name="__codelineno-0-296"></a>        <span class="n">exec_info</span> <span class="o">=</span> <span class="n">execute_vlm_model</span><span class="p">(</span>
+<a id="__codelineno-0-297" name="__codelineno-0-297"></a>            <span class="n">qeff_model</span><span class="o">=</span><span class="n">qeff_model</span><span class="p">,</span>
+<a id="__codelineno-0-298" name="__codelineno-0-298"></a>            <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+<a id="__codelineno-0-299" name="__codelineno-0-299"></a>            <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>
+<a id="__codelineno-0-300" name="__codelineno-0-300"></a>            <span class="n">image_url</span><span class="o">=</span><span class="n">image_url</span><span class="p">,</span>
+<a id="__codelineno-0-301" name="__codelineno-0-301"></a>            <span class="n">image_path</span><span class="o">=</span><span class="n">image_path</span><span class="p">,</span>
+<a id="__codelineno-0-302" name="__codelineno-0-302"></a>            <span class="n">device_group</span><span class="o">=</span><span class="n">device_group</span><span class="p">,</span>
+<a id="__codelineno-0-303" name="__codelineno-0-303"></a>            <span class="n">local_model_dir</span><span class="o">=</span><span class="n">local_model_dir</span><span class="p">,</span>
+<a id="__codelineno-0-304" name="__codelineno-0-304"></a>            <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+<a id="__codelineno-0-305" name="__codelineno-0-305"></a>            <span class="n">hf_token</span><span class="o">=</span><span class="n">hf_token</span><span class="p">,</span>
+<a id="__codelineno-0-306" name="__codelineno-0-306"></a>            <span class="n">generation_len</span><span class="o">=</span><span class="n">generation_len</span><span class="p">,</span>
+<a id="__codelineno-0-307" name="__codelineno-0-307"></a>        <span class="p">)</span>
+<a id="__codelineno-0-308" name="__codelineno-0-308"></a>        <span class="nb">print</span><span class="p">(</span><span class="n">exec_info</span><span class="p">)</span>
+<a id="__codelineno-0-309" name="__codelineno-0-309"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-310" name="__codelineno-0-310"></a>        <span class="n">tokenizer</span> <span class="o">=</span> <span class="n">load_hf_tokenizer</span><span class="p">(</span>
+<a id="__codelineno-0-311" name="__codelineno-0-311"></a>            <span class="n">pretrained_model_name_or_path</span><span class="o">=</span><span class="p">(</span><span class="n">local_model_dir</span> <span class="k">if</span> <span class="n">local_model_dir</span> <span class="k">else</span> <span class="n">model_name</span><span class="p">),</span>
+<a id="__codelineno-0-312" name="__codelineno-0-312"></a>            <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+<a id="__codelineno-0-313" name="__codelineno-0-313"></a>            <span class="n">hf_token</span><span class="o">=</span><span class="n">hf_token</span><span class="p">,</span>
+<a id="__codelineno-0-314" name="__codelineno-0-314"></a>        <span class="p">)</span>
+<a id="__codelineno-0-315" name="__codelineno-0-315"></a>        <span class="n">_</span> <span class="o">=</span> <span class="n">qeff_model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+<a id="__codelineno-0-316" name="__codelineno-0-316"></a>            <span class="n">tokenizer</span><span class="p">,</span>
+<a id="__codelineno-0-317" name="__codelineno-0-317"></a>            <span class="n">prompts</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>
+<a id="__codelineno-0-318" name="__codelineno-0-318"></a>            <span class="n">device_id</span><span class="o">=</span><span class="n">device_group</span><span class="p">,</span>
+<a id="__codelineno-0-319" name="__codelineno-0-319"></a>            <span class="n">prompts_txt_file_path</span><span class="o">=</span><span class="n">prompts_txt_file_path</span><span class="p">,</span>
+<a id="__codelineno-0-320" name="__codelineno-0-320"></a>            <span class="n">generation_len</span><span class="o">=</span><span class="n">generation_len</span><span class="p">,</span>
+<a id="__codelineno-0-321" name="__codelineno-0-321"></a>            <span class="n">iteration</span><span class="o">=</span><span class="n">iteration</span><span class="p">,</span>
+<a id="__codelineno-0-322" name="__codelineno-0-322"></a>            <span class="n">automation</span><span class="o">=</span><span class="n">automation</span><span class="p">,</span>
+<a id="__codelineno-0-323" name="__codelineno-0-323"></a>        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div><hr />
+<h2 id="execute_api"><code>QEfficient.cloud.execute</code><a class="headerlink" href="#execute_api" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<a id="QEfficient.cloud.execute.main"></a>
+    <div class="doc doc-contents first">
+
+        <p>Main function for the QEfficient execution CLI application.</p>
+<p>This function serves as the entry point for running a compiled model
+(QPC package) on the Cloud AI 100 Platform. It loads the necessary
+tokenizer and then orchestrates the text generation inference.</p>
+<h4 id="QEfficient.cloud.execute.main--parameters">Parameters<a class="headerlink" href="#QEfficient.cloud.execute.main--parameters" title="Permanent link">&para;</a></h4>
+<p>model_name : str
+    Hugging Face Model Card name (e.g., <code>gpt2</code>) for loading the tokenizer.
+qpc_path : str
+    Path to the generated binary (QPC package) after compilation.</p>
+<h4 id="QEfficient.cloud.execute.main--other-parameters">Other Parameters<a class="headerlink" href="#QEfficient.cloud.execute.main--other-parameters" title="Permanent link">&para;</a></h4>
+<p>device_group : List[int], optional
+    List of device IDs to be used for inference. If <code>len(device_group) &gt; 1</code>,
+    a multi-card setup is enabled. Default is None.
+local_model_dir : str, optional
+    Path to custom model weights and config files, used if not loading tokenizer
+    from Hugging Face Hub. Default is None.
+prompt : str, optional
+    Sample prompt(s) for the model text generation. For batch size &gt; 1,
+    pass multiple prompts separated by a pipe (<code>|</code>) symbol. Default is None.
+prompts_txt_file_path : str, optional
+    Path to a text file containing multiple input prompts, one per line. Default is None.
+generation_len : int, optional
+    Maximum number of tokens to be generated during inference. Default is None.
+cache_dir : str, optional
+    Cache directory where downloaded HuggingFace files (like tokenizer) are stored.
+    Default is None.
+hf_token : str, optional
+    HuggingFace login token to access private repositories. Default is None.
+full_batch_size : int, optional
+    Ignored in this context as continuous batching is managed by the compiled QPC.
+    However, it might be passed through from CLI arguments. Default is None.</p>
+<h4 id="QEfficient.cloud.execute.main--example">Example<a class="headerlink" href="#QEfficient.cloud.execute.main--example" title="Permanent link">&para;</a></h4>
+<p>To execute a compiled model from the command line:</p>
+<p>.. code-block:: bash</p>
+<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.execute --model-name gpt2 --qpc-path /path/to/qpc/binaries --prompt &quot;Hello world&quot;
+</code></pre></div>
+<p>For multi-device inference:</p>
+<p>.. code-block:: bash</p>
+<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.execute --model-name gpt2 --qpc-path /path/to/qpc/binaries --device-group &quot;[0,1]&quot; --prompt &quot;Hello | Hi&quot;
+</code></pre></div>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>QEfficient/cloud/execute.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#__codelineno-0-18">18</a></span>
+<span class="normal"><a href="#__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#__codelineno-0-20">20</a></span>
+<span class="normal"><a href="#__codelineno-0-21">21</a></span>
+<span class="normal"><a href="#__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#__codelineno-0-25">25</a></span>
+<span class="normal"><a href="#__codelineno-0-26">26</a></span>
+<span class="normal"><a href="#__codelineno-0-27">27</a></span>
+<span class="normal"><a href="#__codelineno-0-28">28</a></span>
+<span class="normal"><a href="#__codelineno-0-29">29</a></span>
+<span class="normal"><a href="#__codelineno-0-30">30</a></span>
+<span class="normal"><a href="#__codelineno-0-31">31</a></span>
+<span class="normal"><a href="#__codelineno-0-32">32</a></span>
+<span class="normal"><a href="#__codelineno-0-33">33</a></span>
+<span class="normal"><a href="#__codelineno-0-34">34</a></span>
+<span class="normal"><a href="#__codelineno-0-35">35</a></span>
+<span class="normal"><a href="#__codelineno-0-36">36</a></span>
+<span class="normal"><a href="#__codelineno-0-37">37</a></span>
+<span class="normal"><a href="#__codelineno-0-38">38</a></span>
+<span class="normal"><a href="#__codelineno-0-39">39</a></span>
+<span class="normal"><a href="#__codelineno-0-40">40</a></span>
+<span class="normal"><a href="#__codelineno-0-41">41</a></span>
+<span class="normal"><a href="#__codelineno-0-42">42</a></span>
+<span class="normal"><a href="#__codelineno-0-43">43</a></span>
+<span class="normal"><a href="#__codelineno-0-44">44</a></span>
+<span class="normal"><a href="#__codelineno-0-45">45</a></span>
+<span class="normal"><a href="#__codelineno-0-46">46</a></span>
+<span class="normal"><a href="#__codelineno-0-47">47</a></span>
+<span class="normal"><a href="#__codelineno-0-48">48</a></span>
+<span class="normal"><a href="#__codelineno-0-49">49</a></span>
+<span class="normal"><a href="#__codelineno-0-50">50</a></span>
+<span class="normal"><a href="#__codelineno-0-51">51</a></span>
+<span class="normal"><a href="#__codelineno-0-52">52</a></span>
+<span class="normal"><a href="#__codelineno-0-53">53</a></span>
+<span class="normal"><a href="#__codelineno-0-54">54</a></span>
+<span class="normal"><a href="#__codelineno-0-55">55</a></span>
+<span class="normal"><a href="#__codelineno-0-56">56</a></span>
+<span class="normal"><a href="#__codelineno-0-57">57</a></span>
+<span class="normal"><a href="#__codelineno-0-58">58</a></span>
+<span class="normal"><a href="#__codelineno-0-59">59</a></span>
+<span class="normal"><a href="#__codelineno-0-60">60</a></span>
+<span class="normal"><a href="#__codelineno-0-61">61</a></span>
+<span class="normal"><a href="#__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#__codelineno-0-69">69</a></span>
+<span class="normal"><a href="#__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#__codelineno-0-72">72</a></span>
+<span class="normal"><a href="#__codelineno-0-73">73</a></span>
+<span class="normal"><a href="#__codelineno-0-74">74</a></span>
+<span class="normal"><a href="#__codelineno-0-75">75</a></span>
+<span class="normal"><a href="#__codelineno-0-76">76</a></span>
+<span class="normal"><a href="#__codelineno-0-77">77</a></span>
+<span class="normal"><a href="#__codelineno-0-78">78</a></span>
+<span class="normal"><a href="#__codelineno-0-79">79</a></span>
+<span class="normal"><a href="#__codelineno-0-80">80</a></span>
+<span class="normal"><a href="#__codelineno-0-81">81</a></span>
+<span class="normal"><a href="#__codelineno-0-82">82</a></span>
+<span class="normal"><a href="#__codelineno-0-83">83</a></span>
+<span class="normal"><a href="#__codelineno-0-84">84</a></span>
+<span class="normal"><a href="#__codelineno-0-85">85</a></span>
+<span class="normal"><a href="#__codelineno-0-86">86</a></span>
+<span class="normal"><a href="#__codelineno-0-87">87</a></span>
+<span class="normal"><a href="#__codelineno-0-88">88</a></span>
+<span class="normal"><a href="#__codelineno-0-89">89</a></span>
+<span class="normal"><a href="#__codelineno-0-90">90</a></span>
+<span class="normal"><a href="#__codelineno-0-91">91</a></span>
+<span class="normal"><a href="#__codelineno-0-92">92</a></span>
+<span class="normal"><a href="#__codelineno-0-93">93</a></span>
+<span class="normal"><a href="#__codelineno-0-94">94</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16"></a>    <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17"></a>    <span class="n">qpc_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18"></a>    <span class="n">device_group</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19"></a>    <span class="n">local_model_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21"></a>    <span class="n">prompts_txt_file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22"></a>    <span class="n">generation_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a>    <span class="n">cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="n">hf_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25"></a>    <span class="n">full_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="p">):</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="sd">    Main function for the QEfficient execution CLI application.</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29"></a>
+<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">    This function serves as the entry point for running a compiled model</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="sd">    (QPC package) on the Cloud AI 100 Platform. It loads the necessary</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    tokenizer and then orchestrates the text generation inference.</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33"></a>
+<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    Parameters</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    ----------</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">    model_name : str</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="sd">        Hugging Face Model Card name (e.g., ``gpt2``) for loading the tokenizer.</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">    qpc_path : str</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="sd">        Path to the generated binary (QPC package) after compilation.</span>
+<a id="__codelineno-0-40" name="__codelineno-0-40"></a>
+<a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">    Other Parameters</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">    ----------------</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="sd">    device_group : List[int], optional</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">        List of device IDs to be used for inference. If `len(device_group) &gt; 1`,</span>
+<a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="sd">        a multi-card setup is enabled. Default is None.</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="sd">    local_model_dir : str, optional</span>
+<a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">        Path to custom model weights and config files, used if not loading tokenizer</span>
+<a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="sd">        from Hugging Face Hub. Default is None.</span>
+<a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">    prompt : str, optional</span>
+<a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="sd">        Sample prompt(s) for the model text generation. For batch size &gt; 1,</span>
+<a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="sd">        pass multiple prompts separated by a pipe (``|``) symbol. Default is None.</span>
+<a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">    prompts_txt_file_path : str, optional</span>
+<a id="__codelineno-0-53" name="__codelineno-0-53"></a><span class="sd">        Path to a text file containing multiple input prompts, one per line. Default is None.</span>
+<a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="sd">    generation_len : int, optional</span>
+<a id="__codelineno-0-55" name="__codelineno-0-55"></a><span class="sd">        Maximum number of tokens to be generated during inference. Default is None.</span>
+<a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="sd">    cache_dir : str, optional</span>
+<a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="sd">        Cache directory where downloaded HuggingFace files (like tokenizer) are stored.</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="sd">        Default is None.</span>
+<a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="sd">    hf_token : str, optional</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">        HuggingFace login token to access private repositories. Default is None.</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">    full_batch_size : int, optional</span>
+<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">        Ignored in this context as continuous batching is managed by the compiled QPC.</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">        However, it might be passed through from CLI arguments. Default is None.</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64"></a>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">    Example</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">    -------</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">    To execute a compiled model from the command line:</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a>
+<a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">    .. code-block:: bash</span>
+<a id="__codelineno-0-70" name="__codelineno-0-70"></a>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">        python -m QEfficient.cloud.execute --model-name gpt2 --qpc-path /path/to/qpc/binaries --prompt &quot;Hello world&quot;</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a>
+<a id="__codelineno-0-73" name="__codelineno-0-73"></a><span class="sd">    For multi-device inference:</span>
+<a id="__codelineno-0-74" name="__codelineno-0-74"></a>
+<a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="sd">    .. code-block:: bash</span>
+<a id="__codelineno-0-76" name="__codelineno-0-76"></a>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="sd">        python -m QEfficient.cloud.execute --model-name gpt2 --qpc-path /path/to/qpc/binaries --device-group &quot;[0,1]&quot; --prompt &quot;Hello | Hi&quot;</span>
+<a id="__codelineno-0-78" name="__codelineno-0-78"></a>
+<a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80"></a>    <span class="n">tokenizer</span> <span class="o">=</span> <span class="n">load_hf_tokenizer</span><span class="p">(</span>
+<a id="__codelineno-0-81" name="__codelineno-0-81"></a>        <span class="n">pretrained_model_name_or_path</span><span class="o">=</span><span class="p">(</span><span class="n">local_model_dir</span> <span class="k">if</span> <span class="n">local_model_dir</span> <span class="k">else</span> <span class="n">model_name</span><span class="p">),</span>
+<a id="__codelineno-0-82" name="__codelineno-0-82"></a>        <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83"></a>        <span class="n">hf_token</span><span class="o">=</span><span class="n">hf_token</span><span class="p">,</span>
+<a id="__codelineno-0-84" name="__codelineno-0-84"></a>    <span class="p">)</span>
+<a id="__codelineno-0-85" name="__codelineno-0-85"></a>
+<a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="c1"># Execute</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="n">cloud_ai_100_exec_kv</span><span class="p">(</span>
+<a id="__codelineno-0-88" name="__codelineno-0-88"></a>        <span class="n">tokenizer</span><span class="o">=</span><span class="n">tokenizer</span><span class="p">,</span>
+<a id="__codelineno-0-89" name="__codelineno-0-89"></a>        <span class="n">qpc_path</span><span class="o">=</span><span class="n">qpc_path</span><span class="p">,</span>
+<a id="__codelineno-0-90" name="__codelineno-0-90"></a>        <span class="n">device_id</span><span class="o">=</span><span class="n">device_group</span><span class="p">,</span>
+<a id="__codelineno-0-91" name="__codelineno-0-91"></a>        <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>
+<a id="__codelineno-0-92" name="__codelineno-0-92"></a>        <span class="n">prompts_txt_file_path</span><span class="o">=</span><span class="n">prompts_txt_file_path</span><span class="p">,</span>
+<a id="__codelineno-0-93" name="__codelineno-0-93"></a>        <span class="n">generation_len</span><span class="o">=</span><span class="n">generation_len</span><span class="p">,</span>
+<a id="__codelineno-0-94" name="__codelineno-0-94"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div><hr />
+<h2 id="compile_api"><code>QEfficient.compile</code><a class="headerlink" href="#compile_api" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<a id="QEfficient.compile.compile_helper.compile"></a>
+    <div class="doc doc-contents first">
+
+        <p>Compiles the given ONNX model using either the Cloud AI 100 platform SDK compiler
+or the QNN compiler, and saves the compiled QPC package.</p>
+<p>This function handles the creation of specialization files, selection of custom IO
+configurations, and execution of the appropriate compiler (QAIC or QNN).
+It supports multi-device compilation for tensor slicing.</p>
+<h4 id="QEfficient.compile.compile_helper.compile--parameters">Parameters<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--parameters" title="Permanent link">&para;</a></h4>
+<p>onnx_path : str
+    Path to the generated ONNX model file.
+qpc_path : str
+    Target directory path for saving the compiled QPC binaries.
+num_cores : int
+    Number of cores to use for compilation.</p>
+<h4 id="QEfficient.compile.compile_helper.compile--other-parameters">Other Parameters<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--other-parameters" title="Permanent link">&para;</a></h4>
+<p>device_group : List[int], optional
+    List of device IDs. Used to determine the number of devices for multi-device compilation.
+    Default is None.
+aic_enable_depth_first : bool, optional
+    If True, enables Depth-First Search (DFS) optimization with default memory size during QAIC compilation.
+    Default is False.
+mos : int, optional
+    Effort level to reduce on-chip memory during QAIC compilation. A value greater than 0 applies this effort.
+    Default is -1 (no effort).
+batch_size : int, optional
+    Batch size to compile the model for. Default is 1.
+full_batch_size : int, optional
+    Sets the full batch size to enable continuous batching mode. If provided, <code>batch_size</code> must be 1.
+    Default is None.
+prompt_len : int, optional
+    Prompt length for the model to compile. Default is 32.
+ctx_len : int, optional
+    Maximum context length to compile the model for. Default is 128.
+mxfp6 : bool, optional
+    If True, enables MXFP6 precision for MatMul weights during compilation. Default is True.
+mxint8 : bool, optional
+    If True, compresses Present/Past KV to MXINT8 using a CustomIO configuration. Default is False.
+custom_io_file_path : str, optional
+    Explicit path to a Custom IO file (e.g., YAML format). If None, it's inferred based on <code>mxint8</code>.
+    Default is None.
+allow_mxint8_mdp_io : bool, optional
+    If True, allows MXINT8 compression of MDP IO traffic during QAIC compilation. Default is False.
+enable_qnn : bool, optional
+    If True, enables compilation using the QNN compiler instead of QAIC. Default is False.
+qnn_config : str, optional
+    Path to the QNN Config parameters file, used if <code>enable_qnn</code> is True. Default is None.
+**kwargs :
+    Additional compiler options passed directly to the chosen compiler.</p>
+<h4 id="QEfficient.compile.compile_helper.compile--returns">Returns<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--returns" title="Permanent link">&para;</a></h4>
+<p>str
+    Path to the compiled QPC package directory.</p>
+<h4 id="QEfficient.compile.compile_helper.compile--raises">Raises<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--raises" title="Permanent link">&para;</a></h4>
+<p>ValueError
+    If both <code>batch_size</code> and <code>full_batch_size</code> are greater than one (mutually exclusive in some contexts).
+FileNotFoundError
+    If required Custom IO files are not found.</p>
+<h4 id="QEfficient.compile.compile_helper.compile--warnings">Warnings<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--warnings" title="Permanent link">&para;</a></h4>
+<p>DeprecationWarning
+    This method will be removed soon; use <code>QEFFAutoModelForCausalLM.compile</code> instead.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>QEfficient/compile/compile_helper.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-181">181</a></span>
+<span class="normal"><a href="#__codelineno-0-182">182</a></span>
+<span class="normal"><a href="#__codelineno-0-183">183</a></span>
+<span class="normal"><a href="#__codelineno-0-184">184</a></span>
+<span class="normal"><a href="#__codelineno-0-185">185</a></span>
+<span class="normal"><a href="#__codelineno-0-186">186</a></span>
+<span class="normal"><a href="#__codelineno-0-187">187</a></span>
+<span class="normal"><a href="#__codelineno-0-188">188</a></span>
+<span class="normal"><a href="#__codelineno-0-189">189</a></span>
+<span class="normal"><a href="#__codelineno-0-190">190</a></span>
+<span class="normal"><a href="#__codelineno-0-191">191</a></span>
+<span class="normal"><a href="#__codelineno-0-192">192</a></span>
+<span class="normal"><a href="#__codelineno-0-193">193</a></span>
+<span class="normal"><a href="#__codelineno-0-194">194</a></span>
+<span class="normal"><a href="#__codelineno-0-195">195</a></span>
+<span class="normal"><a href="#__codelineno-0-196">196</a></span>
+<span class="normal"><a href="#__codelineno-0-197">197</a></span>
+<span class="normal"><a href="#__codelineno-0-198">198</a></span>
+<span class="normal"><a href="#__codelineno-0-199">199</a></span>
+<span class="normal"><a href="#__codelineno-0-200">200</a></span>
+<span class="normal"><a href="#__codelineno-0-201">201</a></span>
+<span class="normal"><a href="#__codelineno-0-202">202</a></span>
+<span class="normal"><a href="#__codelineno-0-203">203</a></span>
+<span class="normal"><a href="#__codelineno-0-204">204</a></span>
+<span class="normal"><a href="#__codelineno-0-205">205</a></span>
+<span class="normal"><a href="#__codelineno-0-206">206</a></span>
+<span class="normal"><a href="#__codelineno-0-207">207</a></span>
+<span class="normal"><a href="#__codelineno-0-208">208</a></span>
+<span class="normal"><a href="#__codelineno-0-209">209</a></span>
+<span class="normal"><a href="#__codelineno-0-210">210</a></span>
+<span class="normal"><a href="#__codelineno-0-211">211</a></span>
+<span class="normal"><a href="#__codelineno-0-212">212</a></span>
+<span class="normal"><a href="#__codelineno-0-213">213</a></span>
+<span class="normal"><a href="#__codelineno-0-214">214</a></span>
+<span class="normal"><a href="#__codelineno-0-215">215</a></span>
+<span class="normal"><a href="#__codelineno-0-216">216</a></span>
+<span class="normal"><a href="#__codelineno-0-217">217</a></span>
+<span class="normal"><a href="#__codelineno-0-218">218</a></span>
+<span class="normal"><a href="#__codelineno-0-219">219</a></span>
+<span class="normal"><a href="#__codelineno-0-220">220</a></span>
+<span class="normal"><a href="#__codelineno-0-221">221</a></span>
+<span class="normal"><a href="#__codelineno-0-222">222</a></span>
+<span class="normal"><a href="#__codelineno-0-223">223</a></span>
+<span class="normal"><a href="#__codelineno-0-224">224</a></span>
+<span class="normal"><a href="#__codelineno-0-225">225</a></span>
+<span class="normal"><a href="#__codelineno-0-226">226</a></span>
+<span class="normal"><a href="#__codelineno-0-227">227</a></span>
+<span class="normal"><a href="#__codelineno-0-228">228</a></span>
+<span class="normal"><a href="#__codelineno-0-229">229</a></span>
+<span class="normal"><a href="#__codelineno-0-230">230</a></span>
+<span class="normal"><a href="#__codelineno-0-231">231</a></span>
+<span class="normal"><a href="#__codelineno-0-232">232</a></span>
+<span class="normal"><a href="#__codelineno-0-233">233</a></span>
+<span class="normal"><a href="#__codelineno-0-234">234</a></span>
+<span class="normal"><a href="#__codelineno-0-235">235</a></span>
+<span class="normal"><a href="#__codelineno-0-236">236</a></span>
+<span class="normal"><a href="#__codelineno-0-237">237</a></span>
+<span class="normal"><a href="#__codelineno-0-238">238</a></span>
+<span class="normal"><a href="#__codelineno-0-239">239</a></span>
+<span class="normal"><a href="#__codelineno-0-240">240</a></span>
+<span class="normal"><a href="#__codelineno-0-241">241</a></span>
+<span class="normal"><a href="#__codelineno-0-242">242</a></span>
+<span class="normal"><a href="#__codelineno-0-243">243</a></span>
+<span class="normal"><a href="#__codelineno-0-244">244</a></span>
+<span class="normal"><a href="#__codelineno-0-245">245</a></span>
+<span class="normal"><a href="#__codelineno-0-246">246</a></span>
+<span class="normal"><a href="#__codelineno-0-247">247</a></span>
+<span class="normal"><a href="#__codelineno-0-248">248</a></span>
+<span class="normal"><a href="#__codelineno-0-249">249</a></span>
+<span class="normal"><a href="#__codelineno-0-250">250</a></span>
+<span class="normal"><a href="#__codelineno-0-251">251</a></span>
+<span class="normal"><a href="#__codelineno-0-252">252</a></span>
+<span class="normal"><a href="#__codelineno-0-253">253</a></span>
+<span class="normal"><a href="#__codelineno-0-254">254</a></span>
+<span class="normal"><a href="#__codelineno-0-255">255</a></span>
+<span class="normal"><a href="#__codelineno-0-256">256</a></span>
+<span class="normal"><a href="#__codelineno-0-257">257</a></span>
+<span class="normal"><a href="#__codelineno-0-258">258</a></span>
+<span class="normal"><a href="#__codelineno-0-259">259</a></span>
+<span class="normal"><a href="#__codelineno-0-260">260</a></span>
+<span class="normal"><a href="#__codelineno-0-261">261</a></span>
+<span class="normal"><a href="#__codelineno-0-262">262</a></span>
+<span class="normal"><a href="#__codelineno-0-263">263</a></span>
+<span class="normal"><a href="#__codelineno-0-264">264</a></span>
+<span class="normal"><a href="#__codelineno-0-265">265</a></span>
+<span class="normal"><a href="#__codelineno-0-266">266</a></span>
+<span class="normal"><a href="#__codelineno-0-267">267</a></span>
+<span class="normal"><a href="#__codelineno-0-268">268</a></span>
+<span class="normal"><a href="#__codelineno-0-269">269</a></span>
+<span class="normal"><a href="#__codelineno-0-270">270</a></span>
+<span class="normal"><a href="#__codelineno-0-271">271</a></span>
+<span class="normal"><a href="#__codelineno-0-272">272</a></span>
+<span class="normal"><a href="#__codelineno-0-273">273</a></span>
+<span class="normal"><a href="#__codelineno-0-274">274</a></span>
+<span class="normal"><a href="#__codelineno-0-275">275</a></span>
+<span class="normal"><a href="#__codelineno-0-276">276</a></span>
+<span class="normal"><a href="#__codelineno-0-277">277</a></span>
+<span class="normal"><a href="#__codelineno-0-278">278</a></span>
+<span class="normal"><a href="#__codelineno-0-279">279</a></span>
+<span class="normal"><a href="#__codelineno-0-280">280</a></span>
+<span class="normal"><a href="#__codelineno-0-281">281</a></span>
+<span class="normal"><a href="#__codelineno-0-282">282</a></span>
+<span class="normal"><a href="#__codelineno-0-283">283</a></span>
+<span class="normal"><a href="#__codelineno-0-284">284</a></span>
+<span class="normal"><a href="#__codelineno-0-285">285</a></span>
+<span class="normal"><a href="#__codelineno-0-286">286</a></span>
+<span class="normal"><a href="#__codelineno-0-287">287</a></span>
+<span class="normal"><a href="#__codelineno-0-288">288</a></span>
+<span class="normal"><a href="#__codelineno-0-289">289</a></span>
+<span class="normal"><a href="#__codelineno-0-290">290</a></span>
+<span class="normal"><a href="#__codelineno-0-291">291</a></span>
+<span class="normal"><a href="#__codelineno-0-292">292</a></span>
+<span class="normal"><a href="#__codelineno-0-293">293</a></span>
+<span class="normal"><a href="#__codelineno-0-294">294</a></span>
+<span class="normal"><a href="#__codelineno-0-295">295</a></span>
+<span class="normal"><a href="#__codelineno-0-296">296</a></span>
+<span class="normal"><a href="#__codelineno-0-297">297</a></span>
+<span class="normal"><a href="#__codelineno-0-298">298</a></span>
+<span class="normal"><a href="#__codelineno-0-299">299</a></span>
+<span class="normal"><a href="#__codelineno-0-300">300</a></span>
+<span class="normal"><a href="#__codelineno-0-301">301</a></span>
+<span class="normal"><a href="#__codelineno-0-302">302</a></span>
+<span class="normal"><a href="#__codelineno-0-303">303</a></span>
+<span class="normal"><a href="#__codelineno-0-304">304</a></span>
+<span class="normal"><a href="#__codelineno-0-305">305</a></span>
+<span class="normal"><a href="#__codelineno-0-306">306</a></span>
+<span class="normal"><a href="#__codelineno-0-307">307</a></span>
+<span class="normal"><a href="#__codelineno-0-308">308</a></span>
+<span class="normal"><a href="#__codelineno-0-309">309</a></span>
+<span class="normal"><a href="#__codelineno-0-310">310</a></span>
+<span class="normal"><a href="#__codelineno-0-311">311</a></span>
+<span class="normal"><a href="#__codelineno-0-312">312</a></span>
+<span class="normal"><a href="#__codelineno-0-313">313</a></span>
+<span class="normal"><a href="#__codelineno-0-314">314</a></span>
+<span class="normal"><a href="#__codelineno-0-315">315</a></span>
+<span class="normal"><a href="#__codelineno-0-316">316</a></span>
+<span class="normal"><a href="#__codelineno-0-317">317</a></span>
+<span class="normal"><a href="#__codelineno-0-318">318</a></span>
+<span class="normal"><a href="#__codelineno-0-319">319</a></span>
+<span class="normal"><a href="#__codelineno-0-320">320</a></span>
+<span class="normal"><a href="#__codelineno-0-321">321</a></span>
+<span class="normal"><a href="#__codelineno-0-322">322</a></span>
+<span class="normal"><a href="#__codelineno-0-323">323</a></span>
+<span class="normal"><a href="#__codelineno-0-324">324</a></span>
+<span class="normal"><a href="#__codelineno-0-325">325</a></span>
+<span class="normal"><a href="#__codelineno-0-326">326</a></span>
+<span class="normal"><a href="#__codelineno-0-327">327</a></span>
+<span class="normal"><a href="#__codelineno-0-328">328</a></span>
+<span class="normal"><a href="#__codelineno-0-329">329</a></span>
+<span class="normal"><a href="#__codelineno-0-330">330</a></span>
+<span class="normal"><a href="#__codelineno-0-331">331</a></span>
+<span class="normal"><a href="#__codelineno-0-332">332</a></span>
+<span class="normal"><a href="#__codelineno-0-333">333</a></span>
+<span class="normal"><a href="#__codelineno-0-334">334</a></span>
+<span class="normal"><a href="#__codelineno-0-335">335</a></span>
+<span class="normal"><a href="#__codelineno-0-336">336</a></span>
+<span class="normal"><a href="#__codelineno-0-337">337</a></span>
+<span class="normal"><a href="#__codelineno-0-338">338</a></span>
+<span class="normal"><a href="#__codelineno-0-339">339</a></span>
+<span class="normal"><a href="#__codelineno-0-340">340</a></span>
+<span class="normal"><a href="#__codelineno-0-341">341</a></span>
+<span class="normal"><a href="#__codelineno-0-342">342</a></span>
+<span class="normal"><a href="#__codelineno-0-343">343</a></span>
+<span class="normal"><a href="#__codelineno-0-344">344</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="k">def</span><span class="w"> </span><span class="nf">compile</span><span class="p">(</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182"></a>    <span class="n">onnx_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-0-183" name="__codelineno-0-183"></a>    <span class="n">qpc_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-0-184" name="__codelineno-0-184"></a>    <span class="n">num_cores</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a>    <span class="n">device_group</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1">#  FIXME: use num_devices instead</span>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a>    <span class="n">aic_enable_depth_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-187" name="__codelineno-0-187"></a>    <span class="n">mos</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a>    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-189" name="__codelineno-0-189"></a>    <span class="n">prompt_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a>    <span class="n">ctx_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a>    <span class="n">mxfp6</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a>    <span class="n">mxint8</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a>    <span class="n">custom_io_file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a>    <span class="n">full_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a>    <span class="n">allow_mxint8_mdp_io</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a>    <span class="n">enable_qnn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a>    <span class="n">qnn_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-200" name="__codelineno-0-200"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-201" name="__codelineno-0-201"></a><span class="sd">    Compiles the given ONNX model using either the Cloud AI 100 platform SDK compiler</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a><span class="sd">    or the QNN compiler, and saves the compiled QPC package.</span>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a>
+<a id="__codelineno-0-204" name="__codelineno-0-204"></a><span class="sd">    This function handles the creation of specialization files, selection of custom IO</span>
+<a id="__codelineno-0-205" name="__codelineno-0-205"></a><span class="sd">    configurations, and execution of the appropriate compiler (QAIC or QNN).</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a><span class="sd">    It supports multi-device compilation for tensor slicing.</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a>
+<a id="__codelineno-0-208" name="__codelineno-0-208"></a><span class="sd">    Parameters</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a><span class="sd">    ----------</span>
+<a id="__codelineno-0-210" name="__codelineno-0-210"></a><span class="sd">    onnx_path : str</span>
+<a id="__codelineno-0-211" name="__codelineno-0-211"></a><span class="sd">        Path to the generated ONNX model file.</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a><span class="sd">    qpc_path : str</span>
+<a id="__codelineno-0-213" name="__codelineno-0-213"></a><span class="sd">        Target directory path for saving the compiled QPC binaries.</span>
+<a id="__codelineno-0-214" name="__codelineno-0-214"></a><span class="sd">    num_cores : int</span>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a><span class="sd">        Number of cores to use for compilation.</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a><span class="sd">    Other Parameters</span>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a><span class="sd">    ----------------</span>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a><span class="sd">    device_group : List[int], optional</span>
+<a id="__codelineno-0-220" name="__codelineno-0-220"></a><span class="sd">        List of device IDs. Used to determine the number of devices for multi-device compilation.</span>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a><span class="sd">        Default is None.</span>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a><span class="sd">    aic_enable_depth_first : bool, optional</span>
+<a id="__codelineno-0-223" name="__codelineno-0-223"></a><span class="sd">        If True, enables Depth-First Search (DFS) optimization with default memory size during QAIC compilation.</span>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a><span class="sd">        Default is False.</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a><span class="sd">    mos : int, optional</span>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a><span class="sd">        Effort level to reduce on-chip memory during QAIC compilation. A value greater than 0 applies this effort.</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a><span class="sd">        Default is -1 (no effort).</span>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a><span class="sd">    batch_size : int, optional</span>
+<a id="__codelineno-0-229" name="__codelineno-0-229"></a><span class="sd">        Batch size to compile the model for. Default is 1.</span>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a><span class="sd">    full_batch_size : int, optional</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a><span class="sd">        Sets the full batch size to enable continuous batching mode. If provided, `batch_size` must be 1.</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a><span class="sd">        Default is None.</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a><span class="sd">    prompt_len : int, optional</span>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a><span class="sd">        Prompt length for the model to compile. Default is 32.</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a><span class="sd">    ctx_len : int, optional</span>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a><span class="sd">        Maximum context length to compile the model for. Default is 128.</span>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a><span class="sd">    mxfp6 : bool, optional</span>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a><span class="sd">        If True, enables MXFP6 precision for MatMul weights during compilation. Default is True.</span>
+<a id="__codelineno-0-239" name="__codelineno-0-239"></a><span class="sd">    mxint8 : bool, optional</span>
+<a id="__codelineno-0-240" name="__codelineno-0-240"></a><span class="sd">        If True, compresses Present/Past KV to MXINT8 using a CustomIO configuration. Default is False.</span>
+<a id="__codelineno-0-241" name="__codelineno-0-241"></a><span class="sd">    custom_io_file_path : str, optional</span>
+<a id="__codelineno-0-242" name="__codelineno-0-242"></a><span class="sd">        Explicit path to a Custom IO file (e.g., YAML format). If None, it&#39;s inferred based on `mxint8`.</span>
+<a id="__codelineno-0-243" name="__codelineno-0-243"></a><span class="sd">        Default is None.</span>
+<a id="__codelineno-0-244" name="__codelineno-0-244"></a><span class="sd">    allow_mxint8_mdp_io : bool, optional</span>
+<a id="__codelineno-0-245" name="__codelineno-0-245"></a><span class="sd">        If True, allows MXINT8 compression of MDP IO traffic during QAIC compilation. Default is False.</span>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a><span class="sd">    enable_qnn : bool, optional</span>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a><span class="sd">        If True, enables compilation using the QNN compiler instead of QAIC. Default is False.</span>
+<a id="__codelineno-0-248" name="__codelineno-0-248"></a><span class="sd">    qnn_config : str, optional</span>
+<a id="__codelineno-0-249" name="__codelineno-0-249"></a><span class="sd">        Path to the QNN Config parameters file, used if `enable_qnn` is True. Default is None.</span>
+<a id="__codelineno-0-250" name="__codelineno-0-250"></a><span class="sd">    **kwargs :</span>
+<a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">        Additional compiler options passed directly to the chosen compiler.</span>
+<a id="__codelineno-0-252" name="__codelineno-0-252"></a>
+<a id="__codelineno-0-253" name="__codelineno-0-253"></a><span class="sd">    Returns</span>
+<a id="__codelineno-0-254" name="__codelineno-0-254"></a><span class="sd">    -------</span>
+<a id="__codelineno-0-255" name="__codelineno-0-255"></a><span class="sd">    str</span>
+<a id="__codelineno-0-256" name="__codelineno-0-256"></a><span class="sd">        Path to the compiled QPC package directory.</span>
+<a id="__codelineno-0-257" name="__codelineno-0-257"></a>
+<a id="__codelineno-0-258" name="__codelineno-0-258"></a><span class="sd">    Raises</span>
+<a id="__codelineno-0-259" name="__codelineno-0-259"></a><span class="sd">    ------</span>
+<a id="__codelineno-0-260" name="__codelineno-0-260"></a><span class="sd">    ValueError</span>
+<a id="__codelineno-0-261" name="__codelineno-0-261"></a><span class="sd">        If both `batch_size` and `full_batch_size` are greater than one (mutually exclusive in some contexts).</span>
+<a id="__codelineno-0-262" name="__codelineno-0-262"></a><span class="sd">    FileNotFoundError</span>
+<a id="__codelineno-0-263" name="__codelineno-0-263"></a><span class="sd">        If required Custom IO files are not found.</span>
+<a id="__codelineno-0-264" name="__codelineno-0-264"></a>
+<a id="__codelineno-0-265" name="__codelineno-0-265"></a><span class="sd">    Warnings</span>
+<a id="__codelineno-0-266" name="__codelineno-0-266"></a><span class="sd">    --------</span>
+<a id="__codelineno-0-267" name="__codelineno-0-267"></a><span class="sd">    DeprecationWarning</span>
+<a id="__codelineno-0-268" name="__codelineno-0-268"></a><span class="sd">        This method will be removed soon; use `QEFFAutoModelForCausalLM.compile` instead.</span>
+<a id="__codelineno-0-269" name="__codelineno-0-269"></a>
+<a id="__codelineno-0-270" name="__codelineno-0-270"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-271" name="__codelineno-0-271"></a>
+<a id="__codelineno-0-272" name="__codelineno-0-272"></a>    <span class="k">if</span> <span class="n">full_batch_size</span> <span class="ow">and</span> <span class="n">batch_size</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-273" name="__codelineno-0-273"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only either batch_size or full_batch_size should be greater than one&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-274" name="__codelineno-0-274"></a>
+<a id="__codelineno-0-275" name="__codelineno-0-275"></a>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">qpc_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-0-276" name="__codelineno-0-276"></a>    <span class="n">specialization_json_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qpc_path</span><span class="p">,</span> <span class="s2">&quot;specializations.json&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-277" name="__codelineno-0-277"></a>
+<a id="__codelineno-0-278" name="__codelineno-0-278"></a>    <span class="n">create_and_dump_specializations</span><span class="p">(</span>
+<a id="__codelineno-0-279" name="__codelineno-0-279"></a>        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+<a id="__codelineno-0-280" name="__codelineno-0-280"></a>        <span class="n">prompt_len</span><span class="o">=</span><span class="n">prompt_len</span><span class="p">,</span>
+<a id="__codelineno-0-281" name="__codelineno-0-281"></a>        <span class="n">ctx_len</span><span class="o">=</span><span class="n">ctx_len</span><span class="p">,</span>
+<a id="__codelineno-0-282" name="__codelineno-0-282"></a>        <span class="n">path</span><span class="o">=</span><span class="n">specialization_json_path</span><span class="p">,</span>
+<a id="__codelineno-0-283" name="__codelineno-0-283"></a>        <span class="n">full_batch_size</span><span class="o">=</span><span class="n">full_batch_size</span><span class="p">,</span>
+<a id="__codelineno-0-284" name="__codelineno-0-284"></a>    <span class="p">)</span>
+<a id="__codelineno-0-285" name="__codelineno-0-285"></a>
+<a id="__codelineno-0-286" name="__codelineno-0-286"></a>    <span class="n">dtype_suffix</span> <span class="o">=</span> <span class="s2">&quot;int8&quot;</span> <span class="k">if</span> <span class="n">mxint8</span> <span class="k">else</span> <span class="s2">&quot;fp16&quot;</span>
+<a id="__codelineno-0-287" name="__codelineno-0-287"></a>    <span class="n">source_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;./custom_io_</span><span class="si">{</span><span class="n">dtype_suffix</span><span class="si">}</span><span class="s2">.yaml&quot;</span>
+<a id="__codelineno-0-288" name="__codelineno-0-288"></a>    <span class="n">destination_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">qpc_path</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;custom_io_</span><span class="si">{</span><span class="n">dtype_suffix</span><span class="si">}</span><span class="s2">.yaml&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-289" name="__codelineno-0-289"></a>
+<a id="__codelineno-0-290" name="__codelineno-0-290"></a>    <span class="c1"># Move the custom YAML file to the cache/qeff_model directory</span>
+<a id="__codelineno-0-291" name="__codelineno-0-291"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-292" name="__codelineno-0-292"></a>        <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">)</span>
+<a id="__codelineno-0-293" name="__codelineno-0-293"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully moved &#39;</span><span class="si">{</span><span class="n">source_path</span><span class="si">}</span><span class="s2">&#39; to &#39;</span><span class="si">{</span><span class="n">destination_path</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-294" name="__codelineno-0-294"></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-0-295" name="__codelineno-0-295"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error while moving file &#39;</span><span class="si">{</span><span class="n">source_path</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-296" name="__codelineno-0-296"></a>
+<a id="__codelineno-0-297" name="__codelineno-0-297"></a>    <span class="n">custom_io_file_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;custom_io_</span><span class="si">{</span><span class="n">dtype_suffix</span><span class="si">}</span><span class="s2">.yaml&quot;</span>
+<a id="__codelineno-0-298" name="__codelineno-0-298"></a>    <span class="k">if</span> <span class="n">custom_io_file_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-299" name="__codelineno-0-299"></a>        <span class="n">custom_io_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">qpc_path</span><span class="p">),</span> <span class="n">custom_io_file_name</span><span class="p">)</span>
+<a id="__codelineno-0-300" name="__codelineno-0-300"></a>
+<a id="__codelineno-0-301" name="__codelineno-0-301"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">custom_io_file_path</span><span class="p">):</span>
+<a id="__codelineno-0-302" name="__codelineno-0-302"></a>        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+<a id="__codelineno-0-303" name="__codelineno-0-303"></a>            <span class="sa">f</span><span class="s2">&quot;Custom IO file </span><span class="si">{</span><span class="n">custom_io_file_name</span><span class="si">}</span><span class="s2"> is not present at the expected path </span><span class="si">{</span><span class="n">custom_io_file_path</span><span class="si">}</span><span class="s2">. Please pass the correct file path or rerun infer/export API&quot;</span>
+<a id="__codelineno-0-304" name="__codelineno-0-304"></a>        <span class="p">)</span>
+<a id="__codelineno-0-305" name="__codelineno-0-305"></a>
+<a id="__codelineno-0-306" name="__codelineno-0-306"></a>    <span class="k">if</span> <span class="n">enable_qnn</span><span class="p">:</span>
+<a id="__codelineno-0-307" name="__codelineno-0-307"></a>        <span class="n">qpc_path</span> <span class="o">=</span> <span class="n">qnn_compile</span><span class="p">(</span>
+<a id="__codelineno-0-308" name="__codelineno-0-308"></a>            <span class="n">onnx_path</span><span class="o">=</span><span class="n">onnx_path</span><span class="p">,</span>
+<a id="__codelineno-0-309" name="__codelineno-0-309"></a>            <span class="n">qpc_base_path</span><span class="o">=</span><span class="n">qpc_path</span><span class="p">,</span>
+<a id="__codelineno-0-310" name="__codelineno-0-310"></a>            <span class="n">qnn_binary_dir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qpc_path</span><span class="p">,</span> <span class="s2">&quot;qpcs&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-311" name="__codelineno-0-311"></a>            <span class="n">num_cores</span><span class="o">=</span><span class="n">num_cores</span><span class="p">,</span>
+<a id="__codelineno-0-312" name="__codelineno-0-312"></a>            <span class="n">mxfp6</span><span class="o">=</span><span class="n">mxfp6</span><span class="p">,</span>
+<a id="__codelineno-0-313" name="__codelineno-0-313"></a>            <span class="n">mxint8</span><span class="o">=</span><span class="n">mxint8</span><span class="p">,</span>
+<a id="__codelineno-0-314" name="__codelineno-0-314"></a>            <span class="n">allow_mxint8_mdp_io</span><span class="o">=</span><span class="n">allow_mxint8_mdp_io</span><span class="p">,</span>
+<a id="__codelineno-0-315" name="__codelineno-0-315"></a>            <span class="n">aic_enable_depth_first</span><span class="o">=</span><span class="n">aic_enable_depth_first</span><span class="p">,</span>
+<a id="__codelineno-0-316" name="__codelineno-0-316"></a>            <span class="n">mos</span><span class="o">=</span><span class="n">mos</span><span class="p">,</span>
+<a id="__codelineno-0-317" name="__codelineno-0-317"></a>            <span class="n">device_group</span><span class="o">=</span><span class="n">device_group</span><span class="p">,</span>
+<a id="__codelineno-0-318" name="__codelineno-0-318"></a>            <span class="n">qnn_config</span><span class="o">=</span><span class="n">qnn_config</span><span class="p">,</span>
+<a id="__codelineno-0-319" name="__codelineno-0-319"></a>            <span class="n">specializations</span><span class="o">=</span><span class="p">(</span><span class="n">load_json</span><span class="p">(</span><span class="n">specialization_json_path</span><span class="p">))[</span><span class="s2">&quot;specializations&quot;</span><span class="p">],</span>
+<a id="__codelineno-0-320" name="__codelineno-0-320"></a>            <span class="n">custom_io</span><span class="o">=</span><span class="n">load_yaml</span><span class="p">(</span><span class="n">custom_io_file_path</span><span class="p">),</span>
+<a id="__codelineno-0-321" name="__codelineno-0-321"></a>        <span class="p">)</span>
+<a id="__codelineno-0-322" name="__codelineno-0-322"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;QNN Compiled QPC files can be found here: </span><span class="si">{</span><span class="n">qpc_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-323" name="__codelineno-0-323"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-324" name="__codelineno-0-324"></a>        <span class="n">_</span><span class="p">,</span> <span class="n">qpc_path</span> <span class="o">=</span> <span class="n">compile_kv_model_on_cloud_ai_100</span><span class="p">(</span>
+<a id="__codelineno-0-325" name="__codelineno-0-325"></a>            <span class="n">onnx_path</span><span class="o">=</span><span class="n">onnx_path</span><span class="p">,</span>
+<a id="__codelineno-0-326" name="__codelineno-0-326"></a>            <span class="n">specializations_json</span><span class="o">=</span><span class="n">specialization_json_path</span><span class="p">,</span>
+<a id="__codelineno-0-327" name="__codelineno-0-327"></a>            <span class="n">num_cores</span><span class="o">=</span><span class="n">num_cores</span><span class="p">,</span>
+<a id="__codelineno-0-328" name="__codelineno-0-328"></a>            <span class="n">custom_io_path</span><span class="o">=</span><span class="n">custom_io_file_path</span><span class="p">,</span>
+<a id="__codelineno-0-329" name="__codelineno-0-329"></a>            <span class="n">base_path</span><span class="o">=</span><span class="n">qpc_path</span><span class="p">,</span>
+<a id="__codelineno-0-330" name="__codelineno-0-330"></a>            <span class="n">mxfp6</span><span class="o">=</span><span class="n">mxfp6</span><span class="p">,</span>
+<a id="__codelineno-0-331" name="__codelineno-0-331"></a>            <span class="n">aic_enable_depth_first</span><span class="o">=</span><span class="n">aic_enable_depth_first</span><span class="p">,</span>
+<a id="__codelineno-0-332" name="__codelineno-0-332"></a>            <span class="n">allow_mxint8_mdp_io</span><span class="o">=</span><span class="n">allow_mxint8_mdp_io</span><span class="p">,</span>
+<a id="__codelineno-0-333" name="__codelineno-0-333"></a>            <span class="n">mos</span><span class="o">=</span><span class="n">mos</span><span class="p">,</span>
+<a id="__codelineno-0-334" name="__codelineno-0-334"></a>            <span class="n">device_group</span><span class="o">=</span><span class="n">device_group</span><span class="p">,</span>
+<a id="__codelineno-0-335" name="__codelineno-0-335"></a>            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-0-336" name="__codelineno-0-336"></a>        <span class="p">)</span>
+<a id="__codelineno-0-337" name="__codelineno-0-337"></a>        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;io_encrypt&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-0-338" name="__codelineno-0-338"></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+<a id="__codelineno-0-339" name="__codelineno-0-339"></a>                <span class="sa">f</span><span class="s2">&quot;Compilation for IO-Encrypt has been successfully completed at path: </span><span class="si">{</span><span class="n">qpc_path</span><span class="si">}</span><span class="s2">. However, Efficient-Transformers do not support IO-Encrypt execution. Please run the execution separately&quot;</span>
+<a id="__codelineno-0-340" name="__codelineno-0-340"></a>            <span class="p">)</span>
+<a id="__codelineno-0-341" name="__codelineno-0-341"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-342" name="__codelineno-0-342"></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Compiled QPC files can be found here: </span><span class="si">{</span><span class="n">qpc_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-343" name="__codelineno-0-343"></a>
+<a id="__codelineno-0-344" name="__codelineno-0-344"></a>    <span class="k">return</span> <span class="n">qpc_path</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div><hr />
+<h2 id="export_api"><code>QEfficient.cloud.export</code><a class="headerlink" href="#export_api" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<a id="QEfficient.cloud.export.main"></a>
+    <div class="doc doc-contents first">
+
+        <p>Main function for the QEfficient ONNX export CLI application.</p>
+<p>This function serves as the entry point for exporting a PyTorch model, loaded
+via QEFFCommonLoader, to the ONNX format. It prepares the necessary
+paths and calls <code>get_onnx_path_and_setup_customIO</code>.</p>
+<h4 id="QEfficient.cloud.export.main--parameters">Parameters<a class="headerlink" href="#QEfficient.cloud.export.main--parameters" title="Permanent link">&para;</a></h4>
+<p>model_name : str
+    Hugging Face Model Card name (e.g., <code>gpt2</code>).</p>
+<h4 id="QEfficient.cloud.export.main--other-parameters">Other Parameters<a class="headerlink" href="#QEfficient.cloud.export.main--other-parameters" title="Permanent link">&para;</a></h4>
+<p>cache_dir : str, optional
+    Cache directory where downloaded HuggingFace files are stored. Default is None.
+hf_token : str, optional
+    HuggingFace login token to access private repositories. Default is None.
+local_model_dir : str, optional
+    Path to custom model weights and config files. Default is None.
+full_batch_size : int, optional
+    Sets the full batch size to enable continuous batching mode. Default is None.</p>
+<h4 id="QEfficient.cloud.export.main--example">Example<a class="headerlink" href="#QEfficient.cloud.export.main--example" title="Permanent link">&para;</a></h4>
+<p>To export a model from the command line:</p>
+<p>.. code-block:: bash</p>
+<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.export --model-name gpt2 --cache-dir /path/to/cache
+</code></pre></div>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>QEfficient/cloud/export.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-74"> 74</a></span>
+<span class="normal"><a href="#__codelineno-0-75"> 75</a></span>
+<span class="normal"><a href="#__codelineno-0-76"> 76</a></span>
+<span class="normal"><a href="#__codelineno-0-77"> 77</a></span>
+<span class="normal"><a href="#__codelineno-0-78"> 78</a></span>
+<span class="normal"><a href="#__codelineno-0-79"> 79</a></span>
+<span class="normal"><a href="#__codelineno-0-80"> 80</a></span>
+<span class="normal"><a href="#__codelineno-0-81"> 81</a></span>
+<span class="normal"><a href="#__codelineno-0-82"> 82</a></span>
+<span class="normal"><a href="#__codelineno-0-83"> 83</a></span>
+<span class="normal"><a href="#__codelineno-0-84"> 84</a></span>
+<span class="normal"><a href="#__codelineno-0-85"> 85</a></span>
+<span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
+<span class="normal"><a href="#__codelineno-0-87"> 87</a></span>
+<span class="normal"><a href="#__codelineno-0-88"> 88</a></span>
+<span class="normal"><a href="#__codelineno-0-89"> 89</a></span>
+<span class="normal"><a href="#__codelineno-0-90"> 90</a></span>
+<span class="normal"><a href="#__codelineno-0-91"> 91</a></span>
+<span class="normal"><a href="#__codelineno-0-92"> 92</a></span>
+<span class="normal"><a href="#__codelineno-0-93"> 93</a></span>
+<span class="normal"><a href="#__codelineno-0-94"> 94</a></span>
+<span class="normal"><a href="#__codelineno-0-95"> 95</a></span>
+<span class="normal"><a href="#__codelineno-0-96"> 96</a></span>
+<span class="normal"><a href="#__codelineno-0-97"> 97</a></span>
+<span class="normal"><a href="#__codelineno-0-98"> 98</a></span>
+<span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
+<span class="normal"><a href="#__codelineno-0-100">100</a></span>
+<span class="normal"><a href="#__codelineno-0-101">101</a></span>
+<span class="normal"><a href="#__codelineno-0-102">102</a></span>
+<span class="normal"><a href="#__codelineno-0-103">103</a></span>
+<span class="normal"><a href="#__codelineno-0-104">104</a></span>
+<span class="normal"><a href="#__codelineno-0-105">105</a></span>
+<span class="normal"><a href="#__codelineno-0-106">106</a></span>
+<span class="normal"><a href="#__codelineno-0-107">107</a></span>
+<span class="normal"><a href="#__codelineno-0-108">108</a></span>
+<span class="normal"><a href="#__codelineno-0-109">109</a></span>
+<span class="normal"><a href="#__codelineno-0-110">110</a></span>
+<span class="normal"><a href="#__codelineno-0-111">111</a></span>
+<span class="normal"><a href="#__codelineno-0-112">112</a></span>
+<span class="normal"><a href="#__codelineno-0-113">113</a></span>
+<span class="normal"><a href="#__codelineno-0-114">114</a></span>
+<span class="normal"><a href="#__codelineno-0-115">115</a></span>
+<span class="normal"><a href="#__codelineno-0-116">116</a></span>
+<span class="normal"><a href="#__codelineno-0-117">117</a></span>
+<span class="normal"><a href="#__codelineno-0-118">118</a></span>
+<span class="normal"><a href="#__codelineno-0-119">119</a></span>
+<span class="normal"><a href="#__codelineno-0-120">120</a></span>
+<span class="normal"><a href="#__codelineno-0-121">121</a></span>
+<span class="normal"><a href="#__codelineno-0-122">122</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
+<a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-0-76" name="__codelineno-0-76"></a>    <span class="n">cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="n">hf_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-78" name="__codelineno-0-78"></a>    <span class="n">local_model_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="n">full_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80"></a>    <span class="n">mxint8_kv_cache</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">    Main function for the QEfficient ONNX export CLI application.</span>
+<a id="__codelineno-0-84" name="__codelineno-0-84"></a>
+<a id="__codelineno-0-85" name="__codelineno-0-85"></a><span class="sd">    This function serves as the entry point for exporting a PyTorch model, loaded</span>
+<a id="__codelineno-0-86" name="__codelineno-0-86"></a><span class="sd">    via QEFFCommonLoader, to the ONNX format. It prepares the necessary</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="sd">    paths and calls `get_onnx_path_and_setup_customIO`.</span>
+<a id="__codelineno-0-88" name="__codelineno-0-88"></a>
+<a id="__codelineno-0-89" name="__codelineno-0-89"></a><span class="sd">    Parameters</span>
+<a id="__codelineno-0-90" name="__codelineno-0-90"></a><span class="sd">    ----------</span>
+<a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="sd">    model_name : str</span>
+<a id="__codelineno-0-92" name="__codelineno-0-92"></a><span class="sd">        Hugging Face Model Card name (e.g., ``gpt2``).</span>
+<a id="__codelineno-0-93" name="__codelineno-0-93"></a>
+<a id="__codelineno-0-94" name="__codelineno-0-94"></a><span class="sd">    Other Parameters</span>
+<a id="__codelineno-0-95" name="__codelineno-0-95"></a><span class="sd">    ----------------</span>
+<a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="sd">    cache_dir : str, optional</span>
+<a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="sd">        Cache directory where downloaded HuggingFace files are stored. Default is None.</span>
+<a id="__codelineno-0-98" name="__codelineno-0-98"></a><span class="sd">    hf_token : str, optional</span>
+<a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="sd">        HuggingFace login token to access private repositories. Default is None.</span>
+<a id="__codelineno-0-100" name="__codelineno-0-100"></a><span class="sd">    local_model_dir : str, optional</span>
+<a id="__codelineno-0-101" name="__codelineno-0-101"></a><span class="sd">        Path to custom model weights and config files. Default is None.</span>
+<a id="__codelineno-0-102" name="__codelineno-0-102"></a><span class="sd">    full_batch_size : int, optional</span>
+<a id="__codelineno-0-103" name="__codelineno-0-103"></a><span class="sd">        Sets the full batch size to enable continuous batching mode. Default is None.</span>
+<a id="__codelineno-0-104" name="__codelineno-0-104"></a>
+<a id="__codelineno-0-105" name="__codelineno-0-105"></a><span class="sd">    Example</span>
+<a id="__codelineno-0-106" name="__codelineno-0-106"></a><span class="sd">    -------</span>
+<a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="sd">    To export a model from the command line:</span>
+<a id="__codelineno-0-108" name="__codelineno-0-108"></a>
+<a id="__codelineno-0-109" name="__codelineno-0-109"></a><span class="sd">    .. code-block:: bash</span>
+<a id="__codelineno-0-110" name="__codelineno-0-110"></a>
+<a id="__codelineno-0-111" name="__codelineno-0-111"></a><span class="sd">        python -m QEfficient.cloud.export --model-name gpt2 --cache-dir /path/to/cache</span>
+<a id="__codelineno-0-112" name="__codelineno-0-112"></a>
+<a id="__codelineno-0-113" name="__codelineno-0-113"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-114" name="__codelineno-0-114"></a>    <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">check_and_assign_cache_dir</span><span class="p">(</span><span class="n">local_model_dir</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">)</span>
+<a id="__codelineno-0-115" name="__codelineno-0-115"></a>    <span class="n">get_onnx_path_and_setup_customIO</span><span class="p">(</span>
+<a id="__codelineno-0-116" name="__codelineno-0-116"></a>        <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+<a id="__codelineno-0-117" name="__codelineno-0-117"></a>        <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+<a id="__codelineno-0-118" name="__codelineno-0-118"></a>        <span class="n">hf_token</span><span class="o">=</span><span class="n">hf_token</span><span class="p">,</span>
+<a id="__codelineno-0-119" name="__codelineno-0-119"></a>        <span class="n">full_batch_size</span><span class="o">=</span><span class="n">full_batch_size</span><span class="p">,</span>
+<a id="__codelineno-0-120" name="__codelineno-0-120"></a>        <span class="n">local_model_dir</span><span class="o">=</span><span class="n">local_model_dir</span><span class="p">,</span>
+<a id="__codelineno-0-121" name="__codelineno-0-121"></a>        <span class="n">mxint8_kv_cache</span><span class="o">=</span><span class="n">mxint8_kv_cache</span><span class="p">,</span>
+<a id="__codelineno-0-122" name="__codelineno-0-122"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div><hr />
+<h2 id="finetune_api"><code>QEfficient.cloud.finetune</code><a class="headerlink" href="#finetune_api" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<a id="QEfficient.cloud.finetune.main"></a>
+    <div class="doc doc-contents first">
+
+        <p>Fine-tune a Hugging Face model on Qualcomm AI 100 hardware with configurable training
+and Parameter-Efficient Fine-Tuning (PEFT) parameters.</p>
+<p>This is the main entry point for the fine-tuning script. It orchestrates the
+setup of distributed training, model and tokenizer loading, DataLoader creation,
+optimizer and scheduler initialization, and the training loop.</p>
+<h4 id="QEfficient.cloud.finetune.main--parameters">Parameters<a class="headerlink" href="#QEfficient.cloud.finetune.main--parameters" title="Permanent link">&para;</a></h4>
+<p>**kwargs :
+    Additional arguments used to override default parameters in <code>TrainConfig</code>
+    and PEFT configuration. These are typically parsed from command-line arguments.</p>
+<h4 id="QEfficient.cloud.finetune.main--example">Example<a class="headerlink" href="#QEfficient.cloud.finetune.main--example" title="Permanent link">&para;</a></h4>
+<p>To fine-tune a model using a YAML configuration file for PEFT:</p>
+<p>.. code-block:: bash</p>
+<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.finetune \
+    --model_name &quot;meta-llama/Llama-3.2-1B&quot; \
+    --lr 5e-4 \
+    --peft_config_file &quot;lora_config.yaml&quot;
+</code></pre></div>
+<p>To fine-tune a model using a default LoRA configuration:</p>
+<p>.. code-block:: bash</p>
+<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.finetune \
+    --model_name &quot;meta-llama/Llama-3.2-1B&quot; \
+    --lr 5e-4
+</code></pre></div>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>QEfficient/cloud/finetune.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-336">336</a></span>
+<span class="normal"><a href="#__codelineno-0-337">337</a></span>
+<span class="normal"><a href="#__codelineno-0-338">338</a></span>
+<span class="normal"><a href="#__codelineno-0-339">339</a></span>
+<span class="normal"><a href="#__codelineno-0-340">340</a></span>
+<span class="normal"><a href="#__codelineno-0-341">341</a></span>
+<span class="normal"><a href="#__codelineno-0-342">342</a></span>
+<span class="normal"><a href="#__codelineno-0-343">343</a></span>
+<span class="normal"><a href="#__codelineno-0-344">344</a></span>
+<span class="normal"><a href="#__codelineno-0-345">345</a></span>
+<span class="normal"><a href="#__codelineno-0-346">346</a></span>
+<span class="normal"><a href="#__codelineno-0-347">347</a></span>
+<span class="normal"><a href="#__codelineno-0-348">348</a></span>
+<span class="normal"><a href="#__codelineno-0-349">349</a></span>
+<span class="normal"><a href="#__codelineno-0-350">350</a></span>
+<span class="normal"><a href="#__codelineno-0-351">351</a></span>
+<span class="normal"><a href="#__codelineno-0-352">352</a></span>
+<span class="normal"><a href="#__codelineno-0-353">353</a></span>
+<span class="normal"><a href="#__codelineno-0-354">354</a></span>
+<span class="normal"><a href="#__codelineno-0-355">355</a></span>
+<span class="normal"><a href="#__codelineno-0-356">356</a></span>
+<span class="normal"><a href="#__codelineno-0-357">357</a></span>
+<span class="normal"><a href="#__codelineno-0-358">358</a></span>
+<span class="normal"><a href="#__codelineno-0-359">359</a></span>
+<span class="normal"><a href="#__codelineno-0-360">360</a></span>
+<span class="normal"><a href="#__codelineno-0-361">361</a></span>
+<span class="normal"><a href="#__codelineno-0-362">362</a></span>
+<span class="normal"><a href="#__codelineno-0-363">363</a></span>
+<span class="normal"><a href="#__codelineno-0-364">364</a></span>
+<span class="normal"><a href="#__codelineno-0-365">365</a></span>
+<span class="normal"><a href="#__codelineno-0-366">366</a></span>
+<span class="normal"><a href="#__codelineno-0-367">367</a></span>
+<span class="normal"><a href="#__codelineno-0-368">368</a></span>
+<span class="normal"><a href="#__codelineno-0-369">369</a></span>
+<span class="normal"><a href="#__codelineno-0-370">370</a></span>
+<span class="normal"><a href="#__codelineno-0-371">371</a></span>
+<span class="normal"><a href="#__codelineno-0-372">372</a></span>
+<span class="normal"><a href="#__codelineno-0-373">373</a></span>
+<span class="normal"><a href="#__codelineno-0-374">374</a></span>
+<span class="normal"><a href="#__codelineno-0-375">375</a></span>
+<span class="normal"><a href="#__codelineno-0-376">376</a></span>
+<span class="normal"><a href="#__codelineno-0-377">377</a></span>
+<span class="normal"><a href="#__codelineno-0-378">378</a></span>
+<span class="normal"><a href="#__codelineno-0-379">379</a></span>
+<span class="normal"><a href="#__codelineno-0-380">380</a></span>
+<span class="normal"><a href="#__codelineno-0-381">381</a></span>
+<span class="normal"><a href="#__codelineno-0-382">382</a></span>
+<span class="normal"><a href="#__codelineno-0-383">383</a></span>
+<span class="normal"><a href="#__codelineno-0-384">384</a></span>
+<span class="normal"><a href="#__codelineno-0-385">385</a></span>
+<span class="normal"><a href="#__codelineno-0-386">386</a></span>
+<span class="normal"><a href="#__codelineno-0-387">387</a></span>
+<span class="normal"><a href="#__codelineno-0-388">388</a></span>
+<span class="normal"><a href="#__codelineno-0-389">389</a></span>
+<span class="normal"><a href="#__codelineno-0-390">390</a></span>
+<span class="normal"><a href="#__codelineno-0-391">391</a></span>
+<span class="normal"><a href="#__codelineno-0-392">392</a></span>
+<span class="normal"><a href="#__codelineno-0-393">393</a></span>
+<span class="normal"><a href="#__codelineno-0-394">394</a></span>
+<span class="normal"><a href="#__codelineno-0-395">395</a></span>
+<span class="normal"><a href="#__codelineno-0-396">396</a></span>
+<span class="normal"><a href="#__codelineno-0-397">397</a></span>
+<span class="normal"><a href="#__codelineno-0-398">398</a></span>
+<span class="normal"><a href="#__codelineno-0-399">399</a></span>
+<span class="normal"><a href="#__codelineno-0-400">400</a></span>
+<span class="normal"><a href="#__codelineno-0-401">401</a></span>
+<span class="normal"><a href="#__codelineno-0-402">402</a></span>
+<span class="normal"><a href="#__codelineno-0-403">403</a></span>
+<span class="normal"><a href="#__codelineno-0-404">404</a></span>
+<span class="normal"><a href="#__codelineno-0-405">405</a></span>
+<span class="normal"><a href="#__codelineno-0-406">406</a></span>
+<span class="normal"><a href="#__codelineno-0-407">407</a></span>
+<span class="normal"><a href="#__codelineno-0-408">408</a></span>
+<span class="normal"><a href="#__codelineno-0-409">409</a></span>
+<span class="normal"><a href="#__codelineno-0-410">410</a></span>
+<span class="normal"><a href="#__codelineno-0-411">411</a></span>
+<span class="normal"><a href="#__codelineno-0-412">412</a></span>
+<span class="normal"><a href="#__codelineno-0-413">413</a></span>
+<span class="normal"><a href="#__codelineno-0-414">414</a></span>
+<span class="normal"><a href="#__codelineno-0-415">415</a></span>
+<span class="normal"><a href="#__codelineno-0-416">416</a></span>
+<span class="normal"><a href="#__codelineno-0-417">417</a></span>
+<span class="normal"><a href="#__codelineno-0-418">418</a></span>
+<span class="normal"><a href="#__codelineno-0-419">419</a></span>
+<span class="normal"><a href="#__codelineno-0-420">420</a></span>
+<span class="normal"><a href="#__codelineno-0-421">421</a></span>
+<span class="normal"><a href="#__codelineno-0-422">422</a></span>
+<span class="normal"><a href="#__codelineno-0-423">423</a></span>
+<span class="normal"><a href="#__codelineno-0-424">424</a></span>
+<span class="normal"><a href="#__codelineno-0-425">425</a></span>
+<span class="normal"><a href="#__codelineno-0-426">426</a></span>
+<span class="normal"><a href="#__codelineno-0-427">427</a></span>
+<span class="normal"><a href="#__codelineno-0-428">428</a></span>
+<span class="normal"><a href="#__codelineno-0-429">429</a></span>
+<span class="normal"><a href="#__codelineno-0-430">430</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-336" name="__codelineno-0-336"></a><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-337" name="__codelineno-0-337"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-338" name="__codelineno-0-338"></a><span class="sd">    Fine-tune a Hugging Face model on Qualcomm AI 100 hardware with configurable training</span>
+<a id="__codelineno-0-339" name="__codelineno-0-339"></a><span class="sd">    and Parameter-Efficient Fine-Tuning (PEFT) parameters.</span>
+<a id="__codelineno-0-340" name="__codelineno-0-340"></a>
+<a id="__codelineno-0-341" name="__codelineno-0-341"></a><span class="sd">    This is the main entry point for the fine-tuning script. It orchestrates the</span>
+<a id="__codelineno-0-342" name="__codelineno-0-342"></a><span class="sd">    setup of distributed training, model and tokenizer loading, DataLoader creation,</span>
+<a id="__codelineno-0-343" name="__codelineno-0-343"></a><span class="sd">    optimizer and scheduler initialization, and the training loop.</span>
+<a id="__codelineno-0-344" name="__codelineno-0-344"></a>
+<a id="__codelineno-0-345" name="__codelineno-0-345"></a><span class="sd">    Parameters</span>
+<a id="__codelineno-0-346" name="__codelineno-0-346"></a><span class="sd">    ----------</span>
+<a id="__codelineno-0-347" name="__codelineno-0-347"></a><span class="sd">    **kwargs :</span>
+<a id="__codelineno-0-348" name="__codelineno-0-348"></a><span class="sd">        Additional arguments used to override default parameters in `TrainConfig`</span>
+<a id="__codelineno-0-349" name="__codelineno-0-349"></a><span class="sd">        and PEFT configuration. These are typically parsed from command-line arguments.</span>
+<a id="__codelineno-0-350" name="__codelineno-0-350"></a>
+<a id="__codelineno-0-351" name="__codelineno-0-351"></a><span class="sd">    Example</span>
+<a id="__codelineno-0-352" name="__codelineno-0-352"></a><span class="sd">    -------</span>
+<a id="__codelineno-0-353" name="__codelineno-0-353"></a><span class="sd">    To fine-tune a model using a YAML configuration file for PEFT:</span>
+<a id="__codelineno-0-354" name="__codelineno-0-354"></a>
+<a id="__codelineno-0-355" name="__codelineno-0-355"></a><span class="sd">    .. code-block:: bash</span>
+<a id="__codelineno-0-356" name="__codelineno-0-356"></a>
+<a id="__codelineno-0-357" name="__codelineno-0-357"></a><span class="sd">        python -m QEfficient.cloud.finetune \\</span>
+<a id="__codelineno-0-358" name="__codelineno-0-358"></a><span class="sd">            --model_name &quot;meta-llama/Llama-3.2-1B&quot; \\</span>
+<a id="__codelineno-0-359" name="__codelineno-0-359"></a><span class="sd">            --lr 5e-4 \\</span>
+<a id="__codelineno-0-360" name="__codelineno-0-360"></a><span class="sd">            --peft_config_file &quot;lora_config.yaml&quot;</span>
+<a id="__codelineno-0-361" name="__codelineno-0-361"></a>
+<a id="__codelineno-0-362" name="__codelineno-0-362"></a><span class="sd">    To fine-tune a model using a default LoRA configuration:</span>
+<a id="__codelineno-0-363" name="__codelineno-0-363"></a>
+<a id="__codelineno-0-364" name="__codelineno-0-364"></a><span class="sd">    .. code-block:: bash</span>
+<a id="__codelineno-0-365" name="__codelineno-0-365"></a>
+<a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="sd">        python -m QEfficient.cloud.finetune \\</span>
+<a id="__codelineno-0-367" name="__codelineno-0-367"></a><span class="sd">            --model_name &quot;meta-llama/Llama-3.2-1B&quot; \\</span>
+<a id="__codelineno-0-368" name="__codelineno-0-368"></a><span class="sd">            --lr 5e-4</span>
+<a id="__codelineno-0-369" name="__codelineno-0-369"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-370" name="__codelineno-0-370"></a>    <span class="n">train_config</span> <span class="o">=</span> <span class="n">TrainConfig</span><span class="p">()</span>
+<a id="__codelineno-0-371" name="__codelineno-0-371"></a>    <span class="n">update_config</span><span class="p">(</span><span class="n">train_config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-0-372" name="__codelineno-0-372"></a>    <span class="n">custom_dataset_config_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;custom_dataset_config&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-373" name="__codelineno-0-373"></a>    <span class="n">dataset_config</span> <span class="o">=</span> <span class="n">generate_dataset_config</span><span class="p">(</span><span class="n">train_config</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">custom_dataset_config_file</span><span class="p">)</span>
+<a id="__codelineno-0-374" name="__codelineno-0-374"></a>
+<a id="__codelineno-0-375" name="__codelineno-0-375"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">prepare_for_logs</span><span class="p">(</span><span class="n">train_config</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">train_config</span><span class="o">.</span><span class="n">dump_logs</span><span class="p">,</span> <span class="n">train_config</span><span class="o">.</span><span class="n">log_level</span><span class="p">)</span>
+<a id="__codelineno-0-376" name="__codelineno-0-376"></a>
+<a id="__codelineno-0-377" name="__codelineno-0-377"></a>    <span class="n">setup_distributed_training</span><span class="p">(</span><span class="n">train_config</span><span class="p">)</span>
+<a id="__codelineno-0-378" name="__codelineno-0-378"></a>    <span class="n">setup_seeds</span><span class="p">(</span><span class="n">train_config</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+<a id="__codelineno-0-379" name="__codelineno-0-379"></a>    <span class="n">model</span><span class="p">,</span> <span class="n">tokenizer</span> <span class="o">=</span> <span class="n">load_model_and_tokenizer</span><span class="p">(</span><span class="n">train_config</span><span class="p">,</span> <span class="n">dataset_config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-0-380" name="__codelineno-0-380"></a>
+<a id="__codelineno-0-381" name="__codelineno-0-381"></a>    <span class="c1"># Create DataLoaders for the training and validation dataset</span>
+<a id="__codelineno-0-382" name="__codelineno-0-382"></a>    <span class="n">train_dataloader</span><span class="p">,</span> <span class="n">eval_dataloader</span><span class="p">,</span> <span class="n">longest_seq_length</span> <span class="o">=</span> <span class="n">setup_dataloaders</span><span class="p">(</span><span class="n">train_config</span><span class="p">,</span> <span class="n">dataset_config</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">)</span>
+<a id="__codelineno-0-383" name="__codelineno-0-383"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">log_rank_zero</span><span class="p">(</span>
+<a id="__codelineno-0-384" name="__codelineno-0-384"></a>        <span class="sa">f</span><span class="s2">&quot;The longest sequence length in the train data is </span><span class="si">{</span><span class="n">longest_seq_length</span><span class="si">}</span><span class="s2">, &quot;</span>
+<a id="__codelineno-0-385" name="__codelineno-0-385"></a>        <span class="sa">f</span><span class="s2">&quot;passed context length is </span><span class="si">{</span><span class="n">train_config</span><span class="o">.</span><span class="n">context_length</span><span class="si">}</span><span class="s2"> and overall model&#39;s context length is &quot;</span>
+<a id="__codelineno-0-386" name="__codelineno-0-386"></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">max_position_embeddings</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-387" name="__codelineno-0-387"></a>    <span class="p">)</span>
+<a id="__codelineno-0-388" name="__codelineno-0-388"></a>
+<a id="__codelineno-0-389" name="__codelineno-0-389"></a>    <span class="c1"># Figure out the concrete device for this process</span>
+<a id="__codelineno-0-390" name="__codelineno-0-390"></a>    <span class="n">torch_device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">train_config</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+<a id="__codelineno-0-391" name="__codelineno-0-391"></a>    <span class="k">if</span> <span class="n">train_config</span><span class="o">.</span><span class="n">enable_ddp</span> <span class="ow">and</span> <span class="n">torch_device</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="s2">&quot;cpu&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-392" name="__codelineno-0-392"></a>        <span class="c1"># setup_distributed_training has already set the current device based on LOCAL_RANK</span>
+<a id="__codelineno-0-393" name="__codelineno-0-393"></a>        <span class="n">current_idx</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="p">,</span> <span class="n">torch_device</span><span class="o">.</span><span class="n">type</span><span class="p">)</span><span class="o">.</span><span class="n">current_device</span><span class="p">()</span>
+<a id="__codelineno-0-394" name="__codelineno-0-394"></a>        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">torch_device</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">current_idx</span><span class="p">)</span>
+<a id="__codelineno-0-395" name="__codelineno-0-395"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-396" name="__codelineno-0-396"></a>        <span class="n">device</span> <span class="o">=</span> <span class="n">torch_device</span>
+<a id="__codelineno-0-397" name="__codelineno-0-397"></a>
+<a id="__codelineno-0-398" name="__codelineno-0-398"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">train_config</span><span class="o">.</span><span class="n">enable_pp</span><span class="p">:</span>
+<a id="__codelineno-0-399" name="__codelineno-0-399"></a>        <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<a id="__codelineno-0-400" name="__codelineno-0-400"></a>
+<a id="__codelineno-0-401" name="__codelineno-0-401"></a>    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">AdamW</span><span class="p">(</span>
+<a id="__codelineno-0-402" name="__codelineno-0-402"></a>        <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
+<a id="__codelineno-0-403" name="__codelineno-0-403"></a>        <span class="n">lr</span><span class="o">=</span><span class="n">train_config</span><span class="o">.</span><span class="n">lr</span><span class="p">,</span>
+<a id="__codelineno-0-404" name="__codelineno-0-404"></a>        <span class="n">weight_decay</span><span class="o">=</span><span class="n">train_config</span><span class="o">.</span><span class="n">weight_decay</span><span class="p">,</span>
+<a id="__codelineno-0-405" name="__codelineno-0-405"></a>    <span class="p">)</span>
+<a id="__codelineno-0-406" name="__codelineno-0-406"></a>    <span class="n">scheduler</span> <span class="o">=</span> <span class="n">StepLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">train_config</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
+<a id="__codelineno-0-407" name="__codelineno-0-407"></a>
+<a id="__codelineno-0-408" name="__codelineno-0-408"></a>    <span class="k">if</span> <span class="n">train_config</span><span class="o">.</span><span class="n">enable_ddp</span><span class="p">:</span>
+<a id="__codelineno-0-409" name="__codelineno-0-409"></a>        <span class="n">ignore_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<a id="__codelineno-0-410" name="__codelineno-0-410"></a>        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+<a id="__codelineno-0-411" name="__codelineno-0-411"></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+<a id="__codelineno-0-412" name="__codelineno-0-412"></a>                <span class="n">ignore_names</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+<a id="__codelineno-0-413" name="__codelineno-0-413"></a>        <span class="c1"># Adding params in ignore list will enforce DDP to ignore them during synchronization,</span>
+<a id="__codelineno-0-414" name="__codelineno-0-414"></a>        <span class="c1"># which will further reduce the tensor exchange across devices.</span>
+<a id="__codelineno-0-415" name="__codelineno-0-415"></a>        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">DistributedDataParallel</span><span class="o">.</span><span class="n">_set_params_and_buffers_to_ignore_for_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ignore_names</span><span class="p">)</span>
+<a id="__codelineno-0-416" name="__codelineno-0-416"></a>
+<a id="__codelineno-0-417" name="__codelineno-0-417"></a>        <span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">DistributedDataParallel</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<a id="__codelineno-0-418" name="__codelineno-0-418"></a>
+<a id="__codelineno-0-419" name="__codelineno-0-419"></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">train</span><span class="p">(</span>
+<a id="__codelineno-0-420" name="__codelineno-0-420"></a>        <span class="n">model</span><span class="p">,</span>
+<a id="__codelineno-0-421" name="__codelineno-0-421"></a>        <span class="n">tokenizer</span><span class="p">,</span>
+<a id="__codelineno-0-422" name="__codelineno-0-422"></a>        <span class="n">train_dataloader</span><span class="p">,</span>
+<a id="__codelineno-0-423" name="__codelineno-0-423"></a>        <span class="n">eval_dataloader</span><span class="p">,</span>
+<a id="__codelineno-0-424" name="__codelineno-0-424"></a>        <span class="n">optimizer</span><span class="p">,</span>
+<a id="__codelineno-0-425" name="__codelineno-0-425"></a>        <span class="n">scheduler</span><span class="p">,</span>
+<a id="__codelineno-0-426" name="__codelineno-0-426"></a>        <span class="n">train_config</span><span class="p">,</span>
+<a id="__codelineno-0-427" name="__codelineno-0-427"></a>    <span class="p">)</span>
+<a id="__codelineno-0-428" name="__codelineno-0-428"></a>    <span class="k">if</span> <span class="n">train_config</span><span class="o">.</span><span class="n">enable_ddp</span><span class="p">:</span>
+<a id="__codelineno-0-429" name="__codelineno-0-429"></a>        <span class="n">dist</span><span class="o">.</span><span class="n">destroy_process_group</span><span class="p">()</span>
+<a id="__codelineno-0-430" name="__codelineno-0-430"></a>    <span class="k">return</span> <span class="n">results</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/quic/efficient-transformers" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../diffuser_classes/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../finetune/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

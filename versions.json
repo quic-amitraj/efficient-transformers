@@ -1,5 +1,12 @@
 [
   {
+    "version": "main",
+    "title": "main",
+    "aliases": [
+      "main branch"
+    ]
+  },
+  {
     "version": "v1.21.6",
     "title": "v1.21.6",
     "aliases": []
