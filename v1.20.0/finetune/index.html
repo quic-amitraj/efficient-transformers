@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/v1.20.0/finetune/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Finetune - Efficient Transformers</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Finetune";
+        var mkdocs_page_input_path = "finetune.md";
+        var mkdocs_page_url = "/efficient-transformers/v1.20.0/finetune/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Efficient Transformers
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../release_docs.md">Release Notes</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../introduction/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../features_enablement.md">Features Enablement</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../qeff_autoclasses.md">Auto Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API</a>
+                  </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Finetune</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#finetuning">Finetuning</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dataset-details">Dataset Details</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#single-soc-finetuning-on-qaic">Single SOC finetuning on QAIC</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#distributed-trainingddp-on-qaic">Distributed training(DDP) on QAIC</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#some-featuresfunctionalities-of-fine-tuning-stack">Some features/functionalities of fine-tuning stack:</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fine-tuning-on-custom-dataset">Fine-Tuning on custom dataset</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Efficient Transformers</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Finetune</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/quic/efficient-transformers/edit/master/docs/finetune.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="finetune-infra">Finetune Infra<a class="headerlink" href="#finetune-infra" title="Permanent link">&para;</a></h1>
+<p>This repository provides the infrastructure for finetuning models using different hardware accelerators such as QAic.
+Same CLI can be used to run finetuning on GPU by changing the value of device flag (for finetuning on GPU, install torch specific to CUDA).</p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<p>Same as QEfficient along with QAIC PyTorch Eager mode.</p>
+<p>For QEfficient Library : https://github.com/quic/efficient-transformers</p>
+<p>For torch_qaic, assuming QEfficient is already installed,
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>/opt/qti-aic/integrations/torch_qaic/py310/torch_qaic-0.1.0-cp310-cp310-linux_x86_64.whl
+</code></pre></div>
+If qeff-env inside docker is used then torch_qaic and accelerate packages are already installed.</p>
+<h2 id="finetuning">Finetuning<a class="headerlink" href="#finetuning" title="Permanent link">&para;</a></h2>
+<p>Export the ENV variables to download and enable private datasets
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">HF_DATASETS_TRUST_REMOTE_CODE</span><span class="o">=</span>True
+</code></pre></div></p>
+<p>Export the ENV variables to get the device and HW traces and debugging logs
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">QAIC_DEVICE_LOG_LEVEL</span><span class="o">=</span><span class="m">0</span><span class="w"> </span><span class="c1"># For Device level logs</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">QAIC_DEBUG</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="c1"># To understand the CPU fallback ops</span>
+</code></pre></div></p>
+<h2 id="dataset-details">Dataset Details<a class="headerlink" href="#dataset-details" title="Permanent link">&para;</a></h2>
+<p>To download the Alpaca dataset, visit this <a href="https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/refs/heads/main/alpaca_data.json">link</a>. Download the dataset and place it under the <strong>dataset</strong> directory. Make sure to update the training configuration accordingly.
+<div class="highlight"><pre><span></span><code>wget<span class="w"> </span>-c<span class="w"> </span>https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/refs/heads/main/alpaca_data.json<span class="w"> </span>-P<span class="w"> </span>dataset/
+</code></pre></div></p>
+<p>To download the grammar dataset, visit this <a href="https://github.com/meta-llama/llama-cookbook/blob/main/src/llama_cookbook/datasets/grammar_dataset/grammar_dataset_process.ipynb">link</a>. Download the dataset and place it under the <strong>datasets_grammar</strong> directory. Make sure to update the training configuration accordingly.</p>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<h3 id="single-soc-finetuning-on-qaic">Single SOC finetuning on QAIC<a class="headerlink" href="#single-soc-finetuning-on-qaic" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">QEfficient</span><span class="o">.</span><span class="n">cloud</span><span class="o">.</span><span class="n">finetune</span> <span class="o">--</span><span class="n">device</span> <span class="n">qaic</span><span class="p">:</span><span class="mi">0</span> <span class="o">--</span><span class="n">model_name</span> <span class="s2">&quot;meta-llama/Llama-3.2-1B&quot;</span>
+</code></pre></div>
+You can also configure various training parameters. Below is an example command line
+<div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">QEfficient</span><span class="o">.</span><span class="n">cloud</span><span class="o">.</span><span class="n">finetune</span> <span class="o">--</span><span class="n">device</span> <span class="n">qaic</span><span class="p">:</span><span class="mi">0</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">peft</span> <span class="o">--</span><span class="n">output_dir</span> <span class="o">./</span><span class="n">meta</span><span class="o">-</span><span class="n">sam</span> <span class="o">--</span><span class="n">num_epochs</span> <span class="mi">2</span> <span class="o">--</span><span class="n">context_length</span> <span class="mi">256</span> 
+</code></pre></div></p>
+<p>For more details on the usage of the training parameters, use the below command:
+<div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">QEfficient</span><span class="o">.</span><span class="n">cloud</span><span class="o">.</span><span class="n">finetune</span> <span class="o">-</span><span class="n">h</span>
+</code></pre></div></p>
+<h3 id="distributed-trainingddp-on-qaic">Distributed training(DDP) on QAIC<a class="headerlink" href="#distributed-trainingddp-on-qaic" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code><span class="n">QAIC_VISIBLE_DEVICES</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span> <span class="n">torchrun</span> <span class="o">--</span><span class="n">nproc</span><span class="o">-</span><span class="n">per</span><span class="o">-</span><span class="n">node</span> <span class="mi">4</span> <span class="o">-</span><span class="n">m</span> <span class="n">QEfficient</span><span class="o">.</span><span class="n">cloud</span><span class="o">.</span><span class="n">finetune</span> <span class="o">--</span><span class="n">device</span> <span class="n">qaic</span> <span class="o">--</span><span class="n">enable_ddp</span>  <span class="o">--</span><span class="n">num_epochs</span> <span class="mi">2</span>  <span class="o">--</span><span class="n">model_name</span> <span class="s2">&quot;meta-llama/Llama-3.2-1B&quot;</span>
+</code></pre></div>
+**nproc-per-node is number of workers(QAIC devices) running locally.</p>
+<h2 id="visualization">Visualization<a class="headerlink" href="#visualization" title="Permanent link">&para;</a></h2>
+<p>Tensorboard logs are generated inside runs/ directory with date and time stamp.
+to visualise the data,</p>
+<div class="highlight"><pre><span></span><code><span class="n">tensorboard</span> <span class="o">--</span><span class="n">logdir</span> <span class="n">runs</span><span class="o">/&lt;</span><span class="n">file</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">bind_all</span>
+</code></pre></div>
+<h2 id="some-featuresfunctionalities-of-fine-tuning-stack">Some features/functionalities of fine-tuning stack:<a class="headerlink" href="#some-featuresfunctionalities-of-fine-tuning-stack" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>1) Gradient accumulation: By default, gradient accumulation happens for 4 steps. To update this value, command line argument gradient_accumulation_steps has to be passed. (Example: &#39;--gradient_accumulation_steps 8&#39;)
+2) Gradient Checkpointing: By default, gradient checkpointing is disabled. To enable it, command line argument gradient_accumulation_steps has to be passed.
+</code></pre></div>
+<h2 id="fine-tuning-on-custom-dataset">Fine-Tuning on custom dataset<a class="headerlink" href="#fine-tuning-on-custom-dataset" title="Permanent link">&para;</a></h2>
+<p>To run fine tuning for any user specific dataset, prepare the dataset using the following steps:</p>
+<ol>
+<li>Create a directory named 'dataset' inside efficient-transformers.</li>
+<li>Inside this directory, create a file named 'custom_dataset.py'.</li>
+<li>Inside the newly created efficient-transformers/dataset/custom_dataset.py, define a function named 'get_custom_dataset'. </li>
+<li>get_custom_dataset() should have following 4 parameters:  dataset_config, tokenizer, split, context_length.  </li>
+<li>Inside get_custom_dataset(), user needs to apply prompt and tokenize the dataset accordingly. Please refer the below template on how to define get_custom_dataset().</li>
+<li>For examples, please refer python files present in <a href="https://github.com/quic/efficient-transformers/tree/main/QEfficient/finetune/dataset">dataset</a>. In case of Samsum dataset, get_preprocessed_samsum() of efficient-transformers/QEfficient/finetune/dataset/samsum_dataset.py is called. </li>
+<li>In <a href="https://github.com/quic/efficient-transformers/blob/main/QEfficient/finetune/configs/dataset_config.py">dataset_config.py</a>, for custom_dataset class, pass the appropriate value for train_split and test_split. As an alternative, these values can be passed as command line arguments as well with the finetune command. For example "--train_split train".</li>
+<li>While running fine tuning, pass argument "-–dataset custom_dataset" to finetune on custom dataset.   </li>
+</ol>
+<p>Template for get_custom_dataset() to be defined inside efficient-transformers/dataset/custom_dataset.py is as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_custom_dataset</span><span class="p">(</span><span class="n">dataset_config</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">context_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="c1"># load dataset</span>
+    <span class="c1"># based on split, retrieve only the specific portion of the dataset (train or eval) either here or at the last</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_prompt_template</span><span class="p">():</span>
+        <span class="c1"># transform the passed datapoint by applying the prompt on it </span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">tokenize</span><span class="p">():</span>
+        <span class="c1"># tokenize the passed datapoint</span>
+
+    <span class="c1"># define the prompt</span>
+    <span class="c1"># call apply_prompt_template() for each data point:</span>
+    <span class="c1"># dataset = dataset.map(apply_prompt_template ,&lt;other args&gt;)</span>
+    <span class="c1"># call tokenize() for each data point:</span>
+    <span class="c1"># dataset = dataset.map(tokenize, &lt;other args&gt;)</span>
+
+    <span class="k">return</span> <span class="n">dataset</span>
+</code></pre></div>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/quic/efficient-transformers" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../cli_api/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../blogs/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
