@@ -5,5 +5,10 @@
     "aliases": [
       "Latest (main)"
     ]
+  },
+  {
+    "version": "v1.18",
+    "title": "v1.18",
+    "aliases": []
   }
 ]

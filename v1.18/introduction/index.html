@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/v1.18/introduction/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Introduction - Efficient Transformers</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Introduction";
+        var mkdocs_page_input_path = "introduction.md";
+        var mkdocs_page_url = "/efficient-transformers/v1.18/introduction/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Efficient Transformers
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Introduction</a>
+    <ul class="current">
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../hl_api/">High Level API</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ll_api/">Low Level API</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Efficient Transformers</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Getting Started</li>
+      <li class="breadcrumb-item active">Introduction</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/quic/efficient-transformers/edit/master/docs/introduction.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <p><img alt="alt text" src="../image/Cloud_AI_100.png" /></p>
+<h1 id="introduction-qualcomm-efficient-transformers-library">Introduction Qualcomm <code>efficient-transformers</code> library<a class="headerlink" href="#introduction-qualcomm-efficient-transformers-library" title="Permanent link">&para;</a></h1>
+<p><strong>Train anywhere, Infer on Qualcomm Cloud AI with a Developer-centric Toolchain</strong></p>
+<p>This library provides reimplemented blocks of LLMs which are used to make the models functional and highly performant on Qualcomm Cloud AI 100.
+We support wide range of <a href="validated_models">models</a> architectures, for easy efficient deployment on Cloud AI 100 cards. Users only need to provide model card from HuggingFace or Path to the local model and the library will take care of transforming model to it's efficient implementation for Cloud AI 100.</p>
+<p>For other models, there is comprehensive documentation to inspire upon the changes needed and How-To(s).</p>
+<p><strong>Typically for LLMs, the library provides:</strong>
+1. Reimplemented blocks from Transformers which enable efficient on-device retention of intermediate states. read more <a href="kv_cache">here</a>
+2. Graph transformations to enable execution of key operations in lower precision
+3. Graph transformations to replace some operations to other mathematically equivalent operations that are efficient/supported on HW backend
+4. Handling for underflow and overflows in lower precision
+5. Patcher modules to map weights of original model's operations to updated model's operations
+6. Exporter module to export the model source into a <code>ONNX</code> Graph.
+7. Sample example applications and demo notebooks
+8. Unit test templates. </p>
+<p><strong><em>Latest news</em></strong> : <br></p>
+<ul>
+<li>[coming soon] Support for more popular <a href="https://quic.github.io/efficient-transformers/source/validate.html#models-coming-soon">models</a> and inference optimization technique speculative decoding <br></li>
+<li>[09/2024] <a href="https://arxiv.org/abs/2306.00978">AWQ</a>/<a href="https://arxiv.org/abs/2210.17323">GPTQ</a> 4-bit quantized models are supported</li>
+<li>[09/2024] Now we support PEFT(https://huggingface.co/docs/peft/index) models</li>
+<li>[09/2024] Added support for <a href="https://huggingface.co/ibm-granite/granite-20b-code-base-8k">granite-20b-code-base</a></li>
+<li>[09/2024] Added support for <a href="https://huggingface.co/ibm-granite/granite-20b-code-instruct-8k">granite-20b-code-instruct-8k</a></li>
+<li>[09/2024] Added support for <a href="https://huggingface.co/bigcode/starcoder">Starcoder1-15B</a></li>
+<li>[08/2024] Added Support for inference optimization technique <code>continuous batching</code></li>
+<li>[08/2024] Added support for <a href="https://huggingface.co/inceptionai/jais-adapted-70b">Jais-adapted-70b</a></li>
+<li>[08/2024] Added support for <a href="https://huggingface.co/inceptionai/jais-adapted-13b-chat">Jais-adapted-13b-chat</a></li>
+<li>[08/2024] Added support for <a href="https://huggingface.co/inceptionai/jais-adapted-7b">Jais-adapted-7b</a></li>
+<li>[06/2024] Added support for <a href="https://huggingface.co/EleutherAI/gpt-j-6b">GPT-J-6B</a></li>
+<li>[06/2024] Added support for <a href="https://huggingface.co/Qwen/Qwen2-1.5B-Instruct">Qwen2-1.5B-Instruct</a></li>
+<li>[06/2024] Added support for <a href="https://huggingface.co/bigcode/starcoder2-15b">StarCoder2-15B</a></li>
+<li>[06/2024] Added support for <a href="https://huggingface.co/microsoft/Phi-3-mini-4k-instruct">Phi3-Mini-4K-Instruct</a></li>
+<li>[06/2024] Added support for <a href="https://huggingface.co/mistralai/Codestral-22B-v0.1">Codestral-22B-v0.1</a></li>
+<li>[06/2024] Added support for <a href="https://huggingface.co/lmsys/vicuna-13b-v1.5">Vicuna-v1.5</a></li>
+<li>[05/2024] Added support for <a href="https://huggingface.co/mistralai/Mixtral-8x7B-v0.1">Mixtral-8x7B</a> &amp; <a href="https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.1">Mistral-7B-Instruct-v0.1</a>.</li>
+<li>[04/2024] Initial release of <a href="https://github.com/quic/efficient-transformers">efficient transformers</a> for seamless inference on pre-trained LLMs.</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/quic/efficient-transformers" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../validate/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
