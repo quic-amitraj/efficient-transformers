@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../../_static/my_theme.css" rel="stylesheet" />
         <link href="../../css/version-select.css" rel="stylesheet" />
     
       <script>
@@ -397,14 +398,16 @@ PyTorch and ONNX transformations to prepare models for deployment.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_model_config" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_model_config</span></code>
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_model_config" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -421,14 +424,16 @@ PyTorch and ONNX transformations to prepare models for deployment.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.model" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">model</span> <span class="o">=</span> <span class="n">model</span></code>
+            <span class="doc doc-object-name doc-attribute-name">model</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.model" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -443,10 +448,12 @@ PyTorch and ONNX transformations to prepare models for deployment.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_onnx_params" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_onnx_params</span><span class="p">()</span></code>
+            <span class="doc doc-object-name doc-function-name">get_onnx_params</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_onnx_params" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_onnx_params</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -533,10 +540,18 @@ tailored to the specific text encoder type (CLIP vs T5).</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.export" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">output_names</span><span class="p">,</span> <span class="n">dynamic_axes</span><span class="p">,</span> <span class="n">export_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">export_kwargs</span><span class="o">=</span><span class="p">{})</span></code>
+            <span class="doc doc-object-name doc-function-name">export</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.export" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">export_kwargs</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{},</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -618,10 +633,14 @@ tailored to the specific text encoder type (CLIP vs T5).</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.compile" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.compile" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">specializations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="o">**</span><span class="n">compiler_options</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -734,14 +753,16 @@ diffusion models for image generation tasks.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.get_model_config" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_model_config</span></code>
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.get_model_config" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -758,14 +779,16 @@ diffusion models for image generation tasks.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.model" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">unet</span></code>
+            <span class="doc doc-object-name doc-attribute-name">model</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.model" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model</span> <span class="o">=</span> <span class="n">unet</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -780,10 +803,18 @@ diffusion models for image generation tasks.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.export" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">output_names</span><span class="p">,</span> <span class="n">dynamic_axes</span><span class="p">,</span> <span class="n">export_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">export_kwargs</span><span class="o">=</span><span class="p">{})</span></code>
+            <span class="doc doc-object-name doc-function-name">export</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.export" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">export_kwargs</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{},</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -865,10 +896,14 @@ diffusion models for image generation tasks.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.compile" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.compile" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">specializations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="o">**</span><span class="n">compiler_options</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -987,14 +1022,16 @@ pipelines for encoding images to latent space and decoding latents back to image
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_model_config" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_model_config</span></code>
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_model_config" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1011,14 +1048,16 @@ pipelines for encoding images to latent space and decoding latents back to image
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.model" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">model</span> <span class="o">=</span> <span class="n">model</span></code>
+            <span class="doc doc-object-name doc-attribute-name">model</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.model" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1031,14 +1070,16 @@ pipelines for encoding images to latent space and decoding latents back to image
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.type" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">type</span> <span class="o">=</span> <span class="nb">type</span></code>
+            <span class="doc doc-object-name doc-attribute-name">type</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.type" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">type</span> <span class="o">=</span> <span class="nb">type</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1053,10 +1094,14 @@ pipelines for encoding images to latent space and decoding latents back to image
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_onnx_params" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_onnx_params</span><span class="p">(</span><span class="n">latent_height</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">latent_width</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">get_onnx_params</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_onnx_params" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_onnx_params</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">latent_height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span> <span class="n">latent_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1142,10 +1187,14 @@ pipelines for encoding images to latent space and decoding latents back to image
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_img_encoder_onnx_params" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_img_encoder_onnx_params</span><span class="p">()</span></code>
+            <span class="doc doc-object-name doc-function-name">get_img_encoder_onnx_params</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_img_encoder_onnx_params" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_img_encoder_onnx_params</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">]</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1240,10 +1289,12 @@ pipelines for encoding images to latent space and decoding latents back to image
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_video_onnx_params" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_video_onnx_params</span><span class="p">()</span></code>
+            <span class="doc doc-object-name doc-function-name">get_video_onnx_params</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_video_onnx_params" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_video_onnx_params</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1335,10 +1386,18 @@ pipelines for encoding images to latent space and decoding latents back to image
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.export" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">output_names</span><span class="p">,</span> <span class="n">dynamic_axes</span><span class="p">,</span> <span class="n">export_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">export_kwargs</span><span class="o">=</span><span class="p">{})</span></code>
+            <span class="doc doc-object-name doc-function-name">export</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.export" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">export_kwargs</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{},</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1428,10 +1487,14 @@ pipelines for encoding images to latent space and decoding latents back to image
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.compile" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.compile" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">specializations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="o">**</span><span class="n">compiler_options</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1543,14 +1606,16 @@ normalization (AdaLN) for conditioning.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_model_config" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_model_config</span></code>
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_model_config" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1569,10 +1634,16 @@ normalization (AdaLN) for conditioning.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_onnx_params" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_onnx_params</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">ONNX_EXPORT_EXAMPLE_BATCH_SIZE</span><span class="p">,</span> <span class="n">seq_length</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">FLUX_ONNX_EXPORT_SEQ_LENGTH</span><span class="p">,</span> <span class="n">cl</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">FLUX_ONNX_EXPORT_COMPRESSED_LATENT_DIM</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">get_onnx_params</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_onnx_params" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_onnx_params</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">ONNX_EXPORT_EXAMPLE_BATCH_SIZE</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">seq_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">FLUX_ONNX_EXPORT_SEQ_LENGTH</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">cl</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">FLUX_ONNX_EXPORT_COMPRESSED_LATENT_DIM</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1733,10 +1804,18 @@ text embeddings, timestep conditioning, and AdaLN embeddings.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.export" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">output_names</span><span class="p">,</span> <span class="n">dynamic_axes</span><span class="p">,</span> <span class="n">export_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">export</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.export" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1829,10 +1908,14 @@ text embeddings, timestep conditioning, and AdaLN embeddings.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.compile" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.compile" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">specializations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="o">**</span><span class="n">compiler_options</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1947,14 +2030,16 @@ Qualcomm AI hardware, particularly for video diffusion models.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.model" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">model</span> <span class="o">=</span> <span class="n">unified_transformer</span></code>
+            <span class="doc doc-object-name doc-attribute-name">model</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.model" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model</span> <span class="o">=</span> <span class="n">unified_transformer</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1967,14 +2052,16 @@ Qualcomm AI hardware, particularly for video diffusion models.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_model_config" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_model_config</span></code>
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_model_config" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -1993,10 +2080,12 @@ Qualcomm AI hardware, particularly for video diffusion models.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_onnx_params" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_onnx_params</span><span class="p">()</span></code>
+            <span class="doc doc-object-name doc-function-name">get_onnx_params</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_onnx_params" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_onnx_params</span><span class="p">()</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2143,10 +2232,18 @@ Returns:
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.export" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">output_names</span><span class="p">,</span> <span class="n">dynamic_axes</span><span class="p">,</span> <span class="n">export_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">export</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.export" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2231,10 +2328,12 @@ Returns:
 
 
 <h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.compile" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.compile" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2586,14 +2685,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.model" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">model</span> <span class="o">=</span> <span class="n">model</span></code>
+            <span class="doc doc-object-name doc-attribute-name">model</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.model" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2606,14 +2707,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.use_unified" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">use_unified</span> <span class="o">=</span> <span class="n">use_unified</span></code>
+            <span class="doc doc-object-name doc-attribute-name">use_unified</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.use_unified" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">use_unified</span> <span class="o">=</span> <span class="n">use_unified</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2626,14 +2729,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.enable_first_block_cache" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">enable_first_block_cache</span> <span class="o">=</span> <span class="n">enable_first_block_cache</span></code>
+            <span class="doc doc-object-name doc-attribute-name">enable_first_block_cache</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.enable_first_block_cache" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">enable_first_block_cache</span> <span class="o">=</span> <span class="n">enable_first_block_cache</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2646,14 +2751,18 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.first_block_cache_downsample_factor" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">first_block_cache_downsample_factor</span> <span class="o">=</span> <span class="n">first_block_cache_downsample_factor</span></code>
+            <span class="doc doc-object-name doc-attribute-name">first_block_cache_downsample_factor</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.first_block_cache_downsample_factor" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">first_block_cache_downsample_factor</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">first_block_cache_downsample_factor</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2666,14 +2775,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.kwargs" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span></code>
+            <span class="doc doc-object-name doc-attribute-name">kwargs</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.kwargs" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2686,14 +2797,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.custom_config" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">custom_config</span> <span class="o">=</span> <span class="kc">None</span></code>
+            <span class="doc doc-object-name doc-attribute-name">custom_config</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.custom_config" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">custom_config</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2706,14 +2819,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.text_encoder" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">text_encoder</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">text_encoder</span></code>
+            <span class="doc doc-object-name doc-attribute-name">text_encoder</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.text_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">text_encoder</span> <span class="o">=</span> <span class="n">text_encoder</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2726,14 +2841,18 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.unified_wrapper" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">unified_wrapper</span> <span class="o">=</span> <span class="n">QEffWanUnifiedWrapper</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">transformer</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">transformer_2</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">unified_wrapper</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.unified_wrapper" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">unified_wrapper</span> <span class="o">=</span> <span class="n">QEffWanUnifiedWrapper</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">transformer</span><span class="p">,</span> <span class="n">transformer_2</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2746,14 +2865,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.transformer" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">transformer</span> <span class="o">=</span> <span class="n">QEffWanUnifiedTransformer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unified_wrapper</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">transformer</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.transformer" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">transformer</span> <span class="o">=</span> <span class="n">QEffWanUnifiedTransformer</span><span class="p">(</span><span class="n">unified_wrapper</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2766,14 +2887,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.modules" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">modules</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;transformer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="p">}</span></code>
+            <span class="doc doc-object-name doc-attribute-name">modules</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.modules" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">modules</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;transformer&#39;</span><span class="p">:</span> <span class="n">transformer</span><span class="p">}</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2786,14 +2909,18 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.transformer_high" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">transformer_high</span> <span class="o">=</span> <span class="n">QEffWanTransformer</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">transformer</span><span class="p">,</span> <span class="n">module_name</span><span class="o">=</span><span class="s1">&#39;transformer_high&#39;</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">transformer_high</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.transformer_high" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">transformer_high</span> <span class="o">=</span> <span class="n">QEffWanTransformer</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">transformer</span><span class="p">,</span> <span class="n">module_name</span><span class="o">=</span><span class="s2">&quot;transformer_high&quot;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2806,14 +2933,18 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.transformer_low" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">transformer_low</span> <span class="o">=</span> <span class="n">QEffWanTransformer</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">transformer_2</span><span class="p">,</span> <span class="n">module_name</span><span class="o">=</span><span class="s1">&#39;transformer_low&#39;</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">transformer_low</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.transformer_low" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">transformer_low</span> <span class="o">=</span> <span class="n">QEffWanTransformer</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">transformer_2</span><span class="p">,</span> <span class="n">module_name</span><span class="o">=</span><span class="s2">&quot;transformer_low&quot;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2826,14 +2957,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.vae_decoder" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">vae_decoder</span> <span class="o">=</span> <span class="n">QEffVAE</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">vae</span><span class="p">,</span> <span class="s1">&#39;decoder&#39;</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">vae_decoder</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.vae_decoder" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">vae_decoder</span> <span class="o">=</span> <span class="n">QEffVAE</span><span class="p">(</span><span class="n">vae</span><span class="p">,</span> <span class="s1">&#39;decoder&#39;</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2846,14 +2979,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.tokenizer" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tokenizer</span></code>
+            <span class="doc doc-object-name doc-attribute-name">tokenizer</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.tokenizer" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">tokenizer</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2866,14 +3001,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.scheduler" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">scheduler</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">scheduler</span></code>
+            <span class="doc doc-object-name doc-attribute-name">scheduler</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.scheduler" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">scheduler</span> <span class="o">=</span> <span class="n">scheduler</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2886,14 +3023,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.do_classifier_free_guidance" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">do_classifier_free_guidance</span></code>
+            <span class="doc doc-object-name doc-attribute-name">do_classifier_free_guidance</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.do_classifier_free_guidance" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">do_classifier_free_guidance</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -2912,14 +3051,24 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">,</span> <span class="n">use_unified</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">enable_first_block_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">first_block_cache_downsample_factor</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">pretrained_model_name_or_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">]</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="p">],</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">use_unified</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">enable_first_block_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">first_block_cache_downsample_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -3103,10 +3252,15 @@ and wraps all components with QEfficient-optimized versions for QAIC deployment.
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.export" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">export_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">export</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.export" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -3259,10 +3413,12 @@ compilation to QPC format for efficient inference on QAIC hardware.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.get_default_config_path" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_default_config_path</span><span class="p">()</span></code>
+            <span class="doc doc-object-name doc-function-name">get_default_config_path</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.get_default_config_path" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_default_config_path</span><span class="p">()</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -3300,10 +3456,19 @@ compilation to QPC format for efficient inference on QAIC hardware.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.compile" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">compile_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_HEIGHT_45P</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_WIDTH_45P</span><span class="p">,</span> <span class="n">num_frames</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_FRAMES</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.compile" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">compile_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_HEIGHT_45P</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_WIDTH_45P</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_FRAMES</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -3583,10 +3748,43 @@ for inference using JSON-based configuration.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.__call__" class="doc doc-heading">
-            <code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative_prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">832</span><span class="p">,</span> <span class="n">num_frames</span><span class="o">=</span><span class="mi">81</span><span class="p">,</span> <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">guidance_scale_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_videos_per_prompt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">latents</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative_prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s1">&#39;np&#39;</span><span class="p">,</span> <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">attention_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_on_step_end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_on_step_end_tensor_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;latents&#39;</span><span class="p">],</span> <span class="n">max_sequence_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">custom_config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache_threshold_high</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache_threshold_low</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parallel_compile</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">__call__</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.__call__" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__call__</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">negative_prompt</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">480</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">832</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">81</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">num_inference_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">guidance_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">guidance_scale_2</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">num_videos_per_prompt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">generator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="n">Union</span><span class="p">[</span><span class="n">Generator</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Generator</span><span class="p">]]</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">latents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">negative_prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">output_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;np&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">return_dict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">attention_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">callback_on_step_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">callback_on_step_end_tensor_inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="s2">&quot;latents&quot;</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="p">],</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">max_sequence_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n">custom_config_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="n">cache_threshold_high</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="n">cache_threshold_low</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    <span class="n">parallel_compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4429,14 +4627,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.model" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">model</span> <span class="o">=</span> <span class="n">model</span></code>
+            <span class="doc doc-object-name doc-attribute-name">model</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.model" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4449,14 +4649,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.custom_config" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">custom_config</span> <span class="o">=</span> <span class="kc">None</span></code>
+            <span class="doc doc-object-name doc-attribute-name">custom_config</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.custom_config" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">custom_config</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4469,14 +4671,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.text_encoder" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">text_encoder</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">text_encoder</span></code>
+            <span class="doc doc-object-name doc-attribute-name">text_encoder</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.text_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">text_encoder</span> <span class="o">=</span> <span class="n">text_encoder</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4489,14 +4693,18 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.unified_wrapper" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">unified_wrapper</span> <span class="o">=</span> <span class="n">QEffWanUnifiedWrapper</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">transformer</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">transformer_2</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">unified_wrapper</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.unified_wrapper" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">unified_wrapper</span> <span class="o">=</span> <span class="n">QEffWanUnifiedWrapper</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">transformer</span><span class="p">,</span> <span class="n">transformer_2</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4509,14 +4717,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.transformer" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">transformer</span> <span class="o">=</span> <span class="n">QEffWanUnifiedTransformer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unified_wrapper</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">transformer</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.transformer" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">transformer</span> <span class="o">=</span> <span class="n">QEffWanUnifiedTransformer</span><span class="p">(</span><span class="n">unified_wrapper</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4529,14 +4739,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.vae_encoder" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">vae_encoder</span> <span class="o">=</span> <span class="n">QEffVAE</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">vae</span><span class="p">,</span> <span class="s1">&#39;encoder&#39;</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">vae_encoder</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.vae_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">vae_encoder</span> <span class="o">=</span> <span class="n">QEffVAE</span><span class="p">(</span><span class="n">vae</span><span class="p">,</span> <span class="s1">&#39;encoder&#39;</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4549,14 +4761,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.vae_decoder" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">vae_decoder</span> <span class="o">=</span> <span class="n">QEffVAE</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">vae</span><span class="p">,</span> <span class="s1">&#39;decoder&#39;</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">vae_decoder</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.vae_decoder" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">vae_decoder</span> <span class="o">=</span> <span class="n">QEffVAE</span><span class="p">(</span><span class="n">vae</span><span class="p">,</span> <span class="s1">&#39;decoder&#39;</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4569,14 +4783,20 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.modules" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">modules</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;vae_encoder&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vae_encoder</span><span class="p">,</span> <span class="s1">&#39;transformer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="p">,</span> <span class="s1">&#39;vae_decoder&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vae_decoder</span><span class="p">}</span></code>
+            <span class="doc doc-object-name doc-attribute-name">modules</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.modules" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">modules</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="s2">&quot;vae_encoder&quot;</span><span class="p">:</span> <span class="n">vae_encoder</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">transformer</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="s2">&quot;vae_decoder&quot;</span><span class="p">:</span> <span class="n">vae_decoder</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">}</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4589,14 +4809,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.tokenizer" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tokenizer</span></code>
+            <span class="doc doc-object-name doc-attribute-name">tokenizer</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.tokenizer" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">tokenizer</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4609,14 +4831,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.scheduler" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">scheduler</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">scheduler</span></code>
+            <span class="doc doc-object-name doc-attribute-name">scheduler</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.scheduler" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">scheduler</span> <span class="o">=</span> <span class="n">scheduler</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4629,14 +4853,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.do_classifier_free_guidance" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">do_classifier_free_guidance</span></code>
+            <span class="doc doc-object-name doc-attribute-name">do_classifier_free_guidance</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.do_classifier_free_guidance" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">do_classifier_free_guidance</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4655,14 +4881,21 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">pretrained_model_name_or_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">]</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="p">],</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4813,10 +5046,15 @@ and wraps all components with QEfficient-optimized versions for QAIC deployment.
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.export" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">export_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">export</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.export" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -4978,14 +5216,16 @@ to optimize memory usage and performance.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.get_default_config_path" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_default_config_path</span><span class="p">()</span></code>
+            <span class="doc doc-object-name doc-function-name">get_default_config_path</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.get_default_config_path" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_default_config_path</span><span class="p">()</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -5023,14 +5263,16 @@ to optimize memory usage and performance.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.get_vae_encoder_npi_path" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_vae_encoder_npi_path</span><span class="p">()</span></code>
+            <span class="doc doc-object-name doc-function-name">get_vae_encoder_npi_path</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.get_vae_encoder_npi_path" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_vae_encoder_npi_path</span><span class="p">()</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -5068,10 +5310,19 @@ to optimize memory usage and performance.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.compile" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">compile_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_HEIGHT_45P</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_WIDTH_45P</span><span class="p">,</span> <span class="n">num_frames</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_FRAMES</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.compile" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">compile_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_HEIGHT_45P</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_WIDTH_45P</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_FRAMES</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -5351,10 +5602,26 @@ for inference using JSON-based configuration.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.prepare_latents" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">prepare_latents</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">num_channels_latents</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">832</span><span class="p">,</span> <span class="n">num_frames</span><span class="o">=</span><span class="mi">81</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">latents</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last_image</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">prepare_latents</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.prepare_latents" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">prepare_latents</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">image</span><span class="p">:</span> <span class="n">PipelineImageInput</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">num_channels_latents</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">480</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">832</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">81</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">dtype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">device</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">device</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">generator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="n">Union</span><span class="p">[</span><span class="n">Generator</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Generator</span><span class="p">]]</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">latents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">last_image</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -5698,10 +5965,44 @@ information that maintains temporal consistency throughout video generation.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.__call__" class="doc doc-heading">
-            <code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative_prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">544</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">720</span><span class="p">,</span> <span class="n">num_frames</span><span class="o">=</span><span class="mi">81</span><span class="p">,</span> <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">guidance_scale_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_videos_per_prompt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">latents</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative_prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">image_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last_image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s1">&#39;np&#39;</span><span class="p">,</span> <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">attention_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_on_step_end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_on_step_end_tensor_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;latents&#39;</span><span class="p">],</span> <span class="n">max_sequence_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">custom_config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parallel_compile</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">__call__</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.__call__" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__call__</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">image</span><span class="p">:</span> <span class="n">PipelineImageInput</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">negative_prompt</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">544</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">81</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">num_inference_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">guidance_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">guidance_scale_2</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">num_videos_per_prompt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">generator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="n">Union</span><span class="p">[</span><span class="n">Generator</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Generator</span><span class="p">]]</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">latents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">negative_prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">image_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">last_image</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">output_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;np&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">return_dict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">attention_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">callback_on_step_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">callback_on_step_end_tensor_inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="s2">&quot;latents&quot;</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="p">],</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="n">max_sequence_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="n">custom_config_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="n">parallel_compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -6935,14 +7236,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.model" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">model</span> <span class="o">=</span> <span class="n">model</span></code>
+            <span class="doc doc-object-name doc-attribute-name">model</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.model" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -6955,14 +7258,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.enable_first_block_cache" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">enable_first_block_cache</span> <span class="o">=</span> <span class="n">enable_first_block_cache</span></code>
+            <span class="doc doc-object-name doc-attribute-name">enable_first_block_cache</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.enable_first_block_cache" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">enable_first_block_cache</span> <span class="o">=</span> <span class="n">enable_first_block_cache</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -6975,14 +7280,18 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.first_block_cache_downsample_factor" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">first_block_cache_downsample_factor</span> <span class="o">=</span> <span class="n">first_block_cache_downsample_factor</span></code>
+            <span class="doc doc-object-name doc-attribute-name">first_block_cache_downsample_factor</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.first_block_cache_downsample_factor" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">first_block_cache_downsample_factor</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">first_block_cache_downsample_factor</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -6995,14 +7304,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.text_encoder" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">text_encoder</span> <span class="o">=</span> <span class="n">QEffTextEncoder</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">text_encoder</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">text_encoder</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.text_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">text_encoder</span> <span class="o">=</span> <span class="n">QEffTextEncoder</span><span class="p">(</span><span class="n">text_encoder</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7015,14 +7326,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.text_encoder_2" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">text_encoder_2</span> <span class="o">=</span> <span class="n">QEffTextEncoder</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">text_encoder_2</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">text_encoder_2</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.text_encoder_2" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">text_encoder_2</span> <span class="o">=</span> <span class="n">QEffTextEncoder</span><span class="p">(</span><span class="n">text_encoder_2</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7035,14 +7348,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.transformer" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">transformer</span> <span class="o">=</span> <span class="n">QEffFluxTransformerModel</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">transformer</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">transformer</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.transformer" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">transformer</span> <span class="o">=</span> <span class="n">QEffFluxTransformerModel</span><span class="p">(</span><span class="n">transformer</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7055,14 +7370,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.vae_decode" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">vae_decode</span> <span class="o">=</span> <span class="n">QEffVAE</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">vae</span><span class="p">,</span> <span class="s1">&#39;decoder&#39;</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-attribute-name">vae_decode</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.vae_decode" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">vae_decode</span> <span class="o">=</span> <span class="n">QEffVAE</span><span class="p">(</span><span class="n">vae</span><span class="p">,</span> <span class="s1">&#39;decoder&#39;</span><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7075,14 +7392,21 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.modules" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">modules</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;text_encoder&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_encoder</span><span class="p">,</span> <span class="s1">&#39;text_encoder_2&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_encoder_2</span><span class="p">,</span> <span class="s1">&#39;transformer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="p">,</span> <span class="s1">&#39;vae_decoder&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vae_decode</span><span class="p">}</span></code>
+            <span class="doc doc-object-name doc-attribute-name">modules</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.modules" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">modules</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="s2">&quot;text_encoder&quot;</span><span class="p">:</span> <span class="n">text_encoder</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="s2">&quot;text_encoder_2&quot;</span><span class="p">:</span> <span class="n">text_encoder_2</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">transformer</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="s2">&quot;vae_decoder&quot;</span><span class="p">:</span> <span class="n">vae_decode</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7095,14 +7419,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.tokenizer" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tokenizer</span></code>
+            <span class="doc doc-object-name doc-attribute-name">tokenizer</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.tokenizer" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">tokenizer</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7115,14 +7441,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.tokenizer_max_length" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">tokenizer_max_length</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tokenizer_max_length</span></code>
+            <span class="doc doc-object-name doc-attribute-name">tokenizer_max_length</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.tokenizer_max_length" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">tokenizer_max_length</span> <span class="o">=</span> <span class="n">tokenizer_max_length</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7135,14 +7463,16 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.scheduler" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">scheduler</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">scheduler</span></code>
+            <span class="doc doc-object-name doc-attribute-name">scheduler</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.scheduler" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">scheduler</span> <span class="o">=</span> <span class="n">scheduler</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7157,14 +7487,23 @@ for QAIC devices.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">,</span> <span class="n">enable_first_block_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">first_block_cache_downsample_factor</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">pretrained_model_name_or_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">]</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="p">],</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">enable_first_block_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">first_block_cache_downsample_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7331,10 +7670,15 @@ and wraps all components with QEfficient-optimized versions for QAIC deployment.
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.export" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">export_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">export</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.export" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7502,14 +7846,16 @@ to optimize memory usage and performance.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.get_default_config_path" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_default_config_path</span><span class="p">()</span></code>
+            <span class="doc doc-object-name doc-function-name">get_default_config_path</span>
+
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.get_default_config_path" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_default_config_path</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7550,10 +7896,18 @@ to optimize memory usage and performance.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.compile" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">compile_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.compile" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">compile_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7757,10 +8111,19 @@ to optimize memory usage and performance.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.encode_prompt" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">encode_prompt</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">prompt_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_images_per_prompt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pooled_prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_sequence_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">encode_prompt</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.encode_prompt" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">encode_prompt</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">prompt_2</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">num_images_per_prompt</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">pooled_prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">max_sequence_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
@@ -7912,10 +8275,48 @@ to optimize memory usage and performance.</p>
 
 
 <h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.__call__" class="doc doc-heading">
-            <code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prompt_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative_prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative_prompt_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">true_cfg_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">timesteps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span> <span class="n">num_images_per_prompt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">latents</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pooled_prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative_prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative_pooled_prompt_embeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s1">&#39;pil&#39;</span><span class="p">,</span> <span class="n">callback_on_step_end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callback_on_step_end_tensor_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;latents&#39;</span><span class="p">],</span> <span class="n">max_sequence_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">custom_config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parallel_compile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache_threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <span class="doc doc-object-name doc-function-name">__call__</span>
+
 
 <a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.__call__" class="headerlink" title="Permanent link">&para;</a></h3>
-
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__call__</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">prompt_2</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">negative_prompt</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">negative_prompt_2</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">true_cfg_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">num_inference_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">28</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">timesteps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">guidance_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.5</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">num_images_per_prompt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">generator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="n">Union</span><span class="p">[</span><span class="n">Generator</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Generator</span><span class="p">]]</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">latents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">pooled_prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">negative_prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">negative_pooled_prompt_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        <span class="n">FloatTensor</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">output_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;pil&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">callback_on_step_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="n">callback_on_step_end_tensor_inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="s2">&quot;latents&quot;</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    <span class="p">],</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="n">max_sequence_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="n">custom_config_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    <span class="n">parallel_compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>    <span class="n">cache_threshold</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="p">)</span>
+</code></pre></div>
 
     <div class="doc doc-contents ">
 
