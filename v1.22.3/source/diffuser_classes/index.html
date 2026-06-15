@@ -1,0 +1,3867 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/v1.22.3/source/diffuser_classes/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Diffuser Classes - Efficient Transformers</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../../_static/my_theme.css" rel="stylesheet" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Diffuser Classes";
+        var mkdocs_page_input_path = "source/diffuser_classes.md";
+        var mkdocs_page_url = "/efficient-transformers/v1.22.3/source/diffuser_classes/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Efficient Transformers
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Release Documents</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../introduction/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validated Models</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Pre-requisites & Installation</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement Guide</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">QEfficient Auto Classes</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Diffuser Classes</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#pipeline-api">Pipeline API</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEffTextEncoder">QEffTextEncoder</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder">QEffTextEncoder</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_model_config">get_model_config</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_onnx_params">get_onnx_params</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEffUNet">QEffUNet</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet">QEffUNet</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.get_model_config">get_model_config</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.compile">compile</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEffVAE">QEffVAE</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE">QEffVAE</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_model_config">get_model_config</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_onnx_params">get_onnx_params</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_video_onnx_params">get_video_onnx_params</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEffFluxTransformerModel">QEffFluxTransformerModel</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel">QEffFluxTransformerModel</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_model_config">get_model_config</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_onnx_params">get_onnx_params</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEffWanUnifiedTransformer">QEffWanUnifiedTransformer</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer">QEffWanUnifiedTransformer</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_model_config">get_model_config</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_onnx_params">get_onnx_params</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#model-classes">Model Classes</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEffWanPipeline">QEffWanPipeline</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline">QEffWanPipeline</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline--save-generated-video">Save generated video</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained">from_pretrained</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.compile">compile</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEffWanImageToVideoPipeline">QEffWanImageToVideoPipeline</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline">QEffWanImageToVideoPipeline</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline--load-pipeline-and-input-image">Load pipeline and input image</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline--generate-video-with-motion">Generate video with motion</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline--save-generated-video">Save generated video</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained">from_pretrained</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.compile">compile</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEffFluxPipeline">QEffFluxPipeline</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline">QEffFluxPipeline</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained">from_pretrained</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.compile">compile</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API Reference</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">QAIC Finetune</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune Infra</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Blogs</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blog Posts</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/">External Links</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Efficient Transformers</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+      <li class="breadcrumb-item active">Diffuser Classes</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/quic/efficient-transformers/edit/main/source/diffuser_classes.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="diffuser-classes">Diffuser Classes<a class="headerlink" href="#diffuser-classes" title="Permanent link">&para;</a></h1>
+<h2 id="pipeline-api">Pipeline API<a class="headerlink" href="#pipeline-api" title="Permanent link">&para;</a></h2>
+<h3 id="QEffTextEncoder"><code>QEffTextEncoder</code><a class="headerlink" href="#QEffTextEncoder" title="Permanent link">&para;</a></h3>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffTextEncoder</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.base.modeling_qeff.QEFFBaseModel">QEFFBaseModel</span></code></p>
+
+
+
+        <p>Wrapper for text encoder models with ONNX export and QAIC compilation capabilities.</p>
+<p>This class handles text encoder models (CLIP, T5) with specific transformations and
+optimizations for efficient inference on Qualcomm AI hardware. It applies custom
+PyTorch and ONNX transformations to prepare models for deployment.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Attributes:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The wrapped text encoder model (deep copy of original)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_pytorch_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>PyTorch transformations applied before ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_onnx_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>ONNX transformations applied after export</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+        <p>Initialize the text encoder wrapper.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The text encoder model to wrap (CLIP or T5)</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_model_config" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_model_config" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the model configuration as a dictionary.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>Dict</code></b>(                  <code><span title="typing.Dict">Dict</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>The configuration dictionary of the underlying text encoder model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">export_kwargs</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the text encoder model to ONNX format.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>inputs</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Example inputs for ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>output_names</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="str">str</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Names of model outputs</p>
+              </div>
+            </li>
+            <li>
+              <b><code>dynamic_axes</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Specification of dynamic dimensions</p>
+              </div>
+            </li>
+            <li>
+              <b><code>export_dir</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Directory to save ONNX model</p>
+              </div>
+            </li>
+            <li>
+              <b><code>export_kwargs</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>, default:
+                      <code>{}</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Additional export arguments</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>str</code></b>(                  <code><span title="str">str</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>Path to the exported ONNX model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the ONNX model for Qualcomm AI hardware.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>specializations</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Model specialization configurations</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**compiler_options</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional compiler options (e.g., num_cores, aic_num_of_activations)</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_onnx_params" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_onnx_params</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder.get_onnx_params" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_onnx_params</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate ONNX export configuration for the text encoder.</p>
+<p>Creates example inputs, dynamic axes specifications, and output names
+tailored to the specific text encoder type (CLIP vs T5).</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Dict">Dict</span>, <span title="typing.Dict">Dict</span>, <span title="typing.List">List</span>[<span title="str">str</span>]]</code>
+              –
+              <div class="doc-md-description">
+                <p>Tuple[Dict, Dict, List[str]]: (example_inputs, dynamic_axes, output_names)
+where example_inputs are sample inputs for ONNX export, dynamic_axes specify
+variable dimensions, and output_names are the model output names.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h3 id="QEffUNet"><code>QEffUNet</code><a class="headerlink" href="#QEffUNet" title="Permanent link">&para;</a></h3>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffUNet" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.diffusers.pipelines.pipeline_module.QEffUNet</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffUNet</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.base.modeling_qeff.QEFFBaseModel">QEFFBaseModel</span></code></p>
+
+
+
+        <p>Wrapper for UNet models with ONNX export and QAIC compilation capabilities.</p>
+<p>This class handles UNet models with specific transformations and optimizations
+for efficient inference on Qualcomm AI hardware. UNet is commonly used in
+diffusion models for image generation tasks.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Attributes:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The wrapped UNet model</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_pytorch_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>PyTorch transformations applied before ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_onnx_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>ONNX transformations applied after export</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+        <p>Initialize the UNet wrapper.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The pipeline model containing the UNet</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.get_model_config" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.get_model_config" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the model configuration as a dictionary.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>Dict</code></b>(                  <code><span title="typing.Dict">Dict</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>The configuration dictionary of the underlying UNet model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">export_kwargs</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the UNet model to ONNX format.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>inputs</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Example inputs for ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>output_names</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="str">str</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Names of model outputs</p>
+              </div>
+            </li>
+            <li>
+              <b><code>dynamic_axes</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Specification of dynamic dimensions</p>
+              </div>
+            </li>
+            <li>
+              <b><code>export_dir</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Directory to save ONNX model</p>
+              </div>
+            </li>
+            <li>
+              <b><code>export_kwargs</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>, default:
+                      <code>{}</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Additional export arguments</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>str</code></b>(                  <code><span title="str">str</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>Path to the exported ONNX model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffUNet.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the ONNX model for Qualcomm AI hardware.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>specializations</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Model specialization configurations</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**compiler_options</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional compiler options</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h3 id="QEffVAE"><code>QEffVAE</code><a class="headerlink" href="#QEffVAE" title="Permanent link">&para;</a></h3>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.diffusers.pipelines.pipeline_module.QEffVAE</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffVAE</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.base.modeling_qeff.QEFFBaseModel">QEFFBaseModel</span></code></p>
+
+
+
+        <p>Wrapper for Variational Autoencoder (VAE) models with ONNX export and QAIC compilation.</p>
+<p>This class handles VAE models with specific transformations and optimizations
+for efficient inference on Qualcomm AI hardware. VAE models are used in diffusion
+pipelines for encoding images to latent space and decoding latents back to images.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Attributes:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The wrapped VAE model (deep copy of original)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>type</code></b>
+                  (<code><span title="str">str</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>VAE operation type ("encoder" or "decoder")</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_pytorch_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>PyTorch transformations applied before ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_onnx_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>ONNX transformations applied after export</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+        <p>Initialize the VAE wrapper.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The pipeline model containing the VAE</p>
+              </div>
+            </li>
+            <li>
+              <b><code>type</code></b>
+                  (<code><span title="str">str</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>VAE operation type ("encoder" or "decoder")</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_model_config" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_model_config" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the model configuration as a dictionary.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>Dict</code></b>(                  <code><span title="typing.Dict">Dict</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>The configuration dictionary of the underlying VAE model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">export_kwargs</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the VAE model to ONNX format.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>inputs</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Example inputs for ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>output_names</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="str">str</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Names of model outputs</p>
+              </div>
+            </li>
+            <li>
+              <b><code>dynamic_axes</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Specification of dynamic dimensions</p>
+              </div>
+            </li>
+            <li>
+              <b><code>export_dir</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Directory to save ONNX model</p>
+              </div>
+            </li>
+            <li>
+              <b><code>export_kwargs</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>, default:
+                      <code>{}</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Additional export arguments</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>str</code></b>(                  <code><span title="str">str</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>Path to the exported ONNX model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the ONNX model for Qualcomm AI hardware.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>specializations</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Model specialization configurations</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**compiler_options</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional compiler options</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_onnx_params" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_onnx_params</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_onnx_params" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_onnx_params</span><span class="p">(</span><span class="n">latent_height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span> <span class="n">latent_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate ONNX export configuration for the VAE decoder.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>latent_height</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>32</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Height of latent representation (default: 32)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>latent_width</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>32</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Width of latent representation (default: 32)</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Dict">Dict</span>, <span title="typing.Dict">Dict</span>, <span title="typing.List">List</span>[<span title="str">str</span>]]</code>
+              –
+              <div class="doc-md-description">
+                <p>Tuple[Dict, Dict, List[str]]: (example_inputs, dynamic_axes, output_names)
+where example_inputs are sample inputs for ONNX export, dynamic_axes specify
+variable dimensions, and output_names are the model output names.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_video_onnx_params" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_video_onnx_params</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE.get_video_onnx_params" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_video_onnx_params</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate ONNX export configuration for the VAE video decoder.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Dict">Dict</span>, <span title="typing.Dict">Dict</span>, <span title="typing.List">List</span>[<span title="str">str</span>]]</code>
+              –
+              <div class="doc-md-description">
+                <p>Tuple[Dict, Dict, List[str]]: A tuple of (example_inputs, dynamic_axes, output_names)
+ready for ONNX export of the video decoder.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h3 id="QEffFluxTransformerModel"><code>QEffFluxTransformerModel</code><a class="headerlink" href="#QEffFluxTransformerModel" title="Permanent link">&para;</a></h3>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffFluxTransformerModel</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.base.modeling_qeff.QEFFBaseModel">QEFFBaseModel</span></code></p>
+
+
+
+        <p>Wrapper for Flux Transformer2D models with ONNX export and QAIC compilation capabilities.</p>
+<p>This class handles Flux Transformer2D models with specific transformations and optimizations
+for efficient inference on Qualcomm AI hardware. Flux uses a transformer-based diffusion
+architecture instead of traditional UNet, with dual transformer blocks and adaptive layer
+normalization (AdaLN) for conditioning.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Attributes:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The wrapped Flux transformer model</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_pytorch_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>PyTorch transformations applied before ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_onnx_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>ONNX transformations applied after export</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+        <p>Initialize the Flux transformer wrapper.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The Flux transformer model to wrap</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_model_config" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_model_config" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the model configuration as a dictionary.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>Dict</code></b>(                  <code><span title="typing.Dict">Dict</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>The configuration dictionary of the underlying Flux transformer model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the Flux transformer model to ONNX format.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>inputs</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Example inputs for ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>output_names</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="str">str</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Names of model outputs</p>
+              </div>
+            </li>
+            <li>
+              <b><code>dynamic_axes</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Specification of dynamic dimensions</p>
+              </div>
+            </li>
+            <li>
+              <b><code>export_dir</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Directory to save ONNX model</p>
+              </div>
+            </li>
+            <li>
+              <b><code>use_onnx_subfunctions</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Whether to export transformer blocks as ONNX functions
+                     for better modularity and potential optimization</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>str</code></b>(                  <code><span title="str">str</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>Path to the exported ONNX model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the ONNX model for Qualcomm AI hardware.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>specializations</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Model specialization configurations</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**compiler_options</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional compiler options (e.g., num_cores, aic_num_of_activations)</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_onnx_params" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_onnx_params</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel.get_onnx_params" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_onnx_params</span><span class="p">(</span><span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">ONNX_EXPORT_EXAMPLE_BATCH_SIZE</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">FLUX_ONNX_EXPORT_SEQ_LENGTH</span><span class="p">,</span> <span class="n">cl</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">FLUX_ONNX_EXPORT_COMPRESSED_LATENT_DIM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate ONNX export configuration for the Flux transformer.</p>
+<p>Creates example inputs for all Flux-specific inputs including hidden states,
+text embeddings, timestep conditioning, and AdaLN embeddings.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>batch_size</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code><span title="QEfficient.utils.constants.ONNX_EXPORT_EXAMPLE_BATCH_SIZE">ONNX_EXPORT_EXAMPLE_BATCH_SIZE</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Batch size for example inputs (default: FLUX_ONNX_EXPORT_BATCH_SIZE)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>seq_length</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code><span title="QEfficient.utils.constants.FLUX_ONNX_EXPORT_SEQ_LENGTH">FLUX_ONNX_EXPORT_SEQ_LENGTH</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Text sequence length (default: FLUX_ONNX_EXPORT_SEQ_LENGTH)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>cl</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code><span title="QEfficient.utils.constants.FLUX_ONNX_EXPORT_COMPRESSED_LATENT_DIM">FLUX_ONNX_EXPORT_COMPRESSED_LATENT_DIM</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Compressed latent dimension (default: FLUX_ONNX_EXPORT_COMPRESSED_LATENT_DIM)</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Dict">Dict</span>, <span title="typing.Dict">Dict</span>, <span title="typing.List">List</span>[<span title="str">str</span>]]</code>
+              –
+              <div class="doc-md-description">
+                <p>Tuple[Dict, Dict, List[str]]: (example_inputs, dynamic_axes, output_names)
+where example_inputs are sample inputs for ONNX export, dynamic_axes specify
+variable dimensions, and output_names are the model output names.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h3 id="QEffWanUnifiedTransformer"><code>QEffWanUnifiedTransformer</code><a class="headerlink" href="#QEffWanUnifiedTransformer" title="Permanent link">&para;</a></h3>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffWanUnifiedTransformer</span><span class="p">(</span><span class="n">unified_transformer</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.base.modeling_qeff.QEFFBaseModel">QEFFBaseModel</span></code></p>
+
+
+
+        <p>Wrapper for WAN Unified Transformer with ONNX export and QAIC compilation capabilities.</p>
+<p>This class handles the unified WAN transformer model that combines high and low noise transformers
+into a single model for efficient deployment. Based on the timestep shape, the model dynamically
+selects between high and low noise transformers during inference.</p>
+<p>The wrapper applies specific transformations and optimizations for efficient inference on
+Qualcomm AI hardware, particularly for video diffusion models.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Attributes:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The QEffWanUnifiedWrapper model that combines high/low noise transformers</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_pytorch_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>PyTorch transformations applied before ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>_onnx_transforms</code></b>
+                  (<code><span title="typing.List">List</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>ONNX transformations applied after export</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+        <p>Initialize the Wan unified transformer.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Wan unified transformer model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_model_config" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">get_model_config</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_model_config" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_model_config</span><span class="p">:</span> <span class="n">Dict</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the model configuration as a dictionary.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>Dict</code></b>(                  <code><span title="typing.Dict">Dict</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>The configuration dictionary of the underlying Wan transformer model</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">output_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">dynamic_axes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the Wan transformer model to ONNX format.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>inputs</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Example inputs for ONNX export</p>
+              </div>
+            </li>
+            <li>
+              <b><code>output_names</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="str">str</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Names of model outputs</p>
+              </div>
+            </li>
+            <li>
+              <b><code>dynamic_axes</code></b>
+                  (<code><span title="typing.Dict">Dict</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Specification of dynamic dimensions</p>
+              </div>
+            </li>
+            <li>
+              <b><code>export_dir</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Directory to save ONNX model</p>
+              </div>
+            </li>
+            <li>
+              <b><code>use_onnx_subfunctions</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Whether to export transformer blocks as ONNX functions
+                     for better modularity and potential optimization</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>        <p>Returns:
+    str: Path to the exported ONNX model</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">specializations</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the ONNX model for Qualcomm AI hardware.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>specializations</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Model specialization configurations</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**compiler_options</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional compiler options (e.g., num_cores, aic_num_of_activations)</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_onnx_params" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_onnx_params</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer.get_onnx_params" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_onnx_params</span><span class="p">()</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate ONNX export configuration for the Wan transformer.</p>
+<p>Creates example inputs for all Wan-specific inputs including hidden states,
+text embeddings, timestep conditioning,
+Returns:
+    Tuple[Dict, Dict, List[str]]: (example_inputs, dynamic_axes, output_names)
+        where example_inputs are sample inputs for ONNX export, dynamic_axes specify
+        variable dimensions, and output_names are the model output names.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h2 id="model-classes">Model Classes<a class="headerlink" href="#model-classes" title="Permanent link">&para;</a></h2>
+<h3 id="QEffWanPipeline"><code>QEffWanPipeline</code><a class="headerlink" href="#QEffWanPipeline" title="Permanent link">&para;</a></h3>
+<p>WAN supports two execution architectures:</p>
+<ul>
+<li><code>use_unified=True</code> (default): one unified transformer module.</li>
+<li><code>use_unified=False</code>: separate <code>transformer_high</code> and <code>transformer_low</code> modules.</li>
+</ul>
+<p>First-block-cache is currently supported only for non-unified WAN:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">QEfficient</span><span class="w"> </span><span class="kn">import</span> <span class="n">QEffWanPipeline</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">QEffWanPipeline</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="s2">&quot;Wan-AI/Wan2.2-T2V-A14B-Diffusers&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">use_unified</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">enable_first_block_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">first_block_cache_downsample_factor</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">output</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;A cat playing in a sunny garden&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">cache_threshold_high</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">cache_threshold_low</span><span class="o">=</span><span class="mf">0.065</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">)</span>
+</code></pre></div>
+<p>See examples:</p>
+<ul>
+<li><code>examples/diffusers/wan/wan_lightning.py</code></li>
+<li><code>examples/diffusers/wan/wan_lightning_custom.py</code></li>
+<li><code>examples/diffusers/wan/wan_first_block_cache.py</code></li>
+</ul>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffWanPipeline</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">use_unified</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">enable_first_block_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">first_block_cache_downsample_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>QEfficient-optimized WAN pipeline for high-performance text-to-video generation on Qualcomm AI hardware.</p>
+<p>This pipeline provides an optimized implementation of the WAN diffusion model
+specifically designed for deployment on Qualcomm AI Cloud (QAIC) devices. It extends the original
+HuggingFace WAN model with QEfficient-optimized components that can be exported to ONNX format
+and compiled into Qualcomm Program Container (QPC) files for efficient video generation.</p>
+<p>The pipeline supports the complete WAN workflow including:
+- UMT5 text encoding for rich semantic understanding
+- Unified transformer architecture: Combines multiple transformer stages into a single optimized model
+- VAE decoding for final video output
+- Performance monitoring and hardware optimization</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Attributes:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>text_encoder</code></b>
+              –
+              <div class="doc-md-description">
+                <p>UMT5 text encoder for semantic text understanding (TODO: QEfficient optimization)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>unified_wrapper</code></b>
+                  (<code><span title="QEfficient.diffusers.models.transformers.transformer_wan.QEffWanUnifiedWrapper">QEffWanUnifiedWrapper</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Wrapper combining transformer stages (unified mode)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>transformer</code></b>
+                  (<code><a class="autorefs autorefs-internal" title="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer">QEffWanUnifiedTransformer</a></code>)
+              –
+              <div class="doc-md-description">
+                <p>Optimized unified transformer for denoising (unified mode)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>transformer_high</code></b>
+                  (<code><span title="QEfficient.diffusers.pipelines.pipeline_module.QEffWanTransformer">QEffWanTransformer</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>High-noise transformer module (non-unified mode)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>transformer_low</code></b>
+                  (<code><span title="QEfficient.diffusers.pipelines.pipeline_module.QEffWanTransformer">QEffWanTransformer</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Low-noise transformer module (non-unified mode)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>vae_decode</code></b>
+                  (<code><span title="QEfficient.diffusers.pipelines.pipeline_module.QEffWanTransformer">QEffWanTransformer</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>VAE decoder for latent-to-video conversion</p>
+              </div>
+            </li>
+            <li>
+              <b><code>modules</code></b>
+                  (<code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Dictionary of pipeline modules for batch operations</p>
+              </div>
+            </li>
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="diffusers.WanPipeline">WanPipeline</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Original HuggingFace WAN model reference</p>
+              </div>
+            </li>
+            <li>
+              <b><code>tokenizer</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Text tokenizer for preprocessing</p>
+              </div>
+            </li>
+            <li>
+              <b><code>scheduler</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Diffusion scheduler for timestep management</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>from QEfficient.diffusers.pipelines.wan import QEffWanPipeline
+pipeline = QEffWanPipeline.from_pretrained("path/to/wan/model")
+videos = pipeline(
+...     prompt="A cat playing in a garden",
+...     height=480,
+...     width=832,
+...     num_frames=81,
+...     num_inference_steps=4
+... )</p>
+<h4 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline--save-generated-video">Save generated video<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline--save-generated-video" title="Permanent link">&para;</a></h4>
+<p>videos.images[0].save("generated_video.mp4")</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+        <p>Initialize the QEfficient WAN pipeline.</p>
+<p>This pipeline provides an optimized implementation of the WAN text-to-video model
+for deployment on Qualcomm AI hardware. It wraps the original HuggingFace WAN model
+components with QEfficient-optimized versions that can be exported to ONNX and compiled
+for QAIC devices.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Pre-loaded WanPipeline model with transformer and transformer_2 components</p>
+              </div>
+            </li>
+            <li>
+              <b><code>use_unified</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>True</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>If True, use a unified transformer module that internally
+selects high/low stage by <code>tsp</code>. If False, keep high/low transformers as
+separate compiled modules and dispatch explicitly at runtime.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>enable_first_block_cache</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Enable retained-state first-block-cache path.
+Supported only for non-unified mode.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>first_block_cache_downsample_factor</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>4</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Downsample factor for the first-block
+residual cache key. Used only when first-block-cache is enabled.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional keyword arguments including configuration parameters</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">]],</span> <span class="n">use_unified</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">enable_first_block_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">first_block_cache_downsample_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load a pretrained WAN model from HuggingFace Hub or local path and wrap it with QEfficient optimizations.</p>
+<p>This class method provides a convenient way to instantiate a QEffWanPipeline from a pretrained
+WAN model. It automatically loads the base WanPipeline model in float32 precision on CPU
+and wraps all components with QEfficient-optimized versions for QAIC deployment.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>pretrained_model_name_or_path</code></b>
+                  (<code><span title="str">str</span> or <span title="os.PathLike">PathLike</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Either a HuggingFace model identifier
+or a local path to a saved WAN model directory. Should contain transformer, transformer_2,
+text_encoder, and VAE components.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>use_unified</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>True</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Selects WAN execution architecture.
+- True: unified high/low transformer module
+- False: separate high and low transformer modules</p>
+              </div>
+            </li>
+            <li>
+              <b><code>enable_first_block_cache</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Enables retained-state first-block-cache
+for non-unified mode.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>first_block_cache_downsample_factor</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>4</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Downsample factor for first-block
+cache key when cache is enabled.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional keyword arguments passed to WanPipeline.from_pretrained().</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>QEffWanPipeline</code></b>              –
+              <div class="doc-md-description">
+                <p>A fully initialized pipeline instance with QEfficient-optimized components
+ready for export, compilation, and inference on QAIC devices.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="ValueError">ValueError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If the model path is invalid or model cannot be loaded</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="OSError">OSError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If there are issues accessing the model files</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If model initialization fails</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained--load-from-huggingface-hub">Load from HuggingFace Hub<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained--load-from-huggingface-hub" title="Permanent link">&para;</a></h5>
+<p>pipeline = QEffWanPipeline.from_pretrained("Wan-AI/Wan2.2-T2V-A14B-Diffusers")</p>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained--load-from-local-path">Load from local path<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained--load-from-local-path" title="Permanent link">&para;</a></h5>
+<p>pipeline = QEffWanPipeline.from_pretrained("/local/path/to/wan")</p>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained--load-with-custom-cache-directory">Load with custom cache directory<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.from_pretrained--load-with-custom-cache-directory" title="Permanent link">&para;</a></h5>
+<p>pipeline = QEffWanPipeline.from_pretrained(
+...     "wan-model-id",
+...     cache_dir="/custom/cache/dir"
+... )</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">compile_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_HEIGHT_45P</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_WIDTH_45P</span><span class="p">,</span> <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_FRAMES</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compiles the ONNX graphs of the different model components for deployment on Qualcomm AI hardware.</p>
+<p>This method takes the ONNX paths of the transformer and compiles them into an optimized format
+for inference using JSON-based configuration.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>compile_config</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Path to a JSON configuration file containing
+compilation settings, device mappings, and optimization parameters. If None,
+uses the default configuration.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>parallel</code></b>
+                  (<code>bool, default=False</code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Compilation mode selection:
+- True: Compile modules in parallel using ThreadPoolExecutor for faster processing
+- False: Compile modules sequentially for lower resource usage</p>
+              </div>
+            </li>
+            <li>
+              <b><code>height</code></b>
+                  (<code>int, default=192</code>, default:
+                      <code><span title="QEfficient.utils.constants.WAN_ONNX_EXPORT_HEIGHT_45P">WAN_ONNX_EXPORT_HEIGHT_45P</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Target image height in pixels.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>width</code></b>
+                  (<code>int, default=320</code>, default:
+                      <code><span title="QEfficient.utils.constants.WAN_ONNX_EXPORT_WIDTH_45P">WAN_ONNX_EXPORT_WIDTH_45P</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Target image width in pixels.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>num_frames</code></b>
+                  (<code>int, default=81</code>, default:
+                      <code><span title="QEfficient.utils.constants.WAN_ONNX_EXPORT_FRAMES">WAN_ONNX_EXPORT_FRAMES</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Target number of frames in pixel space</p>
+              </div>
+            </li>
+            <li>
+              <b><code>use_onnx_subfunctions</code></b>
+                  (<code>bool, default=False</code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Whether to export models with ONNX
+subfunctions before compilation if not already exported.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If compilation fails for any module or if QAIC compiler is not available</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="FileNotFoundError">FileNotFoundError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If ONNX models haven't been exported or config file is missing</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="ValueError">ValueError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If configuration parameters are invalid</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="OSError">OSError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If there are issues with file I/O during compilation</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>pipeline = QEffWanPipeline.from_pretrained("Wan-AI/Wan2.2-T2V-A14B-Diffusers")</p>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.compile--sequential-compilation-with-default-config">Sequential compilation with default config<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.compile--sequential-compilation-with-default-config" title="Permanent link">&para;</a></h5>
+<p>pipeline.compile(height=480, width=832, num_frames=81)</p>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.compile--parallel-compilation-with-custom-config">Parallel compilation with custom config<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan.QEffWanPipeline.compile--parallel-compilation-with-custom-config" title="Permanent link">&para;</a></h5>
+<p>pipeline.compile(
+...     compile_config="/path/to/custom_config.json",
+...     parallel=True,
+...     height=480,
+...     width=832,
+...     num_frames=81
+... )</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h3 id="QEffWanImageToVideoPipeline"><code>QEffWanImageToVideoPipeline</code><a class="headerlink" href="#QEffWanImageToVideoPipeline" title="Permanent link">&para;</a></h3>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffWanImageToVideoPipeline</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>QEfficient-optimized WAN image-to-video pipeline for high-performance video generation on Qualcomm AI hardware.</p>
+<p>This pipeline provides an optimized implementation of the WAN image-to-video diffusion model
+specifically designed for deployment on Qualcomm AI Cloud (QAIC) devices. It extends the original
+HuggingFace WAN image-to-video model with QEfficient-optimized components that can be exported to ONNX format
+and compiled into Qualcomm Program Container (QPC) files for efficient video generation from static images.</p>
+<p>The pipeline supports the complete WAN image-to-video workflow including:
+- Image conditioning and preprocessing for temporal consistency
+- UMT5 text encoding for rich semantic understanding
+- Unified transformer architecture: Combines multiple transformer stages into a single optimized model
+- VAE encoding/decoding for image-to-latent and latent-to-video conversion</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Attributes:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>text_encoder</code></b>
+              –
+              <div class="doc-md-description">
+                <p>UMT5 text encoder for semantic text understanding (TODO: QEfficient optimization)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>vae_encoder</code></b>
+                  (<code><a class="autorefs autorefs-internal" title="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE">QEffVAE</a></code>)
+              –
+              <div class="doc-md-description">
+                <p>VAE encoder for converting input images to latent space</p>
+              </div>
+            </li>
+            <li>
+              <b><code>unified_wrapper</code></b>
+                  (<code><span title="QEfficient.diffusers.models.transformers.transformer_wan.QEffWanUnifiedWrapper">QEffWanUnifiedWrapper</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Wrapper combining transformer stages</p>
+              </div>
+            </li>
+            <li>
+              <b><code>transformer</code></b>
+                  (<code><a class="autorefs autorefs-internal" title="QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffWanUnifiedTransformer">QEffWanUnifiedTransformer</a></code>)
+              –
+              <div class="doc-md-description">
+                <p>Optimized unified transformer for denoising</p>
+              </div>
+            </li>
+            <li>
+              <b><code>vae_decoder</code></b>
+                  (<code><a class="autorefs autorefs-internal" title="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE">QEffVAE</a></code>)
+              –
+              <div class="doc-md-description">
+                <p>VAE decoder for latent-to-video conversion</p>
+              </div>
+            </li>
+            <li>
+              <b><code>modules</code></b>
+                  (<code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Dictionary of pipeline modules for batch operations</p>
+              </div>
+            </li>
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="diffusers.WanImageToVideoPipeline">WanImageToVideoPipeline</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Original HuggingFace WAN I2V model reference</p>
+              </div>
+            </li>
+            <li>
+              <b><code>tokenizer</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Text tokenizer for preprocessing</p>
+              </div>
+            </li>
+            <li>
+              <b><code>scheduler</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Diffusion scheduler for timestep management</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>from QEfficient.diffusers.pipelines.wan import QEffWanImageToVideoPipeline
+from PIL import Image</p>
+<h4 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline--load-pipeline-and-input-image">Load pipeline and input image<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline--load-pipeline-and-input-image" title="Permanent link">&para;</a></h4>
+<p>pipeline = QEffWanImageToVideoPipeline.from_pretrained("Wan-AI/Wan2.2-I2V-A14B-Diffusers")
+image = Image.open("input_frame.jpg")</p>
+<h4 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline--generate-video-with-motion">Generate video with motion<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline--generate-video-with-motion" title="Permanent link">&para;</a></h4>
+<p>result = pipeline(
+...     image=image,
+...     prompt="A person walking through a sunny garden with flowing motion",
+...     height=544,
+...     width=720,
+...     num_frames=81,
+...     num_inference_steps=4,
+...     guidance_scale=1.0
+... )</p>
+<h4 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline--save-generated-video">Save generated video<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline--save-generated-video" title="Permanent link">&para;</a></h4>
+<p>frames = result.images[0]
+export_to_video(frames, "generated_video.mp4", fps=16)</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+        <p>Initialize the QEfficient WAN image-to-video pipeline.</p>
+<p>This pipeline provides an optimized implementation of the WAN image-to-video model
+for deployment on Qualcomm AI hardware. It wraps the original HuggingFace WAN I2V model
+components with QEfficient-optimized versions that can be exported to ONNX and compiled
+for QAIC devices.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="diffusers.WanImageToVideoPipeline">WanImageToVideoPipeline</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Pre-loaded WanImageToVideoPipeline model with
+transformer, transformer_2, VAE, and text encoder components</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional keyword arguments including configuration parameters</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load a pretrained WAN image-to-video model from HuggingFace Hub or local path and wrap it with QEfficient optimizations.</p>
+<p>This class method provides a convenient way to instantiate a QEffWanImageToVideoPipeline from a pretrained
+WAN I2V model. It automatically loads the base WanImageToVideoPipeline model in float32 precision on CPU
+and wraps all components with QEfficient-optimized versions for QAIC deployment.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>pretrained_model_name_or_path</code></b>
+                  (<code><span title="str">str</span> or <span title="os.PathLike">PathLike</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Either a HuggingFace model identifier
+or a local path to a saved WAN I2V model directory. Should contain transformer, transformer_2,
+text_encoder, and VAE components optimized for image-to-video generation.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional keyword arguments passed to WanImageToVideoPipeline.from_pretrained().</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>QEffWanImageToVideoPipeline</code></b>              –
+              <div class="doc-md-description">
+                <p>A fully initialized I2V pipeline instance with QEfficient-optimized components
+ready for export, compilation, and inference on QAIC devices.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="ValueError">ValueError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If the model path is invalid or model cannot be loaded</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="OSError">OSError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If there are issues accessing the model files</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If model initialization fails</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained--load-from-huggingface-hub">Load from HuggingFace Hub<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained--load-from-huggingface-hub" title="Permanent link">&para;</a></h5>
+<p>pipeline = QEffWanImageToVideoPipeline.from_pretrained("Wan-AI/Wan2.2-I2V-A14B-Diffusers")</p>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained--load-from-local-path">Load from local path<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained--load-from-local-path" title="Permanent link">&para;</a></h5>
+<p>pipeline = QEffWanImageToVideoPipeline.from_pretrained("/local/path/to/wan/i2v")</p>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained--load-with-custom-cache-directory">Load with custom cache directory<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.from_pretrained--load-with-custom-cache-directory" title="Permanent link">&para;</a></h5>
+<p>pipeline = QEffWanImageToVideoPipeline.from_pretrained(
+...     "Wan-AI/Wan2.2-I2V-A14B-Diffusers",
+...     cache_dir="/custom/cache/dir"
+... )</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">compile_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_HEIGHT_45P</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_WIDTH_45P</span><span class="p">,</span> <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">WAN_ONNX_EXPORT_FRAMES</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compiles the ONNX graphs of the different model components for deployment on Qualcomm AI hardware.</p>
+<p>This method takes the ONNX paths of the transformer and compiles them into an optimized format
+for inference using JSON-based configuration.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>compile_config</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Path to a JSON configuration file containing
+compilation settings, device mappings, and optimization parameters. If None,
+uses the default configuration.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>parallel</code></b>
+                  (<code>bool, default=False</code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Compilation mode selection:
+- True: Compile modules in parallel using ThreadPoolExecutor for faster processing
+- False: Compile modules sequentially for lower resource usage</p>
+              </div>
+            </li>
+            <li>
+              <b><code>height</code></b>
+                  (<code>int, default=192</code>, default:
+                      <code><span title="QEfficient.utils.constants.WAN_ONNX_EXPORT_HEIGHT_45P">WAN_ONNX_EXPORT_HEIGHT_45P</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Target image height in pixels.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>width</code></b>
+                  (<code>int, default=320</code>, default:
+                      <code><span title="QEfficient.utils.constants.WAN_ONNX_EXPORT_WIDTH_45P">WAN_ONNX_EXPORT_WIDTH_45P</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Target image width in pixels.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>num_frames</code></b>
+                  (<code>int, default=81</code>, default:
+                      <code><span title="QEfficient.utils.constants.WAN_ONNX_EXPORT_FRAMES">WAN_ONNX_EXPORT_FRAMES</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Target number of frames in pixel space</p>
+              </div>
+            </li>
+            <li>
+              <b><code>use_onnx_subfunctions</code></b>
+                  (<code>bool, default=False</code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Whether to export models with ONNX
+subfunctions before compilation if not already exported.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If compilation fails for any module or if QAIC compiler is not available</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="FileNotFoundError">FileNotFoundError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If ONNX models haven't been exported or config file is missing</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="ValueError">ValueError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If configuration parameters are invalid</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="OSError">OSError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If there are issues with file I/O during compilation</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>pipeline = QEffWanImageToVideoPipeline.from_pretrained("Wan-AI/Wan2.2-I2V-A14B-Diffusers")</p>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.compile--sequential-compilation-with-default-config">Sequential compilation with default config<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.compile--sequential-compilation-with-default-config" title="Permanent link">&para;</a></h5>
+<p>pipeline.compile(height=480, width=832, num_frames=81)</p>
+<h5 id="QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.compile--parallel-compilation-with-custom-config">Parallel compilation with custom config<a class="headerlink" href="#QEfficient.diffusers.pipelines.wan.pipeline_wan_i2v.QEffWanImageToVideoPipeline.compile--parallel-compilation-with-custom-config" title="Permanent link">&para;</a></h5>
+<p>pipeline.compile(
+...     compile_config="/path/to/custom_config.json",
+...     parallel=True,
+...     height=480,
+...     width=832,
+...     num_frames=81
+... )</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h3 id="QEffFluxPipeline"><code>QEffFluxPipeline</code><a class="headerlink" href="#QEffFluxPipeline" title="Permanent link">&para;</a></h3>
+<p>FLUX supports optional first-block-cache via runtime monkey patching:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">QEfficient</span><span class="w"> </span><span class="kn">import</span> <span class="n">QEffFluxPipeline</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">QEffFluxPipeline</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="s2">&quot;black-forest-labs/FLUX.1-schnell&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">enable_first_block_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">first_block_cache_downsample_factor</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">output</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;A laughing girl&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">cache_threshold</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">)</span>
+</code></pre></div>
+<p>When <code>enable_first_block_cache=False</code>, the pipeline follows baseline behavior and ignores <code>cache_threshold</code>.</p>
+<p>See examples:</p>
+<ul>
+<li><code>examples/diffusers/flux/flux_1_schnell.py</code></li>
+<li><code>examples/diffusers/flux/flux_1_shnell_custom.py</code></li>
+<li><code>examples/diffusers/flux/flux_1_schnell_first_block_cache.py</code></li>
+</ul>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffFluxPipeline</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">enable_first_block_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">first_block_cache_downsample_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>QEfficient-optimized Flux pipeline for high-performance text-to-image generation on Qualcomm AI hardware.</p>
+<p>This pipeline provides an optimized implementation of the Flux diffusion model specifically designed
+for deployment on Qualcomm AI Cloud (QAIC) devices. It wraps the original HuggingFace Flux model
+components with QEfficient-optimized versions that can be exported to ONNX format and compiled
+into Qualcomm Program Container (QPC) files for efficient inference.</p>
+<p>The pipeline supports the complete Flux workflow including:
+- Dual text encoding with CLIP and T5 encoders
+- Transformer-based denoising with adaptive layer normalization
+- VAE decoding for final image generation
+- Performance monitoring and optimization</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Attributes:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>text_encoder</code></b>
+                  (<code><a class="autorefs autorefs-internal" title="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder">QEffTextEncoder</a></code>)
+              –
+              <div class="doc-md-description">
+                <p>Optimized CLIP text encoder for pooled embeddings</p>
+              </div>
+            </li>
+            <li>
+              <b><code>text_encoder_2</code></b>
+                  (<code><a class="autorefs autorefs-internal" title="QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffTextEncoder">QEffTextEncoder</a></code>)
+              –
+              <div class="doc-md-description">
+                <p>Optimized T5 text encoder for sequence embeddings</p>
+              </div>
+            </li>
+            <li>
+              <b><code>transformer</code></b>
+                  (<code><a class="autorefs autorefs-internal" title="QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffFluxTransformerModel">QEffFluxTransformerModel</a></code>)
+              –
+              <div class="doc-md-description">
+                <p>Optimized Flux transformer for denoising</p>
+              </div>
+            </li>
+            <li>
+              <b><code>vae_decode</code></b>
+                  (<code><a class="autorefs autorefs-internal" title="QEfficient.diffusers.pipelines.pipeline_module.QEffVAE" href="#QEfficient.diffusers.pipelines.pipeline_module.QEffVAE">QEffVAE</a></code>)
+              –
+              <div class="doc-md-description">
+                <p>Optimized VAE decoder for latent-to-image conversion</p>
+              </div>
+            </li>
+            <li>
+              <b><code>modules</code></b>
+                  (<code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="Any">Any</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>Dictionary of all pipeline modules for batch operations</p>
+              </div>
+            </li>
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="diffusers.FluxPipeline">FluxPipeline</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Original HuggingFace Flux model reference</p>
+              </div>
+            </li>
+            <li>
+              <b><code>tokenizer</code></b>
+              –
+              <div class="doc-md-description">
+                <p>CLIP tokenizer for text preprocessing</p>
+              </div>
+            </li>
+            <li>
+              <b><code>scheduler</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Diffusion scheduler for timestep management</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>from QEfficient.diffusers.pipelines.flux import QEffFluxPipeline
+pipeline = QEffFluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell")
+images = pipeline(
+...     prompt="A beautiful sunset over mountains",
+...     height=512,
+...     width=512,
+...     num_inference_steps=28
+... )
+images.images[0].save("generated_image.png")</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+        <p>Initialize the QEfficient Flux pipeline.</p>
+<p>This pipeline provides an optimized implementation of the Flux text-to-image model
+for deployment on Qualcomm AI hardware. It wraps the original HuggingFace Flux model
+components with QEfficient-optimized versions that can be exported to ONNX and compiled
+for QAIC devices.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Pre-loaded FluxPipeline model</p>
+              </div>
+            </li>
+            <li>
+              <b><code>enable_first_block_cache</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Enable retained-state first-block-cache path.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>first_block_cache_downsample_factor</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>4</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Downsample factor for the first-block
+residual cache key. Used only when first-block-cache is enabled.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional arguments including height and width</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">]],</span> <span class="n">enable_first_block_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">first_block_cache_downsample_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load a pretrained Flux model from HuggingFace Hub or local path and wrap it with QEfficient optimizations.</p>
+<p>This class method provides a convenient way to instantiate a QEffFluxPipeline from a pretrained
+Flux model. It automatically loads the base FluxPipeline model in float32 precision on CPU
+and wraps all components with QEfficient-optimized versions for QAIC deployment.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>pretrained_model_name_or_path</code></b>
+                  (<code><span title="str">str</span> or <span title="os.PathLike">PathLike</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Either a HuggingFace model identifier
+(e.g., "black-forest-labs/FLUX.1-schnell") or a local path to a saved model directory.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>enable_first_block_cache</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Enables retained-state first-block-cache path.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>first_block_cache_downsample_factor</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>4</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Downsample factor for the first-block
+residual cache key when cache is enabled.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional keyword arguments passed to FluxPipeline.from_pretrained().</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>QEffFluxPipeline</code></b>              –
+              <div class="doc-md-description">
+                <p>A fully initialized pipeline instance with QEfficient-optimized components
+ready for export, compilation, and inference on QAIC devices.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="ValueError">ValueError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If the model path is invalid or model cannot be loaded</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="OSError">OSError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If there are issues accessing the model files</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If model initialization fails</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<h5 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained--load-from-huggingface-hub">Load from HuggingFace Hub<a class="headerlink" href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained--load-from-huggingface-hub" title="Permanent link">&para;</a></h5>
+<p>pipeline = QEffFluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell")</p>
+<h5 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained--load-from-local-path">Load from local path<a class="headerlink" href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained--load-from-local-path" title="Permanent link">&para;</a></h5>
+<p>pipeline = QEffFluxPipeline.from_pretrained("/path/to/local/flux/model")</p>
+<h5 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained--load-with-custom-cache-directory">Load with custom cache directory<a class="headerlink" href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.from_pretrained--load-with-custom-cache-directory" title="Permanent link">&para;</a></h5>
+<p>pipeline = QEffFluxPipeline.from_pretrained(
+...     "black-forest-labs/FLUX.1-dev",
+...     cache_dir="/custom/cache/dir"
+... )</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">compile_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile ONNX models into optimized QPC format for deployment on Qualcomm AI hardware.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>compile_config</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Path to a JSON configuration file containing
+compilation settings, device mappings, and optimization parameters. If None,
+uses the default configuration from get_default_config_path().</p>
+              </div>
+            </li>
+            <li>
+              <b><code>parallel</code></b>
+                  (<code>bool, default=False</code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Compilation mode selection:
+- True: Compile modules in parallel using ThreadPoolExecutor for faster processing
+- False: Compile modules sequentially for lower resource usage</p>
+              </div>
+            </li>
+            <li>
+              <b><code>height</code></b>
+                  (<code>int, default=512</code>, default:
+                      <code>512</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Target image height in pixels.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>width</code></b>
+                  (<code>int, default=512</code>, default:
+                      <code>512</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Target image width in pixels.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>use_onnx_subfunctions</code></b>
+                  (<code>bool, default=False</code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Whether to export models with ONNX
+subfunctions before compilation.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If compilation fails for any module or if QAIC compiler is not available</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="FileNotFoundError">FileNotFoundError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If ONNX models haven't been exported or config file is missing</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="ValueError">ValueError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If configuration parameters are invalid</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="OSError">OSError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If there are issues with file I/O during compilation</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>pipeline = QEffFluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell")</p>
+<h5 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.compile--sequential-compilation-with-default-config">Sequential compilation with default config<a class="headerlink" href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.compile--sequential-compilation-with-default-config" title="Permanent link">&para;</a></h5>
+<p>pipeline.compile(height=1024, width=1024)</p>
+<h5 id="QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.compile--parallel-compilation-with-custom-config">Parallel compilation with custom config<a class="headerlink" href="#QEfficient.diffusers.pipelines.flux.pipeline_flux.QEffFluxPipeline.compile--parallel-compilation-with-custom-config" title="Permanent link">&para;</a></h5>
+<p>pipeline.compile(
+...     compile_config="/path/to/custom_config.json",
+...     parallel=True,
+...     height=512,
+...     width=512
+... )</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/quic/efficient-transformers" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../qeff_autoclasses/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../cli_api/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../_static/cleanup_docstrings.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

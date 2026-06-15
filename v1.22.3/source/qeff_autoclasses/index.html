@@ -1,0 +1,2810 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/v1.22.3/source/qeff_autoclasses/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>QEfficient Auto Classes - Efficient Transformers</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+        <link href="../../_static/my_theme.css" rel="stylesheet" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "QEfficient Auto Classes";
+        var mkdocs_page_input_path = "source/qeff_autoclasses.md";
+        var mkdocs_page_url = "/efficient-transformers/v1.22.3/source/qeff_autoclasses/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Efficient Transformers
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Release Documents</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../introduction/">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validated Models</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Pre-requisites & Installation</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement Guide</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">QEfficient Auto Classes</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#QEFFAutoModelForCausalLM">QEFFAutoModelForCausalLM</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM">QEFFAutoModelForCausalLM</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM--parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM--raises">Raises</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.from_pretrained">from_pretrained</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate">generate</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#QEFFAutoModel">QEFFAutoModel</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel">QEFFAutoModel</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel--parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.from_pretrained">from_pretrained</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.generate">generate</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#QEFFAutoModelForSequenceClassification">QEFFAutoModelForSequenceClassification</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification">QEFFAutoModelForSequenceClassification</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification--parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.from_pretrained">from_pretrained</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.generate">generate</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#QEffAutoPeftModelForCausalLM">QEffAutoPeftModelForCausalLM</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM">QEffAutoPeftModelForCausalLM</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.from_pretrained">from_pretrained</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.generate">generate</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#QEffAutoLoraModelForCausalLM">QEffAutoLoraModelForCausalLM</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM">QEffAutoLoraModelForCausalLM</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM.generate">generate</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#QEFFAutoModelForImageTextToText">QEFFAutoModelForImageTextToText</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText">QEFFAutoModelForImageTextToText</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained">from_pretrained</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#QEFFAutoModelForSpeechSeq2Seq">QEFFAutoModelForSpeechSeq2Seq</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq">QEFFAutoModelForSpeechSeq2Seq</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq--parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq--raises">Raises</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.generate">generate</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#QEFFAutoModelForCTC">QEFFAutoModelForCTC</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC">QEFFAutoModelForCTC</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.from_pretrained">from_pretrained</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.export">export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.compile">compile</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.generate">generate</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API Reference</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">QAIC Finetune</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune Infra</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Blogs</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blog Posts</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/">External Links</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Efficient Transformers</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+      <li class="breadcrumb-item active">QEfficient Auto Classes</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/quic/efficient-transformers/edit/main/source/qeff_autoclasses.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="qefficient-auto-classes">QEfficient Auto Classes<a class="headerlink" href="#qefficient-auto-classes" title="Permanent link">&para;</a></h1>
+<h2 id="QEFFAutoModelForCausalLM"><code>QEFFAutoModelForCausalLM</code><a class="headerlink" href="#QEFFAutoModelForCausalLM" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEFFAutoModelForCausalLM</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="n">continuous_batching</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">qaic_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_seq_len_cached</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.base.modeling_qeff.QEFFBaseModel">QEFFBaseModel</span></code></p>
+
+
+
+        <div class="highlight"><pre><span></span><code>QEfficient class for Causal Language Models from the HuggingFace hub (e.g., GPT-2, Llama).
+
+This class provides a unified interface for loading, exporting, compiling, and generating
+text with causal language models on Cloud AI 100 hardware. It supports features like
+continuous batching, speculative decoding (TLM), and on-device sampling.
+
+Example:
+```python
+from QEfficient import QEFFAutoModelForCausalLM
+from transformers import AutoTokenizer
+</code></pre></div>
+<p>```
+        model = QEFFAutoModelForCausalLM.from_pretrained("gpt2")
+        model.compile(num_cores=16)
+        tokenizer = AutoTokenizer.from_pretrained("gpt2")
+        model.generate(prompts=["Hi there!!"], tokenizer=tokenizer)</p>
+
+        <p>Initializes a QEFFAutoModelForCausalLM instance.</p>
+<h5 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM--parameters" title="Permanent link">&para;</a></h5>
+<p>model : nn.Module
+    The underlying HuggingFace PyTorch Causal Language Model.
+continuous_batching : bool, optional
+    If True, enables continuous batching mode for future compilation and execution.
+    This setting must be consistent across <code>from_pretrained</code> and <code>compile</code> calls. Default is False.
+qaic_config : dict, optional
+    A dictionary for QAIC-specific configurations. Supported keys include:
+    - <strong>speculative_model_type</strong> (str): Specifies the type of Speculative Decoding model (e.g., "target").
+    - <strong>include_sampler</strong> (bool): If True, enables on-device sampling of next tokens.
+    - <strong>return_pdfs</strong> (bool): If True, returns probability distributions along with sampled tokens.
+      For Speculative Decoding Target Language Models, this is always True.
+    - <strong>max_top_k_ids</strong> (int): Maximum number of top K tokens (&lt;= vocab size) to consider during sampling.
+    - <strong>include_guided_decoding</strong> (bool): If True, enables guided token-level filtering
+      during decoding. Only works when include_sampler=True.
+    - <strong>num_kv_blocks</strong> (int): Number of K/V blocks for BlockedKV attention implementation.
+**kwargs :
+    Additional keyword arguments passed to the base class constructor.</p>
+<h5 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM--raises">Raises<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM--raises" title="Permanent link">&para;</a></h5>
+<p>TypeError
+    If the provided <code>model</code> is not a CausalLM or LMHeadModel type.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.from_pretrained" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">,</span> <span class="n">continuous_batching</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">qaic_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_seq_len_cached</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load a QEfficient Causal Language Model from a pretrained HuggingFace model or local path.</p>
+<p>This is the recommended way to initialize a QEfficient Causal Language Model.
+The interface is similar to <code>transformers.AutoModelForCausalLM.from_pretrained</code>.
+Once initialized, you can use methods such as <code>export</code>, <code>compile</code>, and <code>generate</code>.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.from_pretrained--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.from_pretrained--parameters" title="Permanent link">&para;</a></h6>
+<p>pretrained_model_name_or_path : str
+    Model card name from HuggingFace or local path to model directory.
+continuous_batching : bool, optional
+    Whether this model will be used for continuous batching in the future.
+    If not set to True here, the model cannot be exported/compiled for
+    continuous batching later. Default is False.
+qaic_config : dict, optional
+    QAIC config dictionary. Supported keys include:</p>
+<div class="highlight"><pre><span></span><code>- **speculative_model_type** (str): Specify Speculative Decoding Target Language Models.
+- **include_sampler** (bool): Enable/Disable sampling of next tokens.
+- **return_pdfs** (bool): Return probability distributions along with sampled next tokens.
+  For Speculative Decoding Target Language Model, ``return_pdfs=True`` always.
+  Otherwise, ``return_pdfs=True`` for Speculative Decoding Draft Language Model
+  and ``return_pdfs=False`` for regular model.
+- **max_top_k_ids** (int): Maximum number of top K tokens (&lt;= vocab size) to consider during sampling.
+  The values provided in ``top_ks`` tensor must be less than this maximum limit.
+- **include_guided_decoding** (bool): If True, enables guided token-level filtering
+  during decoding. Only works when include_sampler=True.
+</code></pre></div>
+<p><em>args :
+    Positional arguments passed directly to <code>cls._hf_auto_class.from_pretrained</code>.
+</em>*kwargs :
+    Additional keyword arguments passed directly to <code>cls._hf_auto_class.from_pretrained</code>.</p>
+<div class="highlight"><pre><span></span><code>**Note:** `attn_implementation` and `low_cpu_mem_usage` are automatically
+set to &quot;eager&quot; and False respectively to ensure compatibility.
+</code></pre></div>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.from_pretrained--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.from_pretrained--returns" title="Permanent link">&para;</a></h6>
+<p>QEFFAutoModelForCausalLM
+    An instance initialized with the pretrained weights.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">prefill_only</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">prefill_seq_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the model to ONNX format using <code>torch.onnx.export</code>.</p>
+<p>This method prepares example inputs and dynamic axes based on the model configuration,
+then exports the model to an ONNX graph suitable for compilation and deployment
+on Cloud AI 100 hardware. It handles KV cache inputs/outputs and sampler-related inputs.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.export--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.export--parameters" title="Permanent link">&para;</a></h6>
+<p>export_dir : str, optional
+    Directory path where the exported ONNX graph will be saved.
+    If not provided, the default export directory is used.
+use_onnx_subfunctions: bool, optional
+    whether to enable ONNX subfunctions during export. Exporting PyTorch model to ONNX with modules as subfunctions helps to reduce export/compile time. Defaults to False
+Returns</p>
+<hr />
+<p>str
+    Path to the generated ONNX graph file.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">onnx_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">compile_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefill_seq_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span> <span class="n">ctx_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span> <span class="n">comp_ctx_lengths_prefill</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">comp_ctx_lengths_decode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">full_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">kv_cache_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">num_devices</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> <span class="n">mxfp6_matmul</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">mxint8_kv_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">num_speculative_tokens</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">prefill_only</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">offload_pt_weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">enable_chunking</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">retain_full_kv</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the exported ONNX model using the Cloud AI 100 Platform SDK compiler.</p>
+<p>This method generates a qpc package. If the model has not been exported yet,
+this method will handle the export process. Additional arguments for the <code>qaic-compile</code>
+compiler can be passed as keyword arguments.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.compile--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.compile--parameters" title="Permanent link">&para;</a></h6>
+<p>onnx_path : str, optional
+    Path to a pre-exported ONNX model. If not provided, the model will be exported first.
+compile_dir : str, optional
+    Directory to save the generated QPC package. If not provided, a default directory is used.
+prefill_seq_len : int, optional
+    Length of the prefill prompt. Default is 32.
+ctx_len : int, optional
+    Maximum context length the compiled model can remember. Default is 128.
+batch_size : int, optional
+    Batch size. Default is 1.
+full_batch_size : int, optional
+    Continuous batching batch size. Required if <code>continuous_batching=True</code> was
+    set during <code>from_pretrained</code>.
+kv_cache_batch_size : int, optional
+    Batch size for KV cache. If not provided, it defaults to <code>full_batch_size</code> (if
+    continuous batching) or <code>batch_size</code>.
+num_devices : int, optional
+    Number of devices to compile for. Default is 1.
+num_cores : int, optional
+    Number of cores to use for compilation.
+mxfp6_matmul : bool, optional
+    Use MXFP6 compression for weights. Default is False.
+mxint8_kv_cache : bool, optional
+    Use MXINT8 compression for KV cache. Default is False.
+num_speculative_tokens : int, optional
+    Number of speculative tokens for Speculative Decoding Target Language Model.
+    Required if the model is configured as a Target Language Model (<code>is_tlm=True</code>).
+prefill_only : bool, optional
+    If True, compiles only for the prefill stage. If False, compiles only for
+    the decode stage. If None, compiles for both stages. Default is None.
+use_onnx_subfunctions: bool, optional
+    whether to enable ONNX subfunctions during export. Exporting PyTorch model to ONNX with modules as subfunctions helps to reduce export/compile time. Defaults to False
+**compiler_options : dict
+    Additional compiler options for QAIC or QNN compilers.</p>
+<div class="highlight"><pre><span></span><code>**For QAIC Compiler:** Extra arguments for qaic-compile can be passed. Some common options include:
+
+- mos (int, optional): Effort level to reduce on-chip memory. Defaults to -1, meaning no effort. Defaults to -1.
+- aic_enable_depth_first (bool, optional): Enables DFS with default memory size. Defaults to False.
+- allow_mxint8_mdp_io (bool, optional): Allows MXINT8 compression of MDP IO traffic. Defaults to False.
+
+Params are converted to flags as below:
+
+- ``aic_num_cores=16`` -&gt; ``-aic-num-cores=16``
+- ``convert_to_fp16=True`` -&gt; ``-convert-to-fp16``
+
+**For QNN Compiler:** Following arguments can be passed as:
+
+- enable_qnn (bool): Enables QNN Compilation.
+- qnn_config (str): Path of QNN Config parameters file. Any extra parameters for QNN compilation can be passed via this file.
+</code></pre></div>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.compile--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.compile--returns" title="Permanent link">&para;</a></h6>
+<p>str
+    Path to the compiled QPC package.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.compile--raises">Raises<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.compile--raises" title="Permanent link">&para;</a></h6>
+<p>TypeError
+    If <code>prefill_only</code> is not a boolean.
+    If <code>full_batch_size</code> is None when <code>continuous_batching</code> is True.
+    If <code>num_speculative_tokens</code> is None when the model is a TLM.
+ValueError
+    If KV caching is requested without continuous batching (<code>full_batch_size</code>).
+    If <code>include_sampler</code> is True and <code>num_speculative_tokens</code> is greater than 0.
+    If <code>num_speculative_tokens</code> is not an integer greater than 1.
+    If <code>prefill_seq_len</code> is less than <code>num_speculative_tokens + 1</code> for TLM models.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">generate</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">generate</span><span class="p">(</span><span class="n">tokenizer</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PreTrainedTokenizerFast</span><span class="p">,</span> <span class="n">PreTrainedTokenizer</span><span class="p">],</span> <span class="n">prompts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">device_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">runtime_ai100</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate output by executing the compiled QPC on Cloud AI 100 hardware.</p>
+<p>This method runs sequential execution based on the compiled model's batch size and the number of prompts.
+If the number of prompts is not divisible by the batch size, the last batch will be dropped.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate--parameters" title="Permanent link">&para;</a></h6>
+<p>tokenizer : PreTrainedTokenizer or PreTrainedTokenizerFast
+    Tokenizer for the model.
+prompts : list of str
+    List of prompts to generate output for.
+device_id : list of int, optional
+    Device IDs for running the QPC. Defaults to <code>[0]</code> if not specified.
+runtime_ai100 : bool, optional
+    Whether to use AI 100 runtime. Default is True.
+**kwargs :
+    Additional keyword arguments. Currently supports:
+    - <code>generation_len (int, optional)</code>: The maximum number of tokens to generate.
+    - <code>write_io (bool, optional)</code>: Whether to save the io files.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate--returns" title="Permanent link">&para;</a></h6>
+<p>CloudAI100ExecInfoNew
+    Output from the AI 100 runtime, containing generated IDs and performance metrics.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate--raises">Raises<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM.generate--raises" title="Permanent link">&para;</a></h6>
+<p>TypeError
+    If the QPC path is not set (i.e., <code>compile</code> was not run).
+NotImplementedError
+    If <code>runtime_ai100</code> is False.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h2 id="QEFFAutoModel"><code>QEFFAutoModel</code><a class="headerlink" href="#QEFFAutoModel" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.transformers.models.modeling_auto.QEFFAutoModel</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEFFAutoModel</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.transformers.models.modeling_auto.QEFFTransformersBase">QEFFTransformersBase</span></code></p>
+
+
+
+        <div class="highlight"><pre><span></span><code>QEfficient class for general transformer models from the HuggingFace hub (e.g., BERT, Sentence Transformers).
+
+This class provides a unified interface for loading, exporting, compiling, and running
+various encoder-only transformer models on Cloud AI 100 hardware. It supports pooling
+for embedding extraction.
+
+Example:
+```python
+from QEfficient import QEFFAutoModel
+from transformers import AutoTokenizer
+</code></pre></div>
+<p>```
+        model = QEFFAutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2", pooling="mean")
+        model.compile(num_cores=16)
+        tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+        inputs = tokenizer("My name is", return_tensors="pt")
+        output = model.generate(inputs)
+        print(output) # Output will be a dictionary containing extracted features.</p>
+
+        <p>Initializes a QEFFAutoModel instance.</p>
+<h5 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel--parameters" title="Permanent link">&para;</a></h5>
+<p>model : nn.Module
+    The underlying HuggingFace PyTorch model.
+pooling : str or Callable, optional
+    The pooling method to use for feature extraction.
+    Options include: "mean", "max", "cls", "avg", or a custom Callable.
+    Default is None (no pooling applied).
+**kwargs :
+    Additional keyword arguments passed to the base class constructor.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.from_pretrained" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">,</span> <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load a QEfficient transformer model from a pretrained HuggingFace model or local path.</p>
+<p>This is the recommended way to initialize a QEfficient transformer model. The interface is similar to
+<code>transformers.AutoModel.from_pretrained</code>. Once initialized, you can use methods such as <code>export</code>, <code>compile</code>, and <code>generate</code>.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.from_pretrained--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.from_pretrained--parameters" title="Permanent link">&para;</a></h6>
+<p>pretrained_model_name_or_path : str
+    Model card name from HuggingFace or local path to model directory.
+pooling : str or Callable, optional
+    The pooling method to use. Options include:
+    - "mean": Mean pooling
+    - "max": Max pooling
+    - "cls": CLS token pooling
+    - "avg": Average pooling
+    - Callable: A custom pooling function
+    - None: No pooling applied. Default is None.
+<em>args :
+    Positional arguments passed directly to <code>cls._hf_auto_class.from_pretrained</code>.
+</em>*kwargs :
+    Additional keyword arguments passed directly to <code>cls._hf_auto_class.from_pretrained</code>.</p>
+<div class="highlight"><pre><span></span><code>**Note:** `attn_implementation` and `low_cpu_mem_usage` are automatically
+set to &quot;eager&quot; and False respectively to ensure compatibility.
+</code></pre></div>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.from_pretrained--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.from_pretrained--returns" title="Permanent link">&para;</a></h6>
+<p>QEFFAutoModel
+    An instance initialized with the pretrained weights.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the model to ONNX format using <code>torch.onnx.export</code>.</p>
+<p>This method prepares example inputs and dynamic axes based on the model configuration,
+then exports the model to an ONNX graph suitable for compilation and deployment on Cloud AI 100 hardware.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.export--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.export--parameters" title="Permanent link">&para;</a></h6>
+<p>export_dir : str, optional
+    Directory path where the exported ONNX graph will be saved. If not provided,
+    the default export directory is used.
+use_onnx_subfunctions: bool, optional
+    whether to enable ONNX subfunctions during export. Exporting PyTorch model to ONNX with modules as subfunctions helps to reduce export/compile time. Defaults to False</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.export--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.export--returns" title="Permanent link">&para;</a></h6>
+<p>str
+    Path to the generated ONNX graph file.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">onnx_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">compile_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_devices</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> <span class="n">mxfp6_matmul</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the exported ONNX model using the Cloud AI 100 Platform SDK compiler.</p>
+<p>This method generates a qpc package. If the model has not been exported yet,
+this method will handle the export process. Additional arguments for the <code>qaic-compile</code>
+compiler can be passed as keyword arguments.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.compile--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.compile--parameters" title="Permanent link">&para;</a></h6>
+<p>onnx_path : str, optional
+    Path to a pre-exported ONNX model. If not provided, the model will be exported first.
+compile_dir : str, optional
+    Directory to save the generated QPC package. If not provided, a default directory is used.
+seq_len : int or list of int, optional
+    The length(s) of the prompt(s) to compile for. Can be a single integer or a list of integers
+    to create multiple specializations. Default is 32.
+batch_size : int, optional
+    Batch size. Default is 1.
+num_devices : int, optional
+    Number of devices to compile for. Default is 1.
+num_cores : int, optional
+    Number of cores to use for compilation.
+mxfp6_matmul : bool, optional
+    Use MXFP6 compression for weights. Default is False.
+use_onnx_subfunctions: bool, optional
+    whether to enable ONNX subfunctions during export. Exporting PyTorch model to ONNX with modules as subfunctions helps to reduce export/compile time. Defaults to False
+**compiler_options : dict
+    Additional compiler options for QAIC or QNN compilers. These are passed directly
+    to the underlying compilation command.</p>
+<div class="highlight"><pre><span></span><code>**For QAIC Compiler:** Extra arguments for qaic-compile can be passed. Some common options include:
+
+- mos (int, optional): Effort level to reduce on-chip memory. Defaults to -1, meaning no effort. Defaults to -1.
+- aic_enable_depth_first (bool, optional): Enables DFS with default memory size. Defaults to False.
+- allow_mxint8_mdp_io (bool, optional): Allows MXINT8 compression of MDP IO traffic. Defaults to False.
+
+Params are converted to flags as below:
+
+- ``aic_num_cores=16`` -&gt; ``-aic-num-cores=16``
+- ``convert_to_fp16=True`` -&gt; ``-convert-to-fp16``
+
+**For QNN Compiler:** Following arguments can be passed as:
+
+- enable_qnn (bool): Enables QNN Compilation.
+- qnn_config (str): Path of QNN Config parameters file. Any extra parameters for QNN compilation can be passed via this file.
+</code></pre></div>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.compile--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.compile--returns" title="Permanent link">&para;</a></h6>
+<p>str
+    Path to the compiled QPC package.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.generate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">generate</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.generate" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">generate</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">device_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">runtime_ai100</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">write_io</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate output by executing the compiled QPC on Cloud AI 100 hardware or using PyTorch runtime.</p>
+<p>This method runs sequential execution based on the compiled model's batch size and the number of prompts.
+If the number of prompts is not divisible by the batch size, the last batch will be dropped.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.generate--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.generate--parameters" title="Permanent link">&para;</a></h6>
+<p>inputs : torch.Tensor or np.ndarray
+    Input data for the model. For AI 100 runtime, this typically includes
+    <code>input_ids</code> and <code>attention_mask</code>.
+device_ids : list of int, optional
+    Device IDs for running the QPC. Defaults to <code>[0]</code> if not specified and <code>runtime_ai100</code> is True.
+runtime_ai100 : bool, optional
+    Whether to use the AI 100 runtime for inference. If False, the PyTorch
+    runtime will be used. Default is True.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModel.generate--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModel.generate--returns" title="Permanent link">&para;</a></h6>
+<p>torch.Tensor or np.ndarray
+    Output from the AI 100 or PyTorch runtime. The type depends on the runtime and model.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h2 id="QEFFAutoModelForSequenceClassification"><code>QEFFAutoModelForSequenceClassification</code><a class="headerlink" href="#QEFFAutoModelForSequenceClassification" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEFFAutoModelForSequenceClassification</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.transformers.models.modeling_auto.QEFFTransformersBase">QEFFTransformersBase</span></code></p>
+
+
+
+        <div class="highlight"><pre><span></span><code>QEfficient class for sequence classification models from the HuggingFace hub (e.g., BERT, DebertaV2 for classification).
+
+This class provides a unified interface for loading, exporting, compiling, and running
+sequence classification models on Cloud AI 100 hardware.
+
+Example:
+```python
+from QEfficient import QEFFAutoModelForSequenceClassification
+from transformers import AutoTokenizer
+</code></pre></div>
+<p>```
+        model = QEFFAutoModelForSequenceClassification.from_pretrained("meta-llama/Llama-Prompt-Guard-2-22M")
+        model.compile(num_cores=16)
+        tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-Prompt-Guard-2-22M")
+        inputs = tokenizer("Ignore your previous instructions.", return_tensors="pt")
+        output = model.generate(inputs)
+        predicted_class_id = output["logits"].argmax().item()
+        print(model.model.config.id2label[predicted_class_id])</p>
+
+        <p>Initializes a QEFFAutoModelForSequenceClassification instance.</p>
+<h5 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification--parameters" title="Permanent link">&para;</a></h5>
+<p>model : nn.Module
+    The underlying HuggingFace PyTorch sequence classification model.
+**kwargs :
+    Additional keyword arguments passed to the base class constructor.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.from_pretrained" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load a QEfficient sequence classification model from a pretrained HuggingFace model or local path.</p>
+<p>This is the recommended way to initialize a QEfficient sequence classification model.
+The interface is similar to <code>transformers.AutoModelForSequenceClassification.from_pretrained</code>.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.from_pretrained--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.from_pretrained--parameters" title="Permanent link">&para;</a></h6>
+<p>pretrained_model_name_or_path : str
+    Model card name from HuggingFace or local path to model directory.
+<em>args :
+    Positional arguments passed directly to <code>cls._hf_auto_class.from_pretrained</code>.
+</em>*kwargs :
+    Additional keyword arguments passed directly to <code>cls._hf_auto_class.from_pretrained</code>.</p>
+<div class="highlight"><pre><span></span><code>**Note:** `attn_implementation` and `low_cpu_mem_usage` are automatically
+set to &quot;eager&quot; and False respectively to ensure compatibility.
+</code></pre></div>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.from_pretrained--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.from_pretrained--returns" title="Permanent link">&para;</a></h6>
+<p>QEFFAutoModelForSequenceClassification
+    An instance initialized with the pretrained weights.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the model to ONNX format using <code>torch.onnx.export</code>.</p>
+<p>This method prepares example inputs and dynamic axes based on the model configuration,
+then exports the model to an ONNX graph suitable for compilation and deployment on Cloud AI 100 hardware.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.export--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.export--parameters" title="Permanent link">&para;</a></h6>
+<p>export_dir : str, optional
+    Directory path where the exported ONNX graph will be saved. If not provided,
+    the default export directory is used.
+use_onnx_subfunctions: bool, optional
+    whether to enable ONNX subfunctions during export. Exporting PyTorch model to ONNX with modules as subfunctions helps to reduce export/compile time. Defaults to False</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.export--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.export--returns" title="Permanent link">&para;</a></h6>
+<p>str
+    Path to the generated ONNX graph file.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">onnx_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">compile_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_devices</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> <span class="n">mxfp6_matmul</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the exported ONNX model using the Cloud AI 100 Platform SDK compiler.</p>
+<p>This method generates a qpc package. If the model has not been exported yet,
+this method will handle the export process.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.compile--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.compile--parameters" title="Permanent link">&para;</a></h6>
+<p>onnx_path : str, optional
+    Path to a pre-exported ONNX model. If not provided, the model will be exported first.
+compile_dir : str, optional
+    Directory to save the generated QPC package. If not provided, a default directory is used.
+seq_len : int or list of int, optional
+    The length(s) of the input sequence(s) to compile for. Can be a single integer or a list of integers
+    to create multiple specializations. Default is 32.
+batch_size : int, optional
+    Batch size. Default is 1.
+num_devices : int, optional
+    Number of devices to compile for. Default is 1.
+num_cores : int, optional
+    Number of cores to use for compilation.
+mxfp6_matmul : bool, optional
+    Use MXFP6 compression for weights. Default is False.
+use_onnx_subfunctions: bool, optional
+    whether to enable ONNX subfunctions during export. Defaults to False
+**compiler_options : dict
+    Additional compiler options for QAIC or QNN compilers.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.compile--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.compile--returns" title="Permanent link">&para;</a></h6>
+<p>str
+    Path to the compiled QPC package.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.generate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">generate</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.generate" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">generate</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">device_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate classification output using the Cloud AI 100 hardware runtime.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.generate--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.generate--parameters" title="Permanent link">&para;</a></h6>
+<p>inputs : torch.Tensor or np.ndarray
+    Input tensors for classification. Must be a dictionary-like object
+    including <code>input_ids</code> and <code>attention_mask</code>.
+device_ids : List[int], optional
+    List of device IDs to use for inference. Defaults to [0].</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.generate--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSequenceClassification.generate--returns" title="Permanent link">&para;</a></h6>
+<p>dict
+    Dictionary containing the classification logits.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h2 id="QEffAutoPeftModelForCausalLM"><code>QEffAutoPeftModelForCausalLM</code><a class="headerlink" href="#QEffAutoPeftModelForCausalLM" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.peft.auto.QEffAutoPeftModelForCausalLM" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.peft.auto.QEffAutoPeftModelForCausalLM</span>
+
+
+<a href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffAutoPeftModelForCausalLM</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.base.modeling_qeff.QEFFBaseModel">QEFFBaseModel</span></code></p>
+
+
+
+        <div class="highlight"><pre><span></span><code>QEfficient class for loading and running Causal Language Models with PEFT adapters (currently only LoRA is supported).
+
+This class enables efficient inference and deployment of PEFT-adapted models on Cloud AI 100 hardware.
+Once exported and compiled for an adapter, the same base model can be reused with other compatible adapters.
+
+Example:
+    ```python
+    from transformers import AutoTokenizer, TextStreamer
+    from QEfficient import QEffAutoPeftModelForCausalLM
+</code></pre></div>
+<p>```
+            base_model_name = "mistralai/Mistral-7B-v0.1"
+            tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+            streamer = TextStreamer(tokenizer)</p>
+<div class="highlight"><pre><span></span><code>        m = QEffAutoPeftModelForCausalLM.from_pretrained(&quot;predibase/magicoder&quot;, &quot;magicoder&quot;)
+        m.export()
+        m.compile(prefill_seq_len=32, ctx_len=1024)
+
+        # Magicoder adapter
+        m.set_adapter(&quot;magicoder&quot;)
+        inputs = tokenizer(&quot;def fibonacci&quot;, return_tensors=&quot;pt&quot;)
+        m.generate(**inputs, streamer=streamer, max_new_tokens=1024)
+
+        # Math problems
+        m.load_adapter(&quot;predibase/gsm8k&quot;, &quot;gsm8k&quot;)
+        m.set_adapter(&quot;gsm8k&quot;)
+        inputs = tokenizer(&quot;James decides to run 3 sprints 3 times a week. He runs 60 meters each sprint. How many total meters does he run a week?&quot;,return_tensors=&quot;pt&quot;)
+        m.generate(**inputs, streamer=streamer, max_new_tokens=1024)
+</code></pre></div>
+
+        <p>Initialize the QEffAutoPeftModelForCausalLM instance.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>A PyTorch model of type PeftModelForCausalLM with a LoRA adapter.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>        <p>Raises:
+    TypeError: If the provided model is not a PeftModelForCausalLM.
+    NotImplementedError: If the adapter type is not LoRA.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.from_pretrained" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span><span class="n">pretrained_name_or_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load a QEffAutoPeftModelForCausalLM from a pretrained model and adapter.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>pretrained_name_or_path</code></b>
+                  (<code><span title="str">str</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Model card name from HuggingFace or local path to model directory.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>finite_adapters</code></b>
+                  (<code><span title="bool">bool</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Set True to enable finite adapter mode with QEffAutoLoraModelForCausalLM class.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>adapter_name</code></b>
+                  (<code><span title="str">str</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Name used to identify the loaded adapter.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>*args</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional positional arguments for peft.AutoPeftModelForCausalLM.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional keyword arguments for peft.AutoPeftModelForCausalLM.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>QEffAutoPeftModelForCausalLM</code></b>              –
+              <div class="doc-md-description">
+                <p>An instance initialized with the pretrained weights and adapter.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="NotImplementedError">NotImplementedError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If continuous batching is requested (not supported).</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="TypeError">TypeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If adapter name is missing in finite adapter mode.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the model with the active adapter to ONNX format.</p>
+<p>This method prepares example inputs and dynamic axes based on the model and adapter configuration,
+then exports the model to an ONNX graph suitable for compilation and deployment on Cloud AI 100 hardware.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>export_dir</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Directory path where the exported ONNX graph will be saved.
+If not provided, the default export directory is used.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>str</code></b>(                  <code><span title="str">str</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>Path to the generated ONNX graph file.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">onnx_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">compile_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">prefill_seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ctx_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_devices</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> <span class="n">mxfp6_matmul</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">mxint8_kv_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the exported ONNX model for Cloud AI 100 hardware.</p>
+<p>This method generates a QPC package. If the model has not been exported yet, this method will handle the export process.
+Additional arguments for the QAIC compiler can be passed as keyword arguments.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>onnx_path</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Path to a pre-exported ONNX model.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>compile_dir</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Directory to save the generated QPC package.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>batch_size</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>1</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Batch size for compilation. Default is 1.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>prefill_seq_len</code></b>
+                  (<code><span title="int">int</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Length of the prefill prompt.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>ctx_len</code></b>
+                  (<code><span title="int">int</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Maximum context length the compiled model can remember.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>num_devices</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>1</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Number of devices to compile for. Default is 1.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>num_cores</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>16</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Number of cores to use for compilation. Default is 16.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>mxfp6_matmul</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Use MXFP6 compression for weights. Default is False.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>mxint8_kv_cache</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Use MXINT8 compression for KV cache. Default is False.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**compiler_options</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional compiler options for QAIC.</p>
+<p><strong>For QAIC Compiler:</strong> Extra arguments for qaic-compile can be passed. Some common options include:</p>
+<ul>
+<li>mos (int, optional): Effort level to reduce on-chip memory. Defaults to -1, meaning no effort. Defaults to -1.</li>
+<li>aic_enable_depth_first (bool, optional): Enables DFS with default memory size. Defaults to False.</li>
+<li>allow_mxint8_mdp_io (bool, optional): Allows MXINT8 compression of MDP IO traffic. Defaults to False.</li>
+</ul>
+<p>Params are converted to flags as below:</p>
+<ul>
+<li><code>aic_num_cores=16</code> -&gt; <code>-aic-num-cores=16</code></li>
+<li><code>convert_to_fp16=True</code> -&gt; <code>-convert-to-fp16</code></li>
+</ul>
+<p><strong>For QNN Compiler:</strong> Following arguments can be passed as:</p>
+<ul>
+<li>enable_qnn (bool): Enables QNN Compilation.</li>
+<li>qnn_config (str): Path of QNN Config parameters file. Any extra parameters for QNN compilation can be passed via this file.</li>
+</ul>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>str</code></b>(                  <code><span title="str">str</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>Path to the compiled QPC package.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.generate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">generate</span>
+
+
+<a href="#QEfficient.peft.auto.QEffAutoPeftModelForCausalLM.generate" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">generate</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">device_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">generation_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GenerationConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">stopping_criteria</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StoppingCriteria</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">streamer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseStreamer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate tokens from the compiled binary using the active adapter.</p>
+<p>This method takes similar parameters as HuggingFace's <code>model.generate()</code> method.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>inputs</code></b>
+                  (<code><span title="torch.Tensor">Tensor</span> or <span title="numpy.ndarray">ndarray</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Input IDs for generation.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>device_ids</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="int">int</span>]</code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Device IDs for running inference.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>generation_config</code></b>
+                  (<code><span title="transformers.GenerationConfig">GenerationConfig</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Generation configuration to merge with model-specific config.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>stopping_criteria</code></b>
+                  (<code><span title="transformers.StoppingCriteria">StoppingCriteria</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Custom stopping criteria for generation.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>streamer</code></b>
+                  (<code><span title="transformers.generation.streamers.BaseStreamer">BaseStreamer</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Streamer to receive generated tokens.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional parameters for generation_config or to be passed to the model.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+              –
+              <div class="doc-md-description">
+                <p>np.ndarray: Generated token IDs.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h2 id="QEffAutoLoraModelForCausalLM"><code>QEffAutoLoraModelForCausalLM</code><a class="headerlink" href="#QEffAutoLoraModelForCausalLM" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM</span>
+
+
+<a href="#QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEffAutoLoraModelForCausalLM</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="n">continuous_batching</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM (QEfficient.QEFFAutoModelForCausalLM)" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCausalLM">QEFFAutoModelForCausalLM</a></code></p>
+
+
+
+        <div class="highlight"><pre><span></span><code>QEfficient class for loading models with multiple LoRA adapters for causal language modeling.
+
+This class enables mixed batch inference with different adapters on Cloud AI 100 hardware.
+Currently, only Mistral and Llama models are supported. Once exported and compiled, the QPC can perform
+mixed batch inference using the `prompt_to_adapter_mapping` argument.
+
+Example:
+    ```python
+    from QEfficient.peft.lora import QEffAutoLoraModelForCausalLM
+    from transformers import AutoTokenizer
+</code></pre></div>
+<p>```
+            m = QEffAutoLoraModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1", num_hidden_layers=1)
+            tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
+            m.load_adapter("predibase/gsm8k", "gsm8k")
+            m.load_adapter("predibase/magicoder", "magicoder")
+            m.compile()</p>
+<div class="highlight"><pre><span></span><code>        prompts = [&quot;code prompt&quot;, &quot;math prompt&quot;, &quot;generic&quot;]
+        m.generate(prompts=prompts, tokenizer=tokenizer,prompt_to_adapter_mapping=[&quot;magicoder&quot;, &quot;gsm8k&quot;, &quot;base&quot;])
+</code></pre></div>
+
+        <p>Initialize a QEffAutoLoraModelForCausalLM instance.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>model</code></b>
+                  (<code><span title="torch.nn.Module">Module</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>The underlying PyTorch model.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>continuous_batching</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Whether to enable continuous batching support. Default is False.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="NotImplementedError">NotImplementedError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If the model is not a supported type (Mistral or Llama).</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the model with all loaded adapters to ONNX format using <code>torch.onnx.export</code>.</p>
+<p>The exported ONNX graph will support mixed batch inference with multiple adapters.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>export_dir</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Directory to save the exported ONNX graph. If not provided, the default export directory is used.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>str</code></b>(                  <code><span title="str">str</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>Path to the generated ONNX graph.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="ValueError">ValueError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If no adapters are loaded.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM.generate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">generate</span>
+
+
+<a href="#QEfficient.peft.lora.auto.QEffAutoLoraModelForCausalLM.generate" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">generate</span><span class="p">(</span><span class="n">tokenizer</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PreTrainedTokenizerFast</span><span class="p">,</span> <span class="n">PreTrainedTokenizer</span><span class="p">],</span> <span class="n">prompts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">prompt_to_adapter_mapping</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">device_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">runtime</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;AI_100&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate output for a batch of prompts using the compiled QPC on Cloud AI 100 hardware.</p>
+<p>This method supports mixed batch inference, where each prompt can use a different adapter as specified
+by <code>prompt_to_adapter_mapping</code>. If the number of prompts is not divisible by the compiled batch size,
+the last incomplete batch will be dropped.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>tokenizer</code></b>
+                  (<code><span title="transformers.PreTrainedTokenizerFast">PreTrainedTokenizerFast</span> or <span title="transformers.PreTrainedTokenizer">PreTrainedTokenizer</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Tokenizer used for inference.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>prompts</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="str">str</span>]</code>)
+              –
+              <div class="doc-md-description">
+                <p>List of prompts to generate outputs for.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>prompt_to_adapter_mapping</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="str">str</span>]</code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>List of adapter names to use for each prompt. Use "base" for the base model (no adapter).</p>
+              </div>
+            </li>
+            <li>
+              <b><code>device_id</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="int">int</span>]</code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Device IDs to use for execution. If <code>None</code>, auto-device-picker is used.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>runtime</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>&#39;AI_100&#39;</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Runtime to use. Only "AI_100" is currently supported. Default is "AI_100".</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional generation parameters.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              –
+              <div class="doc-md-description">
+                <p>Model outputs for each prompt.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="ValueError">ValueError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If runtime is not "AI_100".</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="TypeError">TypeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If the model has not been compiled.</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If the number of prompts does not match the number of adapter mappings.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h2 id="QEFFAutoModelForImageTextToText"><code>QEFFAutoModelForImageTextToText</code><a class="headerlink" href="#QEFFAutoModelForImageTextToText" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+
+
+        <div class="highlight"><pre><span></span><code>QEfficient class for multimodal (image-text-to-text) models from the HuggingFace hub.
+
+This class supports both single and dual QPC (Quantized Package Compilation) approaches for efficient deployment on Cloud AI 100 hardware.
+It is recommended to use the ``from_pretrained`` method for initialization.
+
+Example:
+```python
+import requests
+from PIL import Image
+from transformers import AutoProcessor, TextStreamer
+from QEfficient import QEFFAutoModelForImageTextToText
+</code></pre></div>
+<p>```
+        HF_TOKEN = "" # Your HuggingFace token if needed
+        model_name = "meta-llama/Llama-3.2-11B-Vision-Instruct"
+        query = "Describe this image."
+        image_url = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/0052a70beed5bf71b92610a43a52df6d286cd5f3/diffusers/rabbit.jpg"</p>
+<div class="highlight"><pre><span></span><code>    # STEP 1: Load processor and model
+    processor = AutoProcessor.from_pretrained(model_name, token=HF_TOKEN)
+    model = QEFFAutoModelForImageTextToText.from_pretrained(
+        model_name, token=HF_TOKEN, attn_implementation=&quot;eager&quot;, kv_offload=False # kv_offload=False for single QPC
+    )
+
+    # STEP 2: Export &amp; Compile
+    model.compile(
+        prefill_seq_len=32,
+        ctx_len=512,
+        img_size=560,
+        num_cores=16,
+        num_devices=1,
+        mxfp6_matmul=False,
+    )
+
+    # STEP 3: Prepare inputs
+    image = Image.open(requests.get(image_url, stream=True).raw)
+    messages = [
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {&quot;type&quot;: &quot;image&quot;},
+                {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: query},
+            ],
+        }
+    ]
+    input_text = [processor.apply_chat_template(messages, add_generation_prompt=True)]
+    inputs = processor(
+        text=input_text,
+        images=image,
+        return_tensors=&quot;pt&quot;,
+        add_special_tokens=False,
+        padding=&quot;max_length&quot;, # Consider padding strategy if max_length is crucial
+        max_length=32,
+    )
+
+    # STEP 4: Run inference
+    streamer = TextStreamer(processor.tokenizer)
+    model.generate(inputs=inputs, streamer=streamer, generation_len=512)
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kv_offload</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">continuous_batching</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">qaic_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load a QEfficient image-text-to-text model from a pretrained HuggingFace model or local path.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained--parameters" title="Permanent link">&para;</a></h6>
+<p>pretrained_model_name_or_path : str
+    Model card name from HuggingFace or local path to model directory.
+kv_offload : bool, optional
+    If True, uses the dual QPC approach (vision encoder KV offloaded).
+    If False, uses the single QPC approach (entire model in one QPC).
+    If None, the default behavior of the internal classes is used (typically dual QPC).
+qaic_config : dict, optional
+    A dictionary for QAIC-specific configurations.
+**kwargs :
+    Additional arguments passed to HuggingFace's <code>from_pretrained</code>.</p>
+<div class="highlight"><pre><span></span><code>**Note:** `attn_implementation` and `low_cpu_mem_usage` are automatically set to &quot;eager&quot; and False respectively to ensure compatibility.
+`continuous_batching` is not supported for image-text-to-text models.
+</code></pre></div>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained--returns" title="Permanent link">&para;</a></h6>
+<p>QEFFAutoModelForImageTextToText
+    An instance initialized with the pretrained weights, wrapped for QEfficient.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained--raises">Raises<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForImageTextToText.from_pretrained--raises" title="Permanent link">&para;</a></h6>
+<p>NotImplementedError
+    If <code>continuous_batching</code> is provided as True.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h2 id="QEFFAutoModelForSpeechSeq2Seq"><code>QEFFAutoModelForSpeechSeq2Seq</code><a class="headerlink" href="#QEFFAutoModelForSpeechSeq2Seq" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEFFAutoModelForSpeechSeq2Seq</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.transformers.models.modeling_auto.QEFFTransformersBase">QEFFTransformersBase</span></code>, <code><span title="QEfficient.transformers.models.modeling_auto.MultimodalUtilityMixin">MultimodalUtilityMixin</span></code></p>
+
+
+
+        <div class="highlight"><pre><span></span><code>QEfficient class for sequence-to-sequence speech-to-text models (e.g., Whisper, Encoder-Decoder speech models).
+
+This class enables efficient export, compilation, and inference of speech models on Cloud AI 100 hardware.
+It is recommended to use the ``from_pretrained`` method for initialization.
+
+Example:
+```python
+from datasets import load_dataset
+from transformers import AutoProcessor
+from QEfficient import QEFFAutoModelForSpeechSeq2Seq
+</code></pre></div>
+<p>```
+        base_model_name = "openai/whisper-tiny"
+        ## STEP 1 -- load audio sample, using a standard english dataset, can load specific files if longer audio needs to be tested; also load initial processor
+        ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+        data = ds[0]["audio"]["array"]
+        # reshape to so shape corresponds to data with batch size 1
+        data = data.reshape(-1)
+        sample_rate = ds[0]["audio"]["sampling_rate"]
+        processor = AutoProcessor.from_pretrained(base_model_name)</p>
+<div class="highlight"><pre><span></span><code>    ## STEP 2 -- init base model
+    qeff_model = QEFFAutoModelForSpeechSeq2Seq.from_pretrained(base_model_name)
+
+    ## STEP 3 -- export and compile model
+    qeff_model.compile()
+
+    ## STEP 4 -- generate output for loaded input and processor
+    exec_info = qeff_model.generate(inputs=processor(data, sampling_rate=sample_rate, return_tensors=&quot;pt&quot;), generation_len=25)
+
+    ## STEP 5 (optional) -- use processor to decode output
+    print(processor.batch_decode(exec_info.generated_ids)[0])
+</code></pre></div>
+
+        <p>Initialize a QEFFAutoModelForSpeechSeq2Seq instance.</p>
+<h5 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq--parameters" title="Permanent link">&para;</a></h5>
+<p>model : nn.Module
+    A PyTorch model with a sequence-to-sequence speech-to-text head (e.g., Whisper).
+**kwargs :
+    Additional keyword arguments passed to the base class constructor.</p>
+<h5 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq--raises">Raises<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq--raises" title="Permanent link">&para;</a></h5>
+<p>TypeError
+    If the model is not a supported speech-to-text model (i.e., not a <code>ForConditionalGeneration</code> model).</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the model to ONNX format using <code>torch.onnx.export</code>.</p>
+<p>This method prepares example inputs and dynamic axes based on the model configuration,
+then exports the model to an ONNX graph suitable for compilation and deployment on Cloud AI 100 hardware.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.export--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.export--parameters" title="Permanent link">&para;</a></h6>
+<p>export_dir : str, optional
+    Directory path where the exported ONNX graph will be saved.
+    If not provided, the default export directory is used.
+use_onnx_subfunctions: bool, optional
+    whether to enable ONNX subfunctions during export. Exporting PyTorch model to ONNX with modules as subfunctions helps to reduce export/compile time. Defaults to False</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.export--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.export--returns" title="Permanent link">&para;</a></h6>
+<p>str
+    Path to the generated ONNX graph file.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">onnx_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">compile_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefill_seq_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">encoder_ctx_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ctx_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">150</span><span class="p">,</span> <span class="n">full_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">kv_cache_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_devices</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> <span class="n">mxfp6_matmul</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">mxint8_kv_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">num_speculative_tokens</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Compile the exported ONNX model using the Cloud AI 100 Platform SDK compiler.</p>
+<p>This method generates a qpc package. If the model has not been exported yet,
+this method will handle the export process. Additional arguments for the <code>qaic-compile</code>
+compiler can be passed as keyword arguments.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.compile--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.compile--parameters" title="Permanent link">&para;</a></h6>
+<p>onnx_path : str, optional
+    Path to a pre-exported ONNX model. If not provided, the model will be exported first.
+compile_dir : str, optional
+    Directory to save the generated QPC package.
+prefill_seq_len : int, optional
+    Prefill sequence length. This parameter is typically not critically used for
+    SpeechSeq2Seq models' decoder compilation as the first decoder input is <code>seq_len=1</code>.
+    Default is 1.
+encoder_ctx_len : int, optional
+    Maximum context length for the encoder part of the model. If None, it's inferred
+    from the model configuration or defaults (e.g., 1500 for Whisper).
+ctx_len : int, optional
+    Maximum decoder context length. This defines the maximum output sequence length
+    the compiled model can handle. Default is 150.
+batch_size : int, optional
+    Batch size. Default is 1.
+num_devices : int, optional
+    Number of devices to compile for. Default is 1.
+num_cores : int, optional
+    Number of cores to use for compilation.
+mxfp6_matmul : bool, optional
+    Use MXFP6 compression for weights. Default is False.
+mxint8_kv_cache : bool, optional
+    Use MXINT8 compression for KV cache. Default is False.
+full_batch_size : int, optional
+    Not yet supported for this model.
+kv_cache_batch_size : int, optional
+    Not yet supported for this model.
+num_speculative_tokens : int, optional
+    Not yet supported for this model.
+use_onnx_subfunctions: bool, optional
+    whether to enable ONNX subfunctions during export. Exporting PyTorch model to ONNX with modules as subfunctions helps to reduce export/compile time. Defaults to False
+**compiler_options : dict
+    Additional compiler options for QAIC.</p>
+<div class="highlight"><pre><span></span><code>**For QAIC Compiler:** Extra arguments for qaic-compile can be passed. Some common options include:
+
+- mos (int, optional): Effort level to reduce on-chip memory. Defaults to -1, meaning no effort. Defaults to -1.
+- aic_enable_depth_first (bool, optional): Enables DFS with default memory size. Defaults to False.
+- allow_mxint8_mdp_io (bool, optional): Allows MXINT8 compression of MDP IO traffic. Defaults to False.
+
+Params are converted to flags as below:
+
+- ``aic_num_cores=16`` -&gt; ``-aic-num-cores=16``
+- ``convert_to_fp16=True`` -&gt; ``-convert-to-fp16``
+</code></pre></div>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.compile--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.compile--returns" title="Permanent link">&para;</a></h6>
+<p>str
+    Path to the compiled QPC package.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.generate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">generate</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.generate" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">generate</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">generation_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">streamer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextStreamer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">device_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">write_io</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generate output until <code>&lt;|endoftext|&gt;</code> token or <code>generation_len</code> is reached,
+by executing the compiled QPC on Cloud AI 100 hardware.</p>
+<p>This method performs sequential execution based on the compiled model's batch size
+and the provided audio tensors. It manages the iterative decoding process and KV cache.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.generate--parameters">Parameters<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.generate--parameters" title="Permanent link">&para;</a></h6>
+<p>inputs : Dict[str, np.ndarray]
+    Model inputs for inference, typically a dictionary containing:
+    - <code>input_features</code> (np.ndarray): Preprocessed audio features.
+    - <code>decoder_input_ids</code> (np.ndarray): Initial decoder input IDs (e.g., start token).
+    - <code>decoder_position_ids</code> (np.ndarray): Initial decoder position IDs.
+    These should be prepared to match the compiled model's expectations.
+generation_len : int
+    Maximum number of tokens to generate. The generation stops if this limit is reached
+    or the model generates an end-of-sequence token.
+streamer : TextStreamer, optional
+    Streamer to receive generated tokens in real-time. Default is None.
+device_ids : List[int], optional
+    Device IDs for running the QPC. Defaults to <code>[0]</code> if not specified.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.generate--returns">Returns<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.generate--returns" title="Permanent link">&para;</a></h6>
+<p>CloudAI100ExecInfoNew
+    Output from the AI 100 runtime, including generated IDs and performance metrics.</p>
+<h6 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.generate--raises">Raises<a class="headerlink" href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForSpeechSeq2Seq.generate--raises" title="Permanent link">&para;</a></h6>
+<p>TypeError
+    If the QPC path is not set (i.e., <code>compile</code> was not run).</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div><hr />
+<h2 id="QEFFAutoModelForCTC"><code>QEFFAutoModelForCTC</code><a class="headerlink" href="#QEFFAutoModelForCTC" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">QEFFAutoModelForCTC</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="QEfficient.transformers.models.modeling_auto.QEFFTransformersBase">QEFFTransformersBase</span></code></p>
+
+
+
+        <div class="highlight"><pre><span></span><code>The QEFFAutoModelForCTC class is designed for transformer models with a Connectionist Temporal Classification (CTC) speech-to-text head,
+including Wav2Vec2 and other encoder-only speech models optimized for alignment-free transcription.
+Although it is possible to initialize the class directly, we highly recommend using the ``from_pretrained`` method for initialization.
+
+Example:
+```python
+import torchaudio
+from QEfficient import QEFFAutoModelForCTC
+from transformers import AutoProcessor
+</code></pre></div>
+<p>```
+        # Initialize the model using from_pretrained similar to transformers.AutoModelForCTC.
+        model=QEFFAutoModelForCTC.from_pretrained(model_name)</p>
+<div class="highlight"><pre><span></span><code>    # Now you can directly compile the model for Cloud AI 100
+    model.compile(num_cores=16)  # Considering you have a Cloud AI 100 SKU
+
+    #prepare input
+    processor = AutoProcessor.from_pretrained(model_name)
+    input_audio, sample_rate = [...] # audio data loaded in via some external audio package, such as librosa or soundfile
+
+    # Resample the input_audio if necessary
+    if input_audio.shape[0] &gt; 1:
+        input_audio = input_audio.mean(dim=0)
+    if sample_rate != 16000:
+        resampler = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=16000)
+        input_audio = resampler(input_audio)
+
+    # You can now execute the model
+    out = model.generate(processor,inputs=input_audio)
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.from_pretrained" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">from_pretrained</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.from_pretrained" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_pretrained</span><span class="p">(</span><span class="n">pretrained_model_name_or_path</span><span class="p">,</span> <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <div class="highlight"><pre><span></span><code>    This method serves as the easiest entry point into using QEfficient. The interface is designed to be similar to transformers.AutoModelForCTC.
+    Once the model is initialized, you can use other methods such as export, compile, and generate on the same object.
+
+    Args:
+        pretrained_model_name_or_path (str): The name or path of the pre-trained model.
+
+    ```python
+import torchaudio
+from QEfficient import QEFFAutoModelForCTC
+from transformers import AutoProcessor
+</code></pre></div>
+<p>```
+        # Initialize the model using from_pretrained similar to transformers.AutoModelForCTC.
+        model=QEFFAutoModelForCTC.from_pretrained(model_name)</p>
+<div class="highlight"><pre><span></span><code>    # Now you can directly compile the model for Cloud AI 100
+    model.compile(num_cores=16)  # Considering you have a Cloud AI 100 SKU
+
+    #prepare input
+    processor = AutoProcessor.from_pretrained(model_name)
+    input_audio, sample_rate = [...] # audio data loaded in via some external audio package, such as librosa or soundfile
+
+    # Resample the input_audio if necessary
+    if input_audio.shape[0] &gt; 1:
+        input_audio = input_audio.mean(dim=0)
+    if sample_rate != 16000:
+        resampler = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=16000)
+        input_audio = resampler(input_audio)
+
+    # You can now execute the model
+    out = model.generate(processor,inputs=input_audio)
+</code></pre></div>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.export" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">export</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.export" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export</span><span class="p">(</span><span class="n">export_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Exports the model to ONNX format using <code>torch.onnx.export</code>.</p>
+        <p>export_dir (str, optional): The directory path to store ONNX-graph.
+   :use_onnx_subfunctions: bool, optional
+    whether to enable ONNX subfunctions during export. Exporting PyTorch model to ONNX with modules as subfunctions helps to reduce export/compile time. Defaults to False</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="str">str</span></code>
+              –
+              <div class="doc-md-description">
+                <p>str: Path of the generated ONNX graph.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.compile" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile</span><span class="p">(</span><span class="n">onnx_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">compile_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">480000</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_devices</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> <span class="n">mxfp6_matmul</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_onnx_subfunctions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">compiler_options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>This method compiles the exported ONNX model using the Cloud AI 100 Platform SDK compiler binary found at <code>/opt/qti-aic/exec/qaic-compile</code> and generates a qpc package.
+If the model has not been exported yet, this method will handle the export process.
+You can pass any other arguments that the <code>qaic-compile</code> takes as extra kwargs.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>onnx_path</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Path to pre-exported onnx model.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>compile_dir</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Path for saving the qpc generated.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>seq_len</code></b>
+                  (<code><span title="typing.Union">Union</span>[<span title="int">int</span>, <span title="typing.List">List</span>[<span title="int">int</span>]]</code>, default:
+                      <code>480000</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>The length of the prompt should be less that <code>seq_len</code>. <code>Defaults to 32</code>.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>batch_size</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>1</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Batch size. <code>Defaults to 1</code>.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>num_devices</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>1</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Number of devices the model needs to be compiled for. Defaults to 1.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>num_cores</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>16</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Number of cores used to compile the model.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>mxfp6_matmul</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Whether to use <code>mxfp6</code> compression for weights. <code>Defaults to False</code>.
+  :use_onnx_subfunctions: bool, optional: whether to enable ONNX subfunctions during export. Exporting PyTorch model to ONNX with modules as subfunctions helps to reduce export/compile time. Defaults to False</p>
+              </div>
+            </li>
+            <li>
+              <b><code>compiler_options</code></b>
+                  (<code><span title="dict">dict</span></code>, default:
+                      <code>{}</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Additional compiler options.</p>
+<div class="highlight"><pre><span></span><code>  For QAIC Compiler: Extra arguments for qaic-compile can be passed.
+   aic_enable_depth_first (bool, optional): Enables DFS with default memory size. ``Defaults to False``.
+   allow_mxint8_mdp_io (bool, optional): Allows MXINT8 compression of MDP IO traffic. ``Defaults to False.``
+
+      Params are converted to flags as below:
+
+      - aic_hw_version=ai100 -&gt; -aic-hw-version=ai100
+      - aic_hw_version=ai200 -&gt; -aic-hw-version=ai200
+
+  For QNN Compiler: Following arguments can be passed.
+   enable_qnn (bool): Enables QNN Compilation.
+   qnn_config (str): Path of QNN Config parameters file. Any extra parameters for QNN compilation can be passed via this file.
+</code></pre></div>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="str">str</span></code>
+              –
+              <div class="doc-md-description">
+                <p>str: Path of the compiled qpc package.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.generate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">generate</span>
+
+
+<a href="#QEfficient.transformers.models.modeling_auto.QEFFAutoModelForCTC.generate" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">generate</span><span class="p">(</span><span class="n">processor</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">device_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">runtime_ai100</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">write_io</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>This method generates output by executing PyTorch runtime or the compiled qpc on Cloud AI 100 Hardware cards.
+Args:
+ inputs (Union[torch.Tensor, np.ndarray]): inputs to run the execution.
+ processor (AutoProcessor): The Processor to use for encoding the waveform.
+optional Args:
+ device_id (List[int]): Ids of devices for running the qpc pass as [0] in case of normal model / [0, 1, 2, 3] in case of tensor slicing model
+ runtime_ai100 (bool, optional): AI_100 and PyTorch runtime is supported as of now. Defaults to <code>True</code> for AI_100 runtime.
+Returns:
+    :dict: Output from the AI_100 or PyTorch runtime.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+
+</div>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/quic/efficient-transformers" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../features_enablement/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../diffuser_classes/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../_static/cleanup_docstrings.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
