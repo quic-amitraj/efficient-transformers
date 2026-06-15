@@ -50,9 +50,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
                 </li>
               </ul>
+              <p class="caption"><span class="caption-text">Release Documents</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
               <ul class="current">
@@ -62,40 +63,44 @@
     <ul class="current">
     </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validated Models</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Pre-requisites & Installation</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement Guide</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">API Reference</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">Auto Classes</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">QEfficient Auto Classes</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API Reference</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">QAIC Finetune</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune Infra</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Blogs</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blog Posts</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/">External Links</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -184,11 +189,11 @@
 <td>Reduces computational overhead during inference by optimizing key-value pair processing, improving throughput. Supports both <a href="https://github.com/quic/efficient-transformers/pull/367">continuous and non-continuous batching</a>.</td>
 </tr>
 <tr>
-<td><a href="../qeff_autoclasses/#qeffautomodelforimagetext2text">Vision Language Model</a></td>
+<td><a href="../qeff_autoclasses/#QEFFAutoModelForImageTextToText">Vision Language Model</a></td>
 <td>Provides support for the <code>AutoModelForImageTextToText</code> class, enabling advanced vision-language tasks. See <a href="https://github.com/quic/efficient-transformers/blob/main/examples/image_text_to_text/basic_vlm_inference.py">sample script</a>.</td>
 </tr>
 <tr>
-<td><a href="../qeff_autoclasses/#qeffautomodelforspeechseq2seq">Speech Sequence to Sequence Model</a></td>
+<td><a href="../qeff_autoclasses/#QEFFAutoModelForSpeechSeq2Seq">Speech Sequence to Sequence Model</a></td>
 <td>Provides support for <code>QEFFAutoModelForSpeechSeq2Seq</code>, facilitating speech-to-text sequence models. See <a href="https://github.com/quic/efficient-transformers/blob/main/examples/audio/speech_to_text.py">sample script</a>.</td>
 </tr>
 <tr>
@@ -208,23 +213,23 @@
 <td>Speeds up text generation by using overlapping parts of the input prompt and generated text. See <a href="https://github.com/quic/efficient-transformers/blob/main/examples/performance/speculative_decoding/prompt_lookup.py">sample script</a>.</td>
 </tr>
 <tr>
-<td><a href="../qeff_autoclasses/#qeffautopeftmodelfor-causallm">PEFT LoRA Support</a></td>
+<td><a href="../qeff_autoclasses/#QEffAutoPeftModelForCausalLM">PEFT LoRA Support</a></td>
 <td>Enables parameter-efficient fine-tuning using low-rank adaptation, reducing computational and memory requirements. See <a href="https://github.com/quic/efficient-transformers/blob/main/examples/peft/single_adapter.py">sample script</a>.</td>
 </tr>
 <tr>
-<td><a href="../quick_start/#qnn-compilation">QNN Support</a></td>
+<td><a href="../features_enablement/#qnn-compilation-via-python-api">QNN Support</a></td>
 <td>Enables compilation using QNN SDK, making Qeff adaptable for various backends.</td>
 </tr>
 <tr>
-<td><a href="../qeff_autoclasses/#qeffautomodel">Embedding Model Support</a></td>
+<td><a href="../qeff_autoclasses/#QEFFAutoModel">Embedding Model Support</a></td>
 <td>Facilitates the generation of vector embeddings for retrieval tasks.</td>
 </tr>
 <tr>
-<td><a href="../quick_start/#draft-based-speculative-decoding">Speculative Decoding</a></td>
+<td><a href="../features_enablement/#draft-based-speculative-decoding">Speculative Decoding</a></td>
 <td>Accelerates text generation using a draft model, reducing latency and improving efficiency. See <a href="https://github.com/quic/efficient-transformers/blob/main/examples/performance/speculative_decoding/draft_based.py">sample script</a>.</td>
 </tr>
 <tr>
-<td><a href="../qeff_autoclasses/#qeffautoloramodelfor-causallm">Finite LoRAx — Multi-Adapter</a></td>
+<td><a href="../qeff_autoclasses/#QEffAutoLoraModelForCausalLM">Finite LoRAx — Multi-Adapter</a></td>
 <td>Users can activate multiple LoRA adapters compiled with the base model. At runtime, specify which prompt uses which adapter for mixed adapter batches. See <a href="https://github.com/quic/efficient-transformers/blob/main/examples/peft/multi_adapter.py">sample script</a>.</td>
 </tr>
 <tr>
@@ -232,7 +237,7 @@
 <td>Provides flexibility for inference with Qeff, enabling integration with various applications. See <a href="https://github.com/quic/efficient-transformers/blob/main/examples/performance/cpp_execution/text_inference_cpp.py">sample script</a>.</td>
 </tr>
 <tr>
-<td><a href="../quick_start/#continuous-batching">Continuous Batching</a></td>
+<td><a href="../features_enablement/#continuous-batching">Continuous Batching</a></td>
 <td>Optimizes throughput and latency by dynamically batching requests.</td>
 </tr>
 <tr>
@@ -292,6 +297,7 @@
     <script>var base_url = "../..";</script>
     <script src="../../js/theme_extra.js"></script>
     <script src="../../js/theme.js"></script>
+      <script src="../../_static/cleanup_docstrings.js"></script>
       <script src="../../search/main.js"></script>
       <script src="../../js/version-select.js"></script>
     <script>

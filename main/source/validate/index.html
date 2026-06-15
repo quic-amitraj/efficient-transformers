@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/main/source/validate/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Validate - Efficient Transformers</title>
+    <title>Validated Models - Efficient Transformers</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -15,7 +15,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Validate";
+        var mkdocs_page_name = "Validated Models";
         var mkdocs_page_input_path = "source/validate.md";
         var mkdocs_page_url = "/efficient-transformers/main/source/validate/";
       </script>
@@ -50,9 +50,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
                 </li>
               </ul>
+              <p class="caption"><span class="caption-text">Release Documents</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
               <ul class="current">
@@ -60,7 +61,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Validate</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Validated Models</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#text-only-language-models">Text-only Language Models</a>
         <ul>
@@ -102,42 +103,46 @@
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#1-intern-vl-and-molmo-models-are-vision-language-models-but-use-qeffautomodelforcausallm-for-inference-to-stay-compatible-with-huggingface-transformers-2-set-trust_remote_codetrue-for-end-to-end-inference-with-vllm-3-pass-disable_sliding_window-for-few-family-models-when-using-vllm">① Intern-VL and Molmo models are Vision-Language Models but use `QEFFAutoModelForCausalLM` for inference to stay compatible with HuggingFace Transformers. ② Set `trust_remote_code=True` for end-to-end inference with vLLM. ③ Pass `disable_sliding_window` for few family models when using vLLM.</a>
+    <li class="toctree-l2"><a class="reference internal" href="#models-coming-soon">Models Coming Soon</a>
     </li>
     </ul>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Pre-requisites & Installation</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement Guide</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">API Reference</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">Auto Classes</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">QEfficient Auto Classes</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API Reference</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">QAIC Finetune</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune Infra</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Blogs</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blog Posts</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/">External Links</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -154,7 +159,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">Getting Started</li>
-      <li class="breadcrumb-item active">Validate</li>
+      <li class="breadcrumb-item active">Validated Models</li>
     <li class="wy-breadcrumbs-aside">
           <a href="https://github.com/quic/efficient-transformers/edit/main/source/validate.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
@@ -164,8 +169,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>(validated_models)=</p>
-<h1 id="validated-models">Validated Models<a class="headerlink" href="#validated-models" title="Permanent link">&para;</a></h1>
+                <h1 id="validated-models">Validated Models<a class="headerlink" href="#validated-models" title="Permanent link">&para;</a></h1>
 <h2 id="text-only-language-models">Text-only Language Models<a class="headerlink" href="#text-only-language-models" title="Permanent link">&para;</a></h2>
 <h3 id="text-generation-task">Text Generation Task<a class="headerlink" href="#text-generation-task" title="Permanent link">&para;</a></h3>
 <p><strong>QEff Auto Class:</strong> <code>QEFFAutoModelForCausalLM</code></p>
@@ -402,7 +406,7 @@
 <tr>
 <td><strong>XLMRobertaForSequenceClassification</strong></td>
 <td>XLM-RoBERTa</td>
-<td><a href="https://huggingface.co/BAAI/bge-reranker-v2-m3">bge-reranker-v2-m3bge-reranker-v2-m3</a></td>
+<td><a href="https://huggingface.co/BAAI/bge-reranker-v2-m3">bge-reranker-v2-m3</a></td>
 <td>✔️</td>
 </tr>
 <tr>
@@ -447,8 +451,8 @@
 <th>Representative Models</th>
 <th>Qeff Single Qpc</th>
 <th>Qeff Dual Qpc</th>
-<th>vllm Single Qpc</th>
-<th>vllm Dual Qpc</th>
+<th>vLLM Single Qpc</th>
+<th>vLLM Dual Qpc</th>
 </tr>
 </thead>
 <tbody>
@@ -527,9 +531,11 @@ In the Dual QPC(Qualcomm Program Container) setup, the model is split across two
 </ul>
 <p><strong>Single QPC:</strong>
 In the single QPC(Qualcomm Program Container) setup, the entire model—including both image encoding and text generation—runs within a single QPC. There is no model splitting, and all components operate within the same execution environment.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>The choice between Single and Dual QPC is determined during model instantiation using the `kv_offload` setting.
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>If the `kv_offload` is set to `True` it runs in dual QPC and if its set to `False` model runs in single QPC mode.
-</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The choice between Single and Dual QPC is determined during model instantiation using the <code>kv_offload</code> setting.
+If the <code>kv_offload</code> is set to <code>True</code> it runs in dual QPC and if its set to <code>False</code> model runs in single QPC mode.</p>
+</div>
 <h3 id="audio-models">Audio Models<a class="headerlink" href="#audio-models" title="Permanent link">&para;</a></h3>
 <p>(Automatic Speech Recognition) - Transcription Task</p>
 <p><strong>QEff Auto Class:</strong> <code>QEFFAutoModelForSpeechSeq2Seq</code></p>
@@ -553,7 +559,7 @@ In the single QPC(Qualcomm Program Container) setup, the entire model—includin
 <td><strong>Wav2Vec2</strong></td>
 <td>Wav2Vec2</td>
 <td><a href="https://huggingface.co/facebook/wav2vec2-base">facebook/wav2vec2-base</a><br><a href="https://huggingface.co/facebook/wav2vec2-large">facebook/wav2vec2-large</a></td>
-<td></td>
+<td>✕</td>
 </tr>
 </tbody>
 </table>
@@ -629,14 +635,14 @@ In the single QPC(Qualcomm Program Container) setup, the entire model—includin
 |--------------|--------------|----------------------------------------------------------------------------------------|--------------|
 | <strong>WanImageToVideoPipeline</strong>  | Wan2.2     | <a href="https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B-Diffusers">Wan-AI/Wan2.2-I2V-A14B-Diffusers</a> |         |</p>
 <hr />
-<h2 id="1-intern-vl-and-molmo-models-are-vision-language-models-but-use-qeffautomodelforcausallm-for-inference-to-stay-compatible-with-huggingface-transformers-2-set-trust_remote_codetrue-for-end-to-end-inference-with-vllm-3-pass-disable_sliding_window-for-few-family-models-when-using-vllm"><div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>① Intern-VL and Molmo models are Vision-Language Models but use `QEFFAutoModelForCausalLM` for inference to stay compatible with HuggingFace Transformers.
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>② Set `trust_remote_code=True` for end-to-end inference with vLLM.
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>③ Pass `disable_sliding_window` for few family models when using vLLM.
-</code></pre></div><a class="headerlink" href="#1-intern-vl-and-molmo-models-are-vision-language-models-but-use-qeffautomodelforcausallm-for-inference-to-stay-compatible-with-huggingface-transformers-2-set-trust_remote_codetrue-for-end-to-end-inference-with-vllm-3-pass-disable_sliding_window-for-few-family-models-when-using-vllm" title="Permanent link">&para;</a></h2>
-<p>(models_coming_soon)=</p>
-<h1 id="models-coming-soon">Models Coming Soon<a class="headerlink" href="#models-coming-soon" title="Permanent link">&para;</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>① Intern-VL and Molmo models are Vision-Language Models but use <code>QEFFAutoModelForCausalLM</code> for inference to stay compatible with HuggingFace Transformers.</p>
+<p>② Set <code>trust_remote_code=True</code> for end-to-end inference with vLLM.</p>
+<p>③ Pass <code>disable_sliding_window</code> for few family models when using vLLM.</p>
+</div>
+<hr />
+<h2 id="models-coming-soon">Models Coming Soon<a class="headerlink" href="#models-coming-soon" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -707,6 +713,7 @@ In the single QPC(Qualcomm Program Container) setup, the entire model—includin
     <script>var base_url = "../..";</script>
     <script src="../../js/theme_extra.js"></script>
     <script src="../../js/theme.js"></script>
+      <script src="../../_static/cleanup_docstrings.js"></script>
       <script src="../../search/main.js"></script>
       <script src="../../js/version-select.js"></script>
     <script>

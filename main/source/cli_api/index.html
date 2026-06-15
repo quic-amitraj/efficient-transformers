@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/main/source/cli_api/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>CLI API - Efficient Transformers</title>
+    <title>CLI API Reference - Efficient Transformers</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -15,7 +15,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "CLI API";
+        var mkdocs_page_name = "CLI API Reference";
         var mkdocs_page_input_path = "source/cli_api.md";
         var mkdocs_page_url = "/efficient-transformers/main/source/cli_api/";
       </script>
@@ -50,9 +50,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
                 </li>
               </ul>
+              <p class="caption"><span class="caption-text">Release Documents</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
               <ul>
@@ -60,85 +61,50 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validated Models</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Pre-requisites & Installation</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement Guide</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">API Reference</span></p>
               <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">Auto Classes</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">QEfficient Auto Classes</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">CLI API</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">CLI API Reference</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#infer_api">QEfficient.cloud.infer</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#QEfficient.cloud.infer.main">main</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.infer.main--parameters">Parameters</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.infer.main--other-parameters">Other Parameters</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.infer.main--example">Example</a>
-    </li>
-        </ul>
     </li>
         </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#execute_api">QEfficient.cloud.execute</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#QEfficient.cloud.execute.main">main</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.execute.main--parameters">Parameters</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.execute.main--other-parameters">Other Parameters</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.execute.main--example">Example</a>
-    </li>
-        </ul>
     </li>
         </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#compile_api">QEfficient.compile</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile">compile</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--parameters">Parameters</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--other-parameters">Other Parameters</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--returns">Returns</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--raises">Raises</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.compile.compile_helper.compile--warnings">Warnings</a>
-    </li>
-        </ul>
     </li>
         </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#export_api">QEfficient.cloud.export</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#QEfficient.cloud.export.main">main</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.export.main--parameters">Parameters</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.export.main--other-parameters">Other Parameters</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.export.main--example">Example</a>
-    </li>
-        </ul>
     </li>
         </ul>
     </li>
@@ -148,8 +114,6 @@
         <ul>
     <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.finetune.main--parameters">Parameters</a>
     </li>
-    <li class="toctree-l4"><a class="reference internal" href="#QEfficient.cloud.finetune.main--example">Example</a>
-    </li>
         </ul>
     </li>
         </ul>
@@ -157,17 +121,20 @@
     </ul>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">QAIC Finetune</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune Infra</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Blogs</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blog Posts</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/">External Links</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -184,7 +151,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">API Reference</li>
-      <li class="breadcrumb-item active">CLI API</li>
+      <li class="breadcrumb-item active">CLI API Reference</li>
     <li class="wy-breadcrumbs-aside">
           <a href="https://github.com/quic/efficient-transformers/edit/main/source/cli_api.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
@@ -216,28 +183,32 @@
 
     <div class="doc doc-contents first">
 
-        <p>Main entry point for the QEfficient inference script.</p>
-<p>This function handles the end-to-end process of downloading, optimizing,
+        <div class="highlight"><pre><span></span><code>Main entry point for the QEfficient inference script.
+
+This function handles the end-to-end process of downloading, optimizing,
 compiling, and executing a HuggingFace model on Cloud AI 100 hardware.
-The process follows these steps:</p>
-<ol>
-<li>Checks for an existing compiled QPC package. If found, it jumps directly to execution.</li>
-<li>Checks for an existing exported ONNX file. If true, it proceeds to compilation then execution.</li>
-<li>Checks if the HuggingFace model exists in the cache. If true, it performs model transformation, ONNX export, compilation, and then execution.</li>
-<li>If none of the above, it downloads the HuggingFace model, then performs transformation, ONNX export, compilation, and execution.</li>
-</ol>
-<h5 id="QEfficient.cloud.infer.main--parameters">Parameters<a class="headerlink" href="#QEfficient.cloud.infer.main--parameters" title="Permanent link">&para;</a></h5>
-<p>model_name : str
-    Hugging Face Model Card name (e.g., <code>gpt2</code>) or path to a local model.
+The process follows these steps:
+
+1. Checks for an existing compiled QPC package. If found, it jumps directly to execution.
+2. Checks for an existing exported ONNX file. If true, it proceeds to compilation then execution.
+3. Checks if the HuggingFace model exists in the cache. If true, it performs model transformation, ONNX export, compilation, and then execution.
+4. If none of the above, it downloads the HuggingFace model, then performs transformation, ONNX export, compilation, and execution.
+
+Parameters
+----------
+model_name : str
+    Hugging Face Model Card name (e.g., ``gpt2``) or path to a local model.
 num_cores : int
-    Number of cores to compile the model on.</p>
-<h5 id="QEfficient.cloud.infer.main--other-parameters">Other Parameters<a class="headerlink" href="#QEfficient.cloud.infer.main--other-parameters" title="Permanent link">&para;</a></h5>
-<p>device_group : List[int], optional
-    List of device IDs to be used for compilation and inference. If <code>len(device_group) &gt; 1</code>,
+    Number of cores to compile the model on.
+
+Other Parameters
+----------------
+device_group : List[int], optional
+    List of device IDs to be used for compilation and inference. If ``len(device_group) &gt; 1``,
     a multiple card setup is enabled. Default is None.
 prompt : str, optional
     Sample prompt(s) for the model text generation. For batch size &gt; 1,
-    pass multiple prompts separated by a pipe (<code>|</code>) symbol. Default is None.
+    pass multiple prompts separated by a pipe (``|``) symbol. Default is None.
 prompts_txt_file_path : str, optional
     Path to a text file containing multiple input prompts, one per line. Default is None.
 aic_enable_depth_first : bool, optional
@@ -256,10 +227,10 @@ generation_len : int, optional
     Maximum number of tokens to be generated during inference. Default is None.
 mxfp6 : bool, optional
     Enables compilation for MXFP6 precision for constant MatMul weights. Default is False.
-    A warning is issued as <code>--mxfp6</code> is deprecated; use <code>--mxfp6-matmul</code> instead.
+    A warning is issued as ``--mxfp6`` is deprecated; use ``--mxfp6-matmul`` instead.
 mxint8 : bool, optional
-    Compresses Present/Past KV to <code>MXINT8</code> using <code>CustomIO</code> config. Default is False.
-    A warning is issued as <code>--mxint8</code> is deprecated; use <code>--mxint8-kv-cache</code> instead.
+    Compresses Present/Past KV to ``MXINT8`` using ``CustomIO`` config. Default is False.
+    A warning is issued as ``--mxint8`` is deprecated; use ``--mxint8-kv-cache`` instead.
 local_model_dir : str, optional
     Path to custom model weights and config files. Default is None.
 cache_dir : str, optional
@@ -270,7 +241,7 @@ allow_mxint8_mdp_io : bool, optional
     Allows MXINT8 compression of MDP IO traffic during compilation. Default is False.
 enable_qnn : bool or str, optional
     Enables QNN compilation. Can be passed as a flag (True) or with a configuration file path (str).
-    If a string path is provided, it's treated as <code>qnn_config</code>. Default is False.
+    If a string path is provided, it&#39;s treated as ``qnn_config``. Default is False.
 qnn_config : str, optional
     Path of the QNN Config parameters file. Default is None.
 trust_remote_code : bool, optional
@@ -278,22 +249,27 @@ trust_remote_code : bool, optional
 use_onnx_subfunctions : bool, optional
     Enables ONNX subfunctions during export and compile. Default is False.
 **kwargs :
-    Additional compiler options passed directly to <code>qaic-compile</code>. Any flag supported by
-    <code>qaic-compile</code> can be passed. Parameters are converted to flags as follows:</p>
-<div class="highlight"><pre><span></span><code>- ``-allocator_dealloc_delay=1`` -&gt; ``-allocator-dealloc-delay=1``
-- ``-qpc_crc=True`` -&gt; ``-qpc-crc``
+    Additional compiler options passed directly to `qaic-compile`. Any flag supported by
+    `qaic-compile` can be passed. Parameters are converted to flags as follows:
+
+    - ``-allocator_dealloc_delay=1`` -&gt; ``-allocator-dealloc-delay=1``
+    - ``-qpc_crc=True`` -&gt; ``-qpc-crc``
+
+Example
+-------
+To run inference from the command line:
+
+```bash
+python -m QEfficient.cloud.infer --model-name gpt2 --num-cores 16 --prompt &quot;Hello world&quot;
 </code></pre></div>
-<h5 id="QEfficient.cloud.infer.main--example">Example<a class="headerlink" href="#QEfficient.cloud.infer.main--example" title="Permanent link">&para;</a></h5>
-<p>To run inference from the command line:</p>
-<p>.. code-block:: bash</p>
-<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.infer --model-name gpt2 --num-cores 16 --prompt &quot;Hello world&quot;
-</code></pre></div>
-<p>For advanced compilation options:</p>
-<p>.. code-block:: bash</p>
-<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.infer --model-name meta-llama/Llama-3.2-11B-Vision-Instruct \
+<p>```
+    For advanced compilation options:</p>
+<div class="highlight"><pre><span></span><code>```bash
+python -m QEfficient.cloud.infer --model-name meta-llama/Llama-3.2-11B-Vision-Instruct \
     --num-cores 16 --prompt &quot;Describe this image.&quot; --image-url &quot;https://example.com/image.jpg&quot; \
     --ctx-len 512 --img-size 560 --mxfp6-matmul
 </code></pre></div>
+<p>```</p>
 
 
     </div>
@@ -315,25 +291,30 @@ use_onnx_subfunctions : bool, optional
 
     <div class="doc doc-contents first">
 
-        <p>Main function for the QEfficient execution CLI application.</p>
-<p>This function serves as the entry point for running a compiled model
+        <div class="highlight"><pre><span></span><code>Main function for the QEfficient execution CLI application.
+
+This function serves as the entry point for running a compiled model
 (QPC package) on the Cloud AI 100 Platform. It loads the necessary
-tokenizer and then orchestrates the text generation inference.</p>
-<h5 id="QEfficient.cloud.execute.main--parameters">Parameters<a class="headerlink" href="#QEfficient.cloud.execute.main--parameters" title="Permanent link">&para;</a></h5>
-<p>model_name : str
-    Hugging Face Model Card name (e.g., <code>gpt2</code>) for loading the tokenizer.
+tokenizer and then orchestrates the text generation inference.
+
+Parameters
+----------
+model_name : str
+    Hugging Face Model Card name (e.g., ``gpt2``) for loading the tokenizer.
 qpc_path : str
-    Path to the generated binary (QPC package) after compilation.</p>
-<h5 id="QEfficient.cloud.execute.main--other-parameters">Other Parameters<a class="headerlink" href="#QEfficient.cloud.execute.main--other-parameters" title="Permanent link">&para;</a></h5>
-<p>device_group : List[int], optional
-    List of device IDs to be used for inference. If <code>len(device_group) &gt; 1</code>,
+    Path to the generated binary (QPC package) after compilation.
+
+Other Parameters
+----------------
+device_group : List[int], optional
+    List of device IDs to be used for inference. If `len(device_group) &gt; 1`,
     a multi-card setup is enabled. Default is None.
 local_model_dir : str, optional
     Path to custom model weights and config files, used if not loading tokenizer
     from Hugging Face Hub. Default is None.
 prompt : str, optional
     Sample prompt(s) for the model text generation. For batch size &gt; 1,
-    pass multiple prompts separated by a pipe (<code>|</code>) symbol. Default is None.
+    pass multiple prompts separated by a pipe (``|``) symbol. Default is None.
 prompts_txt_file_path : str, optional
     Path to a text file containing multiple input prompts, one per line. Default is None.
 generation_len : int, optional
@@ -345,16 +326,21 @@ hf_token : str, optional
     HuggingFace login token to access private repositories. Default is None.
 full_batch_size : int, optional
     Ignored in this context as continuous batching is managed by the compiled QPC.
-    However, it might be passed through from CLI arguments. Default is None.</p>
-<h5 id="QEfficient.cloud.execute.main--example">Example<a class="headerlink" href="#QEfficient.cloud.execute.main--example" title="Permanent link">&para;</a></h5>
-<p>To execute a compiled model from the command line:</p>
-<p>.. code-block:: bash</p>
-<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.execute --model-name gpt2 --qpc-path /path/to/qpc/binaries --prompt &quot;Hello world&quot;
+    However, it might be passed through from CLI arguments. Default is None.
+
+Example
+-------
+To execute a compiled model from the command line:
+
+```bash
+python -m QEfficient.cloud.execute --model-name gpt2 --qpc-path /path/to/qpc/binaries --prompt &quot;Hello world&quot;
 </code></pre></div>
-<p>For multi-device inference:</p>
-<p>.. code-block:: bash</p>
-<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.execute --model-name gpt2 --qpc-path /path/to/qpc/binaries --device-group &quot;[0,1]&quot; --prompt &quot;Hello | Hi&quot;
+<p>```
+    For multi-device inference:</p>
+<div class="highlight"><pre><span></span><code>```bash
+python -m QEfficient.cloud.execute --model-name gpt2 --qpc-path /path/to/qpc/binaries --device-group &quot;[0,1]&quot; --prompt &quot;Hello | Hi&quot;
 </code></pre></div>
+<p>```</p>
 
 
     </div>
@@ -381,59 +367,247 @@ or the QNN compiler, and saves the compiled QPC package.</p>
 <p>This function handles the creation of specialization files, selection of custom IO
 configurations, and execution of the appropriate compiler (QAIC or QNN).
 It supports multi-device compilation for tensor slicing.</p>
-<h5 id="QEfficient.compile.compile_helper.compile--parameters">Parameters<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--parameters" title="Permanent link">&para;</a></h5>
-<p>onnx_path : str
-    Path to the generated ONNX model file.
-qpc_path : str
-    Target directory path for saving the compiled QPC binaries.
-num_cores : int
-    Number of cores to use for compilation.</p>
-<h5 id="QEfficient.compile.compile_helper.compile--other-parameters">Other Parameters<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--other-parameters" title="Permanent link">&para;</a></h5>
-<p>device_group : List[int], optional
-    List of device IDs. Used to determine the number of devices for multi-device compilation.
-    Default is None.
-aic_enable_depth_first : bool, optional
-    If True, enables Depth-First Search (DFS) optimization with default memory size during QAIC compilation.
-    Default is False.
-mos : int, optional
-    Effort level to reduce on-chip memory during QAIC compilation. A value greater than 0 applies this effort.
-    Default is -1 (no effort).
-batch_size : int, optional
-    Batch size to compile the model for. Default is 1.
-full_batch_size : int, optional
-    Sets the full batch size to enable continuous batching mode. If provided, <code>batch_size</code> must be 1.
-    Default is None.
-prompt_len : int, optional
-    Prompt length for the model to compile. Default is 32.
-ctx_len : int, optional
-    Maximum context length to compile the model for. Default is 128.
-mxfp6 : bool, optional
-    If True, enables MXFP6 precision for MatMul weights during compilation. Default is True.
-mxint8 : bool, optional
-    If True, compresses Present/Past KV to MXINT8 using a CustomIO configuration. Default is False.
-custom_io_file_path : str, optional
-    Explicit path to a Custom IO file (e.g., YAML format). If None, it's inferred based on <code>mxint8</code>.
-    Default is None.
-allow_mxint8_mdp_io : bool, optional
-    If True, allows MXINT8 compression of MDP IO traffic during QAIC compilation. Default is False.
-enable_qnn : bool, optional
-    If True, enables compilation using the QNN compiler instead of QAIC. Default is False.
-qnn_config : str, optional
-    Path to the QNN Config parameters file, used if <code>enable_qnn</code> is True. Default is None.
-**kwargs :
-    Additional compiler options passed directly to the chosen compiler.</p>
-<h5 id="QEfficient.compile.compile_helper.compile--returns">Returns<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--returns" title="Permanent link">&para;</a></h5>
-<p>str
-    Path to the compiled QPC package directory.</p>
-<h5 id="QEfficient.compile.compile_helper.compile--raises">Raises<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--raises" title="Permanent link">&para;</a></h5>
-<p>ValueError
-    If both <code>batch_size</code> and <code>full_batch_size</code> are greater than one (mutually exclusive in some contexts).
-FileNotFoundError
-    If required Custom IO files are not found.</p>
-<h5 id="QEfficient.compile.compile_helper.compile--warnings">Warnings<a class="headerlink" href="#QEfficient.compile.compile_helper.compile--warnings" title="Permanent link">&para;</a></h5>
-<p>DeprecationWarning
-    This method will be removed soon; use <code>QEFFAutoModelForCausalLM.compile</code> instead.</p>
+<p>.. deprecated::
+    This function will be removed soon. Use <code>QEFFAutoModelForCausalLM.compile</code> instead.</p>
 
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>onnx_path</code></b>
+                  (<code><span title="str">str</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Path to the generated ONNX model file.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>qpc_path</code></b>
+                  (<code><span title="str">str</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Target directory path for saving the compiled QPC binaries.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>num_cores</code></b>
+                  (<code><span title="int">int</span></code>)
+              –
+              <div class="doc-md-description">
+                <p>Number of cores to use for compilation.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>device_group</code></b>
+                  (<code><span title="typing.List">List</span>[<span title="int">int</span>]</code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>List of device IDs for multi-device compilation. Default is None.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>aic_enable_depth_first</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Enables Depth-First Search (DFS) optimization during
+QAIC compilation. Default is False.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>mos</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>-1</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Effort level to reduce on-chip memory during QAIC compilation.
+A value greater than 0 applies this effort. Default is -1 (no effort).</p>
+              </div>
+            </li>
+            <li>
+              <b><code>batch_size</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>1</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Batch size to compile the model for. Default is 1.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>prompt_len</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>32</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Prompt length for the model to compile. Default is 32.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>ctx_len</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>128</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Maximum context length to compile the model for. Default is 128.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>mxfp6</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>True</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Enables MXFP6 precision for MatMul weights during compilation. Default is True.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>mxint8</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Compresses Present/Past KV to MXINT8 using a CustomIO configuration.
+Default is False.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>custom_io_file_path</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Explicit path to a Custom IO file (e.g., YAML format).
+If None, inferred based on <code>mxint8</code>. Default is None.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>full_batch_size</code></b>
+                  (<code><span title="int">int</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Sets the full batch size to enable continuous batching mode.
+If provided, <code>batch_size</code> must be 1. Default is None.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>allow_mxint8_mdp_io</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Allows MXINT8 compression of MDP IO traffic during
+QAIC compilation. Default is False.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>enable_qnn</code></b>
+                  (<code><span title="bool">bool</span></code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Enables compilation using the QNN compiler instead of QAIC.
+Default is False.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>qnn_config</code></b>
+                  (<code><span title="str">str</span></code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Path to the QNN Config parameters file, used if <code>enable_qnn</code>
+is True. Default is None.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>**kwargs</code></b>
+              –
+              <div class="doc-md-description">
+                <p>Additional compiler options passed directly to the chosen compiler.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>str</code></b>(                  <code><span title="str">str</span></code>
+)              –
+              <div class="doc-md-description">
+                <p>Path to the compiled QPC package directory.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="ValueError">ValueError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If both <code>batch_size</code> and <code>full_batch_size</code> are greater than one.</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="FileNotFoundError">FileNotFoundError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If required Custom IO files are not found.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
     </div>
 
@@ -454,27 +628,36 @@ FileNotFoundError
 
     <div class="doc doc-contents first">
 
-        <p>Main function for the QEfficient ONNX export CLI application.</p>
-<p>This function serves as the entry point for exporting a PyTorch model, loaded
+        <div class="highlight"><pre><span></span><code>Main function for the QEfficient ONNX export CLI application.
+
+This function serves as the entry point for exporting a PyTorch model, loaded
 via QEFFCommonLoader, to the ONNX format. It prepares the necessary
-paths and calls <code>get_onnx_path_and_setup_customIO</code>.</p>
-<h5 id="QEfficient.cloud.export.main--parameters">Parameters<a class="headerlink" href="#QEfficient.cloud.export.main--parameters" title="Permanent link">&para;</a></h5>
-<p>model_name : str
-    Hugging Face Model Card name (e.g., <code>gpt2</code>).</p>
-<h5 id="QEfficient.cloud.export.main--other-parameters">Other Parameters<a class="headerlink" href="#QEfficient.cloud.export.main--other-parameters" title="Permanent link">&para;</a></h5>
-<p>cache_dir : str, optional
+paths and calls `get_onnx_path_and_setup_customIO`.
+
+Parameters
+----------
+model_name : str
+    Hugging Face Model Card name (e.g., ``gpt2``).
+
+Other Parameters
+----------------
+cache_dir : str, optional
     Cache directory where downloaded HuggingFace files are stored. Default is None.
 hf_token : str, optional
     HuggingFace login token to access private repositories. Default is None.
 local_model_dir : str, optional
     Path to custom model weights and config files. Default is None.
 full_batch_size : int, optional
-    Sets the full batch size to enable continuous batching mode. Default is None.</p>
-<h5 id="QEfficient.cloud.export.main--example">Example<a class="headerlink" href="#QEfficient.cloud.export.main--example" title="Permanent link">&para;</a></h5>
-<p>To export a model from the command line:</p>
-<p>.. code-block:: bash</p>
-<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.export --model-name gpt2 --cache-dir /path/to/cache
+    Sets the full batch size to enable continuous batching mode. Default is None.
+
+Example
+-------
+To export a model from the command line:
+
+```bash
+python -m QEfficient.cloud.export --model-name gpt2 --cache-dir /path/to/cache
 </code></pre></div>
+<p>```</p>
 
 
     </div>
@@ -505,21 +688,22 @@ optimizer and scheduler initialization, and the training loop.</p>
 <p>**kwargs :
     Additional arguments used to override default parameters in <code>TrainConfig</code>
     and PEFT configuration. These are typically parsed from command-line arguments.</p>
-<h5 id="QEfficient.cloud.finetune.main--example">Example<a class="headerlink" href="#QEfficient.cloud.finetune.main--example" title="Permanent link">&para;</a></h5>
-<p>To fine-tune a model using a YAML configuration file for PEFT:</p>
-<p>.. code-block:: bash</p>
-<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.finetune \
-    --model_name &quot;meta-llama/Llama-3.2-1B&quot; \
-    --lr 5e-4 \
-    --peft_config_file &quot;lora_config.yaml&quot;
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>To fine-tune a model using a YAML configuration file for PEFT:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-m<span class="w"> </span>QEfficient.cloud.finetune<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span>--model_name<span class="w"> </span><span class="s2">&quot;meta-llama/Llama-3.2-1B&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--lr<span class="w"> </span>5e-4<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span>--peft_config_file<span class="w"> </span><span class="s2">&quot;lora_config.yaml&quot;</span>
 </code></pre></div>
 <p>To fine-tune a model using a default LoRA configuration:</p>
-<p>.. code-block:: bash</p>
-<div class="highlight"><pre><span></span><code>python -m QEfficient.cloud.finetune \
-    --model_name &quot;meta-llama/Llama-3.2-1B&quot; \
-    --lr 5e-4
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-m<span class="w"> </span>QEfficient.cloud.finetune<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span>--model_name<span class="w"> </span><span class="s2">&quot;meta-llama/Llama-3.2-1B&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span>--lr<span class="w"> </span>5e-4
 </code></pre></div>
-
+</details>
 
     </div>
 
@@ -563,6 +747,7 @@ optimizer and scheduler initialization, and the training loop.</p>
     <script>var base_url = "../..";</script>
     <script src="../../js/theme_extra.js"></script>
     <script src="../../js/theme.js"></script>
+      <script src="../../_static/cleanup_docstrings.js"></script>
       <script src="../../search/main.js"></script>
       <script src="../../js/version-select.js"></script>
     <script>

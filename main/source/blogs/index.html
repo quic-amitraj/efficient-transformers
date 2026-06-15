@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/main/source/blogs/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Blogs - Efficient Transformers</title>
+    <title>Blog Posts - Efficient Transformers</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -15,7 +15,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Blogs";
+        var mkdocs_page_name = "Blog Posts";
         var mkdocs_page_input_path = "source/blogs.md";
         var mkdocs_page_url = "/efficient-transformers/main/source/blogs/";
       </script>
@@ -50,9 +50,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
                 </li>
               </ul>
+              <p class="caption"><span class="caption-text">Release Documents</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
               <ul>
@@ -60,42 +61,56 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validated Models</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Pre-requisites & Installation</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement Guide</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">API Reference</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">Auto Classes</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">QEfficient Auto Classes</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API Reference</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">QAIC Finetune</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune Infra</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Blogs</span></p>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="#">Blogs</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Blog Posts</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#train-anywhere-infer-on-qualcomm-cloud-ai-100">Train anywhere, Infer on Qualcomm Cloud AI 100</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#how-to-quadruple-llm-decoding-performance-with-speculative-decoding-spd-and-microscaling-mx-formats-on-qualcomm-cloud-ai-100">How to Quadruple LLM Decoding Performance with Speculative Decoding (SpD) and Microscaling (MX) Formats on Qualcomm® Cloud AI 100</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#power-efficient-acceleration-for-large-language-models-qualcomm-cloud-ai-sdk">Power-efficient acceleration for large language models – Qualcomm Cloud AI SDK</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#qualcomm-cloud-ai-100-accelerates-large-language-model-inference-by-2x-using-microscaling-mx-formats">Qualcomm Cloud AI 100 Accelerates Large Language Model Inference by ~2x Using Microscaling (Mx) Formats</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#qualcomm-cloud-ai-introduces-efficient-transformers-one-api-infinite-possibilities">Qualcomm Cloud AI Introduces Efficient Transformers: One API, Infinite Possibilities</a>
+    </li>
     </ul>
-                </li>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/">External Links</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -111,7 +126,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">Blogs</li>
+          <li class="breadcrumb-item">Blogs</li>
+      <li class="breadcrumb-item active">Blog Posts</li>
     <li class="wy-breadcrumbs-aside">
           <a href="https://github.com/quic/efficient-transformers/edit/main/source/blogs.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
@@ -121,16 +137,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="train-anywhere-infer-on-qualcomm-cloud-ai-100">Train anywhere, Infer on Qualcomm Cloud AI 100<a class="headerlink" href="#train-anywhere-infer-on-qualcomm-cloud-ai-100" title="Permanent link">&para;</a></h1>
-<p><a href="https://www.qualcomm.com/developer/blog/2024/01/train-anywhere-infer-qualcomm-cloud-ai-100">Click here</a></p>
-<h1 id="how-to-quadruple-llm-decoding-performance-with-speculative-decoding-spd-and-microscaling-mx-formats-on-qualcomm-cloud-ai-100">How to Quadruple LLM Decoding Performance with Speculative Decoding (SpD) and Microscaling (MX) Formats on Qualcomm® Cloud AI 100<a class="headerlink" href="#how-to-quadruple-llm-decoding-performance-with-speculative-decoding-spd-and-microscaling-mx-formats-on-qualcomm-cloud-ai-100" title="Permanent link">&para;</a></h1>
-<p><a href="https://statics.teams.cdn.office.net/evergreen-assets/safelinks/1/atp-safelinks.html">Click here</a></p>
-<h1 id="power-efficient-acceleration-for-large-language-models-qualcomm-cloud-ai-sdk">Power-efficient acceleration for large language models – Qualcomm Cloud AI SDK<a class="headerlink" href="#power-efficient-acceleration-for-large-language-models-qualcomm-cloud-ai-sdk" title="Permanent link">&para;</a></h1>
-<p><a href="https://www.qualcomm.com/developer/blog/2023/11/power-efficient-acceleration-large-language-models-qualcomm-cloud-ai-sdk">Click here</a></p>
-<h1 id="qualcomm-cloud-ai-100-accelerates-large-language-model-inference-by-2x-using-microscaling-mx-formats">Qualcomm Cloud AI 100 Accelerates Large Language Model Inference by ~2x Using Microscaling (Mx) Formats<a class="headerlink" href="#qualcomm-cloud-ai-100-accelerates-large-language-model-inference-by-2x-using-microscaling-mx-formats" title="Permanent link">&para;</a></h1>
-<p><a href="https://www.qualcomm.com/developer/blog/2024/01/qualcomm-cloud-ai-100-accelerates-large-language-model-inference-2x-using-microscaling-mx">click here</a></p>
-<h1 id="qualcomm-cloud-ai-introduces-efficient-transformers-one-api-infinite-possibilities">Qualcomm Cloud AI Introduces Efficient Transformers: One API, Infinite Possibilities<a class="headerlink" href="#qualcomm-cloud-ai-introduces-efficient-transformers-one-api-infinite-possibilities" title="Permanent link">&para;</a></h1>
-<p><a href="https://www.qualcomm.com/developer/blog/2024/05/qualcomm-cloud-ai-introduces-efficient-transformers-one-api">click here</a></p>
+                <h1 id="blogs">Blogs<a class="headerlink" href="#blogs" title="Permanent link">&para;</a></h1>
+<h2 id="train-anywhere-infer-on-qualcomm-cloud-ai-100"><a href="https://www.qualcomm.com/developer/blog/2024/01/train-anywhere-infer-qualcomm-cloud-ai-100">Train anywhere, Infer on Qualcomm Cloud AI 100</a><a class="headerlink" href="#train-anywhere-infer-on-qualcomm-cloud-ai-100" title="Permanent link">&para;</a></h2>
+<h2 id="how-to-quadruple-llm-decoding-performance-with-speculative-decoding-spd-and-microscaling-mx-formats-on-qualcomm-cloud-ai-100"><a href="https://statics.teams.cdn.office.net/evergreen-assets/safelinks/1/atp-safelinks.html">How to Quadruple LLM Decoding Performance with Speculative Decoding (SpD) and Microscaling (MX) Formats on Qualcomm® Cloud AI 100</a><a class="headerlink" href="#how-to-quadruple-llm-decoding-performance-with-speculative-decoding-spd-and-microscaling-mx-formats-on-qualcomm-cloud-ai-100" title="Permanent link">&para;</a></h2>
+<h2 id="power-efficient-acceleration-for-large-language-models-qualcomm-cloud-ai-sdk"><a href="https://www.qualcomm.com/developer/blog/2023/11/power-efficient-acceleration-large-language-models-qualcomm-cloud-ai-sdk">Power-efficient acceleration for large language models – Qualcomm Cloud AI SDK</a><a class="headerlink" href="#power-efficient-acceleration-for-large-language-models-qualcomm-cloud-ai-sdk" title="Permanent link">&para;</a></h2>
+<h2 id="qualcomm-cloud-ai-100-accelerates-large-language-model-inference-by-2x-using-microscaling-mx-formats"><a href="https://www.qualcomm.com/developer/blog/2024/01/qualcomm-cloud-ai-100-accelerates-large-language-model-inference-2x-using-microscaling-mx">Qualcomm Cloud AI 100 Accelerates Large Language Model Inference by ~2x Using Microscaling (Mx) Formats</a><a class="headerlink" href="#qualcomm-cloud-ai-100-accelerates-large-language-model-inference-by-2x-using-microscaling-mx-formats" title="Permanent link">&para;</a></h2>
+<h2 id="qualcomm-cloud-ai-introduces-efficient-transformers-one-api-infinite-possibilities"><a href="https://www.qualcomm.com/developer/blog/2024/05/qualcomm-cloud-ai-introduces-efficient-transformers-one-api">Qualcomm Cloud AI Introduces Efficient Transformers: One API, Infinite Possibilities</a><a class="headerlink" href="#qualcomm-cloud-ai-introduces-efficient-transformers-one-api-infinite-possibilities" title="Permanent link">&para;</a></h2>
               
             </div>
           </div><footer>
@@ -170,6 +182,7 @@
     <script>var base_url = "../..";</script>
     <script src="../../js/theme_extra.js"></script>
     <script src="../../js/theme.js"></script>
+      <script src="../../_static/cleanup_docstrings.js"></script>
       <script src="../../search/main.js"></script>
       <script src="../../js/version-select.js"></script>
     <script>

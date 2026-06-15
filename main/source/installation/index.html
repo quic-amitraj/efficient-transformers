@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/main/source/installation/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Installation - Efficient Transformers</title>
+    <title>Pre-requisites & Installation - Efficient Transformers</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -15,7 +15,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Installation";
+        var mkdocs_page_name = "Pre-requisites \u0026 Installation";
         var mkdocs_page_input_path = "source/installation.md";
         var mkdocs_page_url = "/efficient-transformers/main/source/installation/";
       </script>
@@ -50,9 +50,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
                 </li>
               </ul>
+              <p class="caption"><span class="caption-text">Release Documents</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
               <ul>
@@ -60,42 +61,56 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validated Models</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="#">Installation</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Pre-requisites & Installation</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1-download-apps-sdk">1. Download Apps SDK</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2-install-efficient-transformers">2. Install Efficient-Transformers</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#using-github-repository">Using GitHub Repository</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#sanity-check">Sanity Check</a>
+    </li>
     </ul>
-                </li>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement Guide</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">API Reference</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">Auto Classes</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">QEfficient Auto Classes</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API Reference</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">QAIC Finetune</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune Infra</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Blogs</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blog Posts</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/">External Links</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -111,7 +126,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">Installation</li>
+          <li class="breadcrumb-item">Installation</li>
+      <li class="breadcrumb-item active">Pre-requisites & Installation</li>
     <li class="wy-breadcrumbs-aside">
           <a href="https://github.com/quic/efficient-transformers/edit/main/source/installation.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
@@ -128,7 +144,6 @@
 3. <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Installation/Pre-requisites/pre-requisites/">SDK Pre-requisites</a> 
 4. <a href="https://github.com/quic/cloud-ai-sdk/tree/1.12/utils/multi-device">Multi-device support enabled for model sharding</a></p>
 <hr />
-<h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
 <h2 id="1-download-apps-sdk">1. Download Apps SDK<a class="headerlink" href="#1-download-apps-sdk" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Installation/Cloud-AI-SDK/Cloud-AI-SDK/">Cloud AI 100 Apps SDK install</a>  </li>
@@ -153,21 +168,23 @@ Apply chmod commands
 <hr />
 <h2 id="2-install-efficient-transformers">2. Install Efficient-Transformers<a class="headerlink" href="#2-install-efficient-transformers" title="Permanent link">&para;</a></h2>
 <h3 id="using-github-repository">Using GitHub Repository<a class="headerlink" href="#using-github-repository" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Efficient Transformers have been validated to work with the same compatible SDK. Upgrading this may result in certain models becoming incompatible.
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Create Python virtual env and activate it. (Required Python 3.10)</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>python3.12<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>qeff_env
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nb">source</span><span class="w"> </span>qeff_env/bin/activate
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pip
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Clone and Install the QEfficient Repo.</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/quic/efficient-transformers
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Efficient Transformers have been validated to work with the same compatible SDK. Upgrading this may result in certain models becoming incompatible.</p>
+</div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Create Python virtual env and activate it. (Required Python 3.10)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>python3.12<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>qeff_env
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nb">source</span><span class="w"> </span>qeff_env/bin/activate
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pip
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Clone and Install the QEfficient Repo.</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/quic/efficient-transformers
 </code></pre></div>
 <hr />
-<h1 id="sanity-check">Sanity Check<a class="headerlink" href="#sanity-check" title="Permanent link">&para;</a></h1>
+<h2 id="sanity-check">Sanity Check<a class="headerlink" href="#sanity-check" title="Permanent link">&para;</a></h2>
 <p>After above installation methods, you can check if <code>QEfficient</code> is installed correctly by using
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import QEfficient; print(QEfficient.__version__)&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import QEfficient; print(QEfficient.__version__)&quot;</span>
 </code></pre></div>
 If the above line executes successfully, you are good to go ahead and start deploying models on <code>Cloud AI 100</code> cards using <code>QEfficient</code> library.</p>
               
@@ -209,6 +226,7 @@ If the above line executes successfully, you are good to go ahead and start depl
     <script>var base_url = "../..";</script>
     <script src="../../js/theme_extra.js"></script>
     <script src="../../js/theme.js"></script>
+      <script src="../../_static/cleanup_docstrings.js"></script>
       <script src="../../search/main.js"></script>
       <script src="../../js/version-select.js"></script>
     <script>

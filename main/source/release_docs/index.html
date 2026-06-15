@@ -50,8 +50,9 @@
                 <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
                 </li>
               </ul>
+              <p class="caption"><span class="caption-text">Release Documents</span></p>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="#">Release Notes</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Release Notes</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#newly-supported-models">Newly Supported Models</a>
     </li>
@@ -61,8 +62,18 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#fine-tuning-support">Fine-Tuning Support</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#efficient-transformer-library-1200-release-notes">Efficient Transformer Library - 1.20.0 Release Notes</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#newly-supported-models_1">Newly Supported Models</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#key-features-enhancements_1">Key Features &amp; Enhancements</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#embedding-model-upgrades_1">Embedding Model Upgrades</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fine-tuning-support_1">Fine-Tuning Support</a>
+    </li>
     </ul>
-                </li>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
               <ul>
@@ -70,40 +81,44 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validated Models</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Pre-requisites & Installation</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement Guide</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">API Reference</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">Auto Classes</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">QEfficient Auto Classes</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API Reference</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">QAIC Finetune</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../finetune/">Finetune Infra</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Blogs</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blog Posts</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/">External Links</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -119,6 +134,7 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Release Documents</li>
       <li class="breadcrumb-item active">Release Notes</li>
     <li class="wy-breadcrumbs-aside">
           <a href="https://github.com/quic/efficient-transformers/edit/main/source/release_docs.md" class="icon icon-github"> Edit on GitHub</a>
@@ -267,7 +283,7 @@ Simplified setup and deployment process for new users</li>
 <li><strong>Comprehensive Testing</strong>: Unit tests for fine-tuning workflows</li>
 </ul>
 <hr />
-<h1 id="efficient-transformer-library-1200-release-notes">Efficient Transformer Library - 1.20.0 Release Notes<a class="headerlink" href="#efficient-transformer-library-1200-release-notes" title="Permanent link">&para;</a></h1>
+<h2 id="efficient-transformer-library-1200-release-notes">Efficient Transformer Library - 1.20.0 Release Notes<a class="headerlink" href="#efficient-transformer-library-1200-release-notes" title="Permanent link">&para;</a></h2>
 <p>Welcome to the official release of <strong>Efficient Transformer Library v1.20.0</strong>! This release introduces advanced attention mechanisms, expanded model support, optimized serving capabilities, and significant improvements to fine-tuning and deployment workflows.</p>
 <blockquote>
 <p>✅ All features and models listed below are available on the <a href="https://github.com/quic/efficient-transformers/tree/release/v1.20.0"><code>release/v1.20.0</code></a> branch and <a href="https://github.com/quic/efficient-transformers/tree/main"><code>mainline</code></a>.</p>
@@ -379,6 +395,7 @@ Simplified setup and deployment process for new users</li>
     <script>var base_url = "../..";</script>
     <script src="../../js/theme_extra.js"></script>
     <script src="../../js/theme.js"></script>
+      <script src="../../_static/cleanup_docstrings.js"></script>
       <script src="../../search/main.js"></script>
       <script src="../../js/version-select.js"></script>
     <script>

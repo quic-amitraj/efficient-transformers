@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://quic.github.io/efficient-transformers/main/source/finetune/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Finetune - Efficient Transformers</title>
+    <title>Finetune Infra - Efficient Transformers</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -15,7 +15,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Finetune";
+        var mkdocs_page_name = "Finetune Infra";
         var mkdocs_page_input_path = "source/finetune.md";
         var mkdocs_page_url = "/efficient-transformers/main/source/finetune/";
       </script>
@@ -50,9 +50,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
                 </li>
               </ul>
+              <p class="caption"><span class="caption-text">Release Documents</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release_docs/">Release Notes</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
               <ul>
@@ -60,31 +61,33 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../supported_features/">Supported Features</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validate</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../validate/">Validated Models</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">Installation</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Pre-requisites & Installation</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Inference on Cloud AI 100</span></p>
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../quick_start/">Quick Start</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../features_enablement/">Features Enablement Guide</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">API Reference</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">Auto Classes</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../qeff_autoclasses/">QEfficient Auto Classes</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../diffuser_classes/">Diffuser Classes</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../cli_api/">CLI API Reference</a>
                   </li>
               </ul>
+              <p class="caption"><span class="caption-text">QAIC Finetune</span></p>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="#">Finetune</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Finetune Infra</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
     </li>
@@ -110,24 +113,24 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#tensorboard-logdir-runsfile-bind_all">tensorboard --logdir runs/&lt;file&gt; --bind_all</a>
-    </li>
     <li class="toctree-l2"><a class="reference internal" href="#some-featuresfunctionalities-of-fine-tuning-stack">Some features/functionalities of fine-tuning stack:</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#steps-to-fine-tune-with-a-custom-dataset">🔧 Steps to Fine-Tune with a Custom Dataset</a>
+    <li class="toctree-l3"><a class="reference internal" href="#steps-to-fine-tune-with-a-custom-dataset">Steps to Fine-Tune with a Custom Dataset</a>
     </li>
         </ul>
     </li>
     </ul>
-                </li>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Blogs</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blogs</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../blogs/">Blog Posts</a>
+                  </li>
               </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/">External Links</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -143,7 +146,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">Finetune</li>
+          <li class="breadcrumb-item">QAIC Finetune</li>
+      <li class="breadcrumb-item active">Finetune Infra</li>
     <li class="wy-breadcrumbs-aside">
           <a href="https://github.com/quic/efficient-transformers/edit/main/source/finetune.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
@@ -266,13 +270,14 @@ In distributed ML setups, all nodes must resolve each other’s hostnames. If DN
 <h2 id="visualization">Visualization<a class="headerlink" href="#visualization" title="Permanent link">&para;</a></h2>
 <p>Tensorboard logs are generated inside runs/ directory with date and time stamp.
 to visualise the data,</p>
-<h2 id="tensorboard-logdir-runsfile-bind_all"><div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="n">tensorboard</span> <span class="o">--</span><span class="n">logdir</span> <span class="n">runs</span><span class="o">/&lt;</span><span class="n">file</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">bind_all</span>
-</code></pre></div><a class="headerlink" href="#tensorboard-logdir-runsfile-bind_all" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="n">tensorboard</span> <span class="o">--</span><span class="n">logdir</span> <span class="n">runs</span><span class="o">/&lt;</span><span class="n">file</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">bind_all</span>
+</code></pre></div>
+<hr />
 <h2 id="some-featuresfunctionalities-of-fine-tuning-stack">Some features/functionalities of fine-tuning stack:<a class="headerlink" href="#some-featuresfunctionalities-of-fine-tuning-stack" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>1) Gradient accumulation: By default, gradient accumulation happens for 4 steps. To update this value, command line argument gradient_accumulation_steps has to be passed. (Example: &#39;--gradient_accumulation_steps 8&#39;)
 2) Gradient Checkpointing: By default, gradient checkpointing is disabled. To enable it, command line argument gradient_accumulation_steps has to be passed.
 </code></pre></div>
-<h3 id="steps-to-fine-tune-with-a-custom-dataset">🔧 Steps to Fine-Tune with a Custom Dataset<a class="headerlink" href="#steps-to-fine-tune-with-a-custom-dataset" title="Permanent link">&para;</a></h3>
+<h3 id="steps-to-fine-tune-with-a-custom-dataset">Steps to Fine-Tune with a Custom Dataset<a class="headerlink" href="#steps-to-fine-tune-with-a-custom-dataset" title="Permanent link">&para;</a></h3>
 <ol>
 <li>
 <p><strong>Launching Fine-Tuning with a Custom Dataset</strong></p>
@@ -397,6 +402,7 @@ to visualise the data,</p>
     <script>var base_url = "../..";</script>
     <script src="../../js/theme_extra.js"></script>
     <script src="../../js/theme.js"></script>
+      <script src="../../_static/cleanup_docstrings.js"></script>
       <script src="../../search/main.js"></script>
       <script src="../../js/version-select.js"></script>
     <script>
