@@ -373,36 +373,23 @@ class TestWeightFreeCheckpointTransforms:
                 qeff_model=SimpleNamespace(model=MissingStateModel()),
             )
 
-    @pytest.mark.parametrize(
-        "state_kind,state_name",
-        [
-            ("buffer", "rotary_emb.inv_freq"),
-            ("buffer", "transformer.h.0.attn.embed_positions"),
-            ("buffer", "model.embed_tokens.embed_scale"),
-            ("parameter", "model.sin_cached"),
-            ("parameter", "model.cos_cached"),
-        ],
-    )
-    def test_promote_initializers_keeps_computed_state_embedded(self, tmp_path, monkeypatch, state_kind, state_name):
+    def test_promote_initializers_keeps_concrete_unresolved_state_embedded(self, tmp_path, monkeypatch):
         src = tmp_path / "src"
         src.mkdir()
         _write_safetensors_checkpoint(src, {"other.weight": torch.ones(2, dtype=torch.float32)})
 
-        class ComputedStateModel(torch.nn.Module):
+        state_name = "generated_state"
+
+        class ConcreteStateModel(torch.nn.Module):
             def __init__(self):
                 super().__init__()
-                parent = self
-                parts = state_name.split(".")
-                for part in parts[:-1]:
-                    child = torch.nn.Module()
-                    setattr(parent, part, child)
-                    parent = child
-                if state_kind == "parameter":
-                    parent.register_parameter(parts[-1], torch.nn.Parameter(torch.ones(2)))
-                else:
-                    parent.register_buffer(parts[-1], torch.ones(2))
+                self.register_buffer(state_name, torch.ones(2))
 
-        initializer = SimpleNamespace(shape=(2,), dtype=ir.DataType.FLOAT)
+        initializer = SimpleNamespace(
+            shape=(2,),
+            dtype=ir.DataType.FLOAT,
+            const_value=ir.Tensor(torch.ones(2, dtype=torch.float32).numpy()),
+        )
         graph = SimpleNamespace(initializers={state_name: initializer}, inputs=[])
         onnx_program = SimpleNamespace(model=SimpleNamespace(graph=graph))
         monkeypatch.setattr(
@@ -414,13 +401,44 @@ class TestWeightFreeCheckpointTransforms:
         spec = checkpoint_key_resolver.promote_initializers_and_build_spec(
             onnx_program=onnx_program,
             model_ref=str(src),
-            model_name="tiny-computed-state",
-            qeff_model=SimpleNamespace(model=ComputedStateModel()),
+            model_name="tiny-concrete-state",
+            qeff_model=SimpleNamespace(model=ConcreteStateModel()),
         )
 
         assert state_name in graph.initializers
         assert graph.inputs == []
         assert spec.inputs == []
+
+    def test_promote_initializers_rejects_unresolved_meta_state(self, tmp_path, monkeypatch):
+        src = tmp_path / "src"
+        src.mkdir()
+        _write_safetensors_checkpoint(src, {"other.weight": torch.ones(2, dtype=torch.float32)})
+
+        class MetaStateModel(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.register_parameter("missing_weight", torch.nn.Parameter(torch.ones(2)))
+
+        initializer = SimpleNamespace(
+            shape=(2,),
+            dtype=ir.DataType.FLOAT,
+            const_value=SimpleNamespace(raw=torch.ones(2, device="meta")),
+        )
+        graph = SimpleNamespace(initializers={"missing_weight": initializer}, inputs=[])
+        onnx_program = SimpleNamespace(model=SimpleNamespace(graph=graph))
+        monkeypatch.setattr(
+            checkpoint_key_resolver.ir,
+            "Value",
+            lambda name, shape, type: SimpleNamespace(name=name, shape=shape, type=type),
+        )
+
+        with pytest.raises(ValueError, match="Only ONNX initializers with concrete serializable values"):
+            checkpoint_key_resolver.promote_initializers_and_build_spec(
+                onnx_program=onnx_program,
+                model_ref=str(src),
+                model_name="tiny-meta-state",
+                qeff_model=SimpleNamespace(model=MetaStateModel()),
+            )
 
     def test_promotes_embed_tokens_for_tied_model(self, tmp_path, monkeypatch):
         """When tie_word_embeddings=True, torch.export deduplicates tied weights —

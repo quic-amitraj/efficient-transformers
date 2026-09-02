@@ -31,16 +31,6 @@ _MOE_WEIGHT_LEGACY_SUFFIXES = {
 }
 
 
-_COMPUTED_INITIALIZER_NAMES = {
-    "cos_cached",
-    "sin_cached",
-    "inv_freq",
-    "original_inv_freq",
-    "embed_positions",
-    "embed_scale",
-}
-
-
 def _collect_tied_weights(model: nn.Module) -> list[TiedWeightAlias]:
     """Return aliases for tied weights, keyed by the model's own tied-weights contract.
 
@@ -99,9 +89,18 @@ def _find_checkpoint_key(candidates: List[str], checkpoint_index: Dict[str, str]
     return matches[0] if matches else None
 
 
-def _is_computed_initializer(name: str) -> bool:
-    """Return True for generated constants that are not stored in HF checkpoints."""
-    return name.rsplit(".", 1)[-1] in _COMPUTED_INITIALIZER_NAMES
+def _has_serializable_initializer_value(init_value) -> bool:
+    """Return whether an ONNX initializer already carries concrete serializable data."""
+    const_value = getattr(init_value, "const_value", None)
+    if const_value is None:
+        return False
+
+    raw_value = getattr(const_value, "raw", None)
+    if raw_value is None:
+        return True
+    if getattr(raw_value, "is_meta", False):
+        return False
+    return raw_value.__class__.__name__ != "FakeTensor"
 
 
 def find_checkpoint_key(
@@ -115,6 +114,10 @@ def find_checkpoint_key(
     task-head/base-model checkpoint differences, and known HF/QEff MoE naming
     differences without putting those details in the export orchestration path.
     """
+    # TODO(follow-up): Replace this ordered fallback list with explicit checkpoint-layout
+    # metadata from the selected checkpoint transform/model wrapper. The current path
+    # now fails on ambiguous matches, but it still encodes model-specific prefix/MoE
+    # aliases in this generic resolver.
     candidates = [onnx_name]
     stripped = onnx_name.removeprefix("base_model.")
     candidates.append(stripped)
@@ -187,12 +190,12 @@ def promote_initializers_and_build_spec(onnx_program, model_ref: str, model_name
         onnx_name = tied_weight_map.get(name, name)
         checkpoint_key = find_checkpoint_key(onnx_name, checkpoint_index, backbone)
         if checkpoint_key is None:
-            if _is_computed_initializer(onnx_name):
+            if _has_serializable_initializer_value(init_value):
                 continue
             raise ValueError(
                 f"Could not resolve model initializer '{name}' to a safetensors checkpoint key "
                 f"(resolved name: '{onnx_name}', model: '{model_ref}'). "
-                "Only explicitly classified computed initializers may remain embedded in the ONNX model."
+                "Only ONNX initializers with concrete serializable values may remain embedded in the ONNX model."
             )
 
         checkpoint_file = checkpoint_index[checkpoint_key]
