@@ -168,6 +168,13 @@ def _prepare_checkpoint_for_weight_free_export(
 
     source_dir = resolve_checkpoint_dir(model_ref)
     selected_layer_count = _effective_num_hidden_layers(qeff_model.model.config)
+    # Weight-free export reads tensors directly from the external checkpoint,
+    # so it must receive the same KV-replication metadata used by the PyTorch
+    # ReplicateKVHeadTransform.  The text config owns the original head count
+    # for both plain decoder configs and wrapper configs with ``text_config``.
+    text_config = getattr(qeff_model.model.config, "text_config", None) or qeff_model.model.config
+    num_replicate_kv_heads = int(qeff_model.hash_params.get("num_replicate_kv_heads", 1) or 1)
+    orig_kv_heads = getattr(text_config, "orig_kv_heads", None)
     prepared_name = _prepared_checkpoint_name(source_dir, target_dtype, selected_layer_count)
     if QEFF_CHECKPOINT_HOME:
         prepared_out = QEFF_CHECKPOINT_HOME.expanduser() / prepared_name
@@ -181,6 +188,10 @@ def _prepare_checkpoint_for_weight_free_export(
             target_dtype=target_dtype,
             checkpoint_layout_version=CHECKPOINT_LAYOUT_VERSION,
             selected_layer_count=selected_layer_count,
+            # Keep replication parameters in the transform manifest so a
+            # changed repeat factor invalidates and rebuilds the checkpoint.
+            num_replicate_kv_heads=num_replicate_kv_heads,
+            orig_kv_heads=orig_kv_heads,
         )
     )
 
