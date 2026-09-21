@@ -18,7 +18,7 @@ e.g. QEfficient/exporter/weight_free/checkpoint_transforms.py.
 import json
 import shutil
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional, Type
 
 import torch
 
@@ -30,7 +30,7 @@ CHECKPOINT_PREPARED_MANIFEST = ".checkpoint_prepared.json"
 CHECKPOINT_LAYOUT_VERSION = 2
 
 
-def _checkpoint_files(root: Path) -> list[Path]:
+def _checkpoint_files(root: Path) -> List[Path]:
     patterns = ("*.safetensors", "*.bin", "*.json")
     files = set()
     for pattern in patterns:
@@ -38,7 +38,7 @@ def _checkpoint_files(root: Path) -> list[Path]:
     return sorted(files)
 
 
-def _checkpoint_file_fingerprint(root: Path, label: str) -> list[dict]:
+def _checkpoint_file_fingerprint(root: Path, label: str) -> List[dict]:
     fingerprint = []
     for path in _checkpoint_files(root):
         stat = path.stat()
@@ -57,8 +57,8 @@ def _checkpoint_manifest(
     src: Path,
     source_dir: Path,
     target_dtype: torch.dtype,
-    transforms: list[type["BaseCheckpointTransform"]],
-    options: dict[str, Any] | None = None,
+    transforms: List[Type["BaseCheckpointTransform"]],
+    options: Optional[Dict[str, Any]] = None,
 ) -> dict:
     files = _checkpoint_file_fingerprint(source_dir, "source")
     if source_dir != src:
@@ -121,7 +121,7 @@ class BaseCheckpointTransform:
         raise NotImplementedError
 
     @classmethod
-    def is_applicable(cls, weight_map: dict[str, str], **kwargs) -> bool:
+    def is_applicable(cls, weight_map: Dict[str, str], **kwargs) -> bool:
         """Return True if this transform should run for the given checkpoint."""
         return True
 
@@ -148,7 +148,7 @@ class CheckpointTransformPipeline:
         prepared_dir = pipeline.apply(src, out, target_dtype=torch.float32)
     """
 
-    def __init__(self, transforms: list[type[BaseCheckpointTransform]]):
+    def __init__(self, transforms: List[Type[BaseCheckpointTransform]]):
         """Create a priority-ordered checkpoint transform pipeline."""
         self.transforms = transforms
 

@@ -8,7 +8,7 @@
 import json
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional, Tuple
 
 import onnx
 import torch
@@ -101,7 +101,7 @@ def _resolve_weight_free_target_dtype(config: Any) -> torch.dtype:
     return target_dtype
 
 
-def _effective_num_hidden_layers(config: Any) -> int | None:
+def _effective_num_hidden_layers(config: Any) -> Optional[int]:
     """Return the layer count used by the exported text decoder config."""
     for candidate in (
         config,
@@ -116,7 +116,7 @@ def _effective_num_hidden_layers(config: Any) -> int | None:
     return None
 
 
-def _prepared_checkpoint_name(source_dir: Path, target_dtype: torch.dtype, selected_layer_count: int | None) -> str:
+def _prepared_checkpoint_name(source_dir: Path, target_dtype: torch.dtype, selected_layer_count: Optional[int]) -> str:
     """Build the prepared checkpoint cache directory name."""
     dtype_suffix = str(target_dtype).replace("torch.", "")
     layer_suffix = f"-layers{selected_layer_count}" if selected_layer_count is not None else ""
@@ -199,12 +199,12 @@ def _prepare_checkpoint_for_weight_free_export(
 def export_weight_free_onnx(
     qeff_model,
     onnx_path: Path,
-    example_inputs: dict[str, torch.Tensor],
-    input_names: list[str],
-    output_names: list[str],
-    dynamic_shapes: dict[str, Any],
-    export_kwargs: dict[str, Any],
-    onnx_transform_kwargs: dict[str, Any],
+    example_inputs: Dict[str, torch.Tensor],
+    input_names: List[str],
+    output_names: List[str],
+    dynamic_shapes: Dict[str, Any],
+    export_kwargs: Dict[str, Any],
+    onnx_transform_kwargs: Dict[str, Any],
 ):
     """Export a QEfficient model to ONNX with checkpoint weights externalized.
 

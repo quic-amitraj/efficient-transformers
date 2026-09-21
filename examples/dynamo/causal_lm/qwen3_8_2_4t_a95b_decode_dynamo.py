@@ -11,6 +11,7 @@ import argparse
 import os
 import shutil
 from pathlib import Path
+from typing import List
 
 import torch
 from tokenizers import Tokenizer
@@ -64,7 +65,7 @@ def torch_dtype(dtype_name: str) -> DType:
     return getattr(torch, dtype_name)
 
 
-def layer_types(num_hidden_layers: int) -> list[str]:
+def layer_types(num_hidden_layers: int) -> List[str]:
     return [
         "full_attention" if (layer_idx + 1) % 4 == 0 else "linear_attention" for layer_idx in range(num_hidden_layers)
     ]

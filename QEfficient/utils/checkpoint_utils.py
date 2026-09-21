@@ -8,9 +8,9 @@
 import json
 import os
 import shutil
-from collections.abc import Sequence
-from functools import cache
+from functools import lru_cache
 from pathlib import Path
+from typing import Dict, List, Optional, Sequence
 
 import torch
 from safetensors import safe_open
@@ -82,7 +82,7 @@ def cpu_count() -> int:
 # ---------------------------------------------------------------------------
 
 
-def safetensors_dtype_to_torch(dtype: str) -> torch.dtype | None:
+def safetensors_dtype_to_torch(dtype: str) -> Optional[torch.dtype]:
     """Map a safetensors dtype string to the matching torch dtype."""
     return {
         "BF16": torch.bfloat16,
@@ -92,7 +92,7 @@ def safetensors_dtype_to_torch(dtype: str) -> torch.dtype | None:
     }.get(dtype)
 
 
-def requires_dtype_conversion(src: Path, weight_map: dict[str, str], target_dtype: torch.dtype) -> bool:
+def requires_dtype_conversion(src: Path, weight_map: Dict[str, str], target_dtype: torch.dtype) -> bool:
     """Return True when any floating-point checkpoint tensor differs from ``target_dtype``."""
     for shard_name in sorted(set(weight_map.values())):
         with safe_open(str(src / shard_name), framework="pt") as handle:
@@ -105,7 +105,7 @@ def requires_dtype_conversion(src: Path, weight_map: dict[str, str], target_dtyp
     return False
 
 
-def read_weight_map(src: Path) -> dict[str, str]:
+def read_weight_map(src: Path) -> Dict[str, str]:
     """Return {tensor_key: shard_filename} from model.safetensors.index.json,
     or by scanning all *.safetensors for single-file checkpoints."""
     index_path = src / "model.safetensors.index.json"
@@ -115,7 +115,7 @@ def read_weight_map(src: Path) -> dict[str, str]:
     shard_files = sorted(src.glob("*.safetensors"))
     if not shard_files:
         raise FileNotFoundError(f"No safetensors files found in {src}")
-    weight_map: dict[str, str] = {}
+    weight_map: Dict[str, str] = {}
     for sf in shard_files:
         with safe_open(str(sf), framework="pt") as f:
             keys = f.keys()
@@ -124,7 +124,7 @@ def read_weight_map(src: Path) -> dict[str, str]:
     return weight_map
 
 
-@cache
+@lru_cache(maxsize=None)
 def resolve_checkpoint_dir(model_id_or_path: str) -> Path:
     """Resolve a local or remote model reference to a checkpoint directory.
 
@@ -173,7 +173,7 @@ def resolve_checkpoint_dir(model_id_or_path: str) -> Path:
     return Path(snapshot_dir)
 
 
-def resolve_checkpoint_files(model_id_or_path: str) -> list[str]:
+def resolve_checkpoint_files(model_id_or_path: str) -> List[str]:
     """Return safetensors checkpoint files for a model reference.
 
     Parameters
@@ -193,7 +193,7 @@ def resolve_checkpoint_files(model_id_or_path: str) -> list[str]:
     return checkpoint_files
 
 
-def checkpoint_root(model_id_or_path: str, checkpoint_files: Sequence[str]) -> Path | None:
+def checkpoint_root(model_id_or_path: str, checkpoint_files: Sequence[str]) -> Optional[Path]:
     """Return the root directory used for relative checkpoint file paths.
 
     Parameters
@@ -222,7 +222,7 @@ def checkpoint_root(model_id_or_path: str, checkpoint_files: Sequence[str]) -> P
     return first_checkpoint.parent
 
 
-def load_checkpoint_index(checkpoint_files: list[str]) -> dict[str, str]:
+def load_checkpoint_index(checkpoint_files: List[str]) -> Dict[str, str]:
     """Build a tensor-to-shard map by scanning safetensors checkpoint files.
 
     Parameters
@@ -244,14 +244,14 @@ def load_checkpoint_index(checkpoint_files: list[str]) -> dict[str, str]:
     return tensor_to_file
 
 
-def atomic_save(tensors: dict[str, torch.Tensor], dst: Path) -> None:
+def atomic_save(tensors: Dict[str, torch.Tensor], dst: Path) -> None:
     """Write safetensors through a temporary file before replacing ``dst``."""
     tmp = dst.with_suffix(dst.suffix + ".tmp")
     save_file({k: v.contiguous() for k, v in tensors.items()}, str(tmp))
     tmp.replace(dst)
 
 
-def write_index(out: Path, weight_map: dict[str, str]) -> None:
+def write_index(out: Path, weight_map: Dict[str, str]) -> None:
     """Write ``model.safetensors.index.json`` for a prepared checkpoint."""
     files = set(weight_map.values())
     total_size = sum((out / f).stat().st_size for f in files if (out / f).exists())
