@@ -366,6 +366,20 @@ def build_transformer_blocking_config_for_transform(
         "n_rep_chunk",
         "ctx_len",
         "kv_block_unroll",
+        "msa_indexer_dp",
+        "msa_indexer_cp",
+        "msa_attn_dp",
+        "msa_attn_cp",
+        "msa_attn_dp_local_batch_size",
+        "indexer_n_head",
+        "indexer_q_size",
+        "indexer_q_chunk",
+        "indexer_prefill_parallel",
+        "indexer_num_blocks",
+        "msa_num_kv_blocks",
+        "msa_q_chunk",
+        "page_block_size",
+        "num_cores_per_device",
     ):
         if qaic_config.get(param) is not None:
             setattr(blocking_config, param, qaic_config.get(param))
