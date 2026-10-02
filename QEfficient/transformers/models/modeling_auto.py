@@ -7,6 +7,7 @@
 
 import math
 import os
+import time
 import warnings
 from pathlib import Path
 from time import perf_counter
@@ -56,6 +57,10 @@ from QEfficient.generation.text_generation_inference import (
     get_compilation_dims,
 )
 from QEfficient.generation.vlm_generation import VisionLanguageGeneration
+from QEfficient.proxy.modeling_utils import (
+    apply_proxy_layer_config,
+    prepare_proxy_config,
+)
 from QEfficient.transformers.modeling_utils import (
     DYNAMIC_SEQ_LEN_SUPPORTED_MODEL_ARCH,
     SPECIALIZED_DISAGG_SERVING_MODEL_ARCH,
@@ -1586,6 +1591,8 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         )
 
         _resolve_torch_dtype(kwargs)
+        if enable_proxy:
+            prepare_proxy_config(pretrained_model_name_or_path, kwargs)
         model = cls._hf_auto_class.from_pretrained(pretrained_model_name_or_path, **kwargs)
 
         kwargs.update({"enable_proxy": enable_proxy} if enable_proxy else {})
@@ -1636,6 +1643,7 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         skip_vision: bool | None = False,
         skip_lang: bool | None = False,
         prefill_seq_len: int | None = None,
+        ctx_len: int | None = None,
         prefill_only: bool = False,
         enable_chunking: bool = False,
         num_cores: int = constants.DEFAULT_AIC_NUM_CORES,
@@ -1680,16 +1688,25 @@ class _QEffAutoModelForImageTextToTextDualQPC:
                 kv_cache_prefix=kv_cache_prefix,
                 **kwargs,
             )
+        ctx_len = constants.ONNX_EXPORT_CTX_LEN if ctx_len is None else int(ctx_len)
         bs: int = constants.ONNX_EXPORT_EXAMPLE_BATCH_SIZE
-        seq_len: int = constants.ONNX_EXPORT_EXAMPLE_SEQ_LEN
+        seq_len: int = prefill_seq_len if prefill_seq_len is not None else constants.ONNX_EXPORT_EXAMPLE_SEQ_LEN
         qaic_config = kwargs.get("qaic_config", getattr(self.lang_model.model, "qaic_config", None))
+        if qaic_config is not None and (qaic_config.get("msa_indexer_dp", 0) > 1 or qaic_config.get("msa_attn_dp", 0) > 1):
+            bs = bs * math.lcm(qaic_config.get("msa_indexer_dp"), qaic_config.get("msa_attn_dp"))
+            seq_len = 1
+        # Sync compile-time qaic_config onto the model so get_dummy_inputs / get_specializations
+        # can read DP/GP params (e.g. msa_indexer_dp) that arrive only at compile time.
+        if qaic_config is not None:
+            self.model.qaic_config = qaic_config
+            self.lang_model.model.qaic_config = qaic_config
         # TODO: move this to a DA Serving utility class
         if self.model.config.model_type in SPECIALIZED_DISAGG_SERVING_MODEL_ARCH:
             if prefill_only:
                 self.__update_prefill_transform(enable=True, enable_chunking=enable_chunking)
             else:
                 self.__update_prefill_transform(False, retain_full_kv=kwargs.get("retain_full_kv", False))
-        onnx_kwargs = {"prefill_seq_len": seq_len, "batch_size": bs}
+        onnx_kwargs = {"prefill_seq_len": seq_len, "past_seq_len": ctx_len if seq_len == 1 else seq_len, "batch_size": bs}
         dynamic_axes_kwargs = {
             "kv_offload": True,
             "continuous_batching": self.continuous_batching,
@@ -1710,6 +1727,7 @@ class _QEffAutoModelForImageTextToTextDualQPC:
             kv_offload=True,
             continuous_batching=self.continuous_batching,
             comp_ctx_lengths=self.comp_ctx_lengths_decode,
+            ctx_len=ctx_len,
             **onnx_kwargs,
         )
         dynamic_axes = self.model.get_onnx_dynamic_axes(**dynamic_axes_kwargs)
@@ -1767,6 +1785,7 @@ class _QEffAutoModelForImageTextToTextDualQPC:
                 enable_chunking=enable_chunking,
                 num_cores=num_cores,
                 prefill_seq_len=prefill_seq_len,
+                ctx_len=ctx_len,
                 qaic_config=qaic_config,
                 _layerwise_cache_probe=layerwise_cache_probe,
                 kv_cache_prefix=kv_cache_prefix,
@@ -1957,6 +1976,7 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         layerwise_window_size: int = 1,
         kv_cache_prefix: Optional[str] = None,
         artifacts: bool = False,
+        log_times: bool = False,
         **compiler_options,
     ) -> str:
         """
@@ -2149,6 +2169,7 @@ class _QEffAutoModelForImageTextToTextDualQPC:
             kv_cache_batch_size=kv_cache_batch_size,
             full_batch_size=full_batch_size,
             vision_batch_size=vision_batch_size,
+            qaic_config=qaic_config,
             **compiler_options,
         )
 
@@ -2181,6 +2202,7 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         needs_lang_export = not skip_lang and lang_onnx_path is None
 
         if needs_vision_export or needs_lang_export:
+            _t0_export = time.perf_counter()
             with export_from_compile():
                 self.export(
                     use_onnx_subfunctions=use_onnx_subfunctions,
@@ -2189,12 +2211,15 @@ class _QEffAutoModelForImageTextToTextDualQPC:
                     prefill_only=prefill_only,
                     enable_chunking=enable_chunking,
                     prefill_seq_len=prefill_seq_len,
+                    ctx_len=ctx_len,
                     num_cores=num_cores,
                     qaic_config=qaic_config,
                     _layerwise_cache_probe=layerwise_cache_probe,
                     kv_cache_prefix=kv_cache_prefix,
                     offload_pt_weights=offload_pt_weights,
                 )
+            if log_times:
+                print(f"[timing] export (ONNX):       {time.perf_counter() - _t0_export:.2f}s")
             if layerwise_cache_probe:
                 return self.lang_model.onnx_path
 
@@ -2219,6 +2244,7 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         if not skip_vision:
             compiler_options_vision = compiler_options.copy()
             compiler_options_vision["node_precision_info"] = False
+            _t0_compile_vision = time.perf_counter()
             vision_qpc_path = self.vision_model._compile(
                 onnx_path=self.vision_model.onnx_path,
                 compile_dir=compile_dir,
@@ -2233,6 +2259,8 @@ class _QEffAutoModelForImageTextToTextDualQPC:
                 use_onnx_subfunctions=use_onnx_subfunctions,
                 **compiler_options_vision,
             )
+            if log_times:
+                print(f"[timing] compile vision (AIC): {time.perf_counter() - _t0_compile_vision:.2f}s")
             self.qpc_paths["vision_qpc_path"] = vision_qpc_path
 
         # Custom NPI file options
@@ -2279,6 +2307,7 @@ class _QEffAutoModelForImageTextToTextDualQPC:
                 specializations = lang_specs
                 qpc_key = "lang_qpc_path"
 
+            _t0_compile_lang = time.perf_counter()
             lang_qpc_path = self.lang_model._compile(
                 onnx_path=self.lang_model.onnx_path,
                 compile_dir=compile_dir,
@@ -2293,6 +2322,8 @@ class _QEffAutoModelForImageTextToTextDualQPC:
                 use_onnx_subfunctions=use_onnx_subfunctions,
                 **compiler_options,
             )
+            if log_times:
+                print(f"[timing] compile lang (AIC):  {time.perf_counter() - _t0_compile_lang:.2f}s")
             self.qpc_paths.update({qpc_key: lang_qpc_path})
         return self.qpc_paths
 
@@ -2314,6 +2345,8 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         skip_vision: bool = False,
         skip_lang: bool = False,
         artifacts: bool = False,
+        profiling_type: str | None = None,
+        profiling_output_dir: Path | str | None = None,
         **kwargs,
     ) -> Union[torch.Tensor, np.ndarray, Path]:
         """
@@ -2347,6 +2380,11 @@ class _QEffAutoModelForImageTextToTextDualQPC:
 
         artifacts : bool, optional
             Write first-prefill ``qaic-runner`` inputs without constructing a runtime session.
+        profiling_type : str, optional
+            Runtime profiling mode for direct KV-offload execution, such as ``"trace"``.
+        profiling_output_dir : str or Path, optional
+            Directory for runtime profiling output. Defaults to a ``profiling_output``
+            directory inside the language QPC directory.
         Returns
         -------
         CloudAI100ExecInfoNew or np.ndarray
@@ -2403,7 +2441,12 @@ class _QEffAutoModelForImageTextToTextDualQPC:
 
         # Fallback to kv_offload_generate for direct inputs (backward compatibility)
         return self.kv_offload_generate(
-            inputs=inputs, device_ids=device_ids, streamer=streamer, generation_len=generation_len
+            inputs=inputs,
+            device_ids=device_ids,
+            streamer=streamer,
+            generation_len=generation_len,
+            profiling_type=profiling_type,
+            profiling_output_dir=profiling_output_dir,
         )
 
     def kv_offload_generate(
@@ -2412,6 +2455,8 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         streamer: TextStreamer | None = None,
         device_ids: list[int] | None = None,
         generation_len: int | None = None,
+        profiling_type: str | None = None,
+        profiling_output_dir: Path | str | None = None,
     ):
         """
         Performs generation for multimodal models with KV offloading to CPU.
@@ -2429,6 +2474,10 @@ class _QEffAutoModelForImageTextToTextDualQPC:
             IDs of devices for running the QPC. Defaults to `[0]` if not specified.
         generation_len : int, optional
             The maximum number of tokens to generate. If None, it's inferred from `ctx_len`.
+        profiling_type : str, optional
+            Runtime profiling mode for the language QPC, such as ``"trace"``.
+        profiling_output_dir : str or Path, optional
+            Directory for runtime profiling output.
 
         Returns
         -------
@@ -2445,7 +2494,15 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         if not self.lang_model.qpc_path:
             raise TypeError("Please run compile API for language model first!")
 
-        lang_session = QAICInferenceSession(self.lang_model.qpc_path, device_ids, activate=False)
+        if profiling_type is not None and profiling_output_dir is None:
+            profiling_output_dir = Path(self.lang_model.qpc_path) / "profiling_output"
+        lang_session = QAICInferenceSession(
+            self.lang_model.qpc_path,
+            device_ids,
+            activate=False,
+            profiling_type=profiling_type,
+            profiling_output_dir=profiling_output_dir,
+        )
 
         if self.vision_model.qpc_path:
             vision_session = QAICInferenceSession(self.vision_model.qpc_path, device_ids)
@@ -2566,6 +2623,8 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         if self.vision_model.qpc_path:
             vision_session.deactivate()
         lang_session.activate()
+        if profiling_type is not None:
+            lang_session.start_profiling()
 
         lang_session.set_buffers(vision_outputs)
 
@@ -2737,6 +2796,8 @@ class _QEffAutoModelForImageTextToTextDualQPC:
                 streamer.put(lang_inputs["input_ids"][0])
 
         decode_end = perf_counter()
+        if profiling_type is not None:
+            lang_session.stop_profiling()
         if streamer:
             streamer.end()
 
@@ -2867,6 +2928,12 @@ class _QEFFAutoModelForImageTextToTextSingleQPC(QEFFTransformersBase, Multimodal
         from transformers import AutoConfig
 
         config = AutoConfig.from_pretrained(pretrained_model_name_or_path, trust_remote_code=True)
+        if enable_proxy:
+            explicit_num_hidden_layers = kwargs.pop("num_hidden_layers", None)
+            if explicit_num_hidden_layers is None:
+                apply_proxy_layer_config(config)
+            else:
+                apply_proxy_layer_config(config, num_hidden_layers=explicit_num_hidden_layers)
         config._attn_implementation = "eager"
         config.vision_config.use_flash_attn = "false"
         _resolve_torch_dtype(kwargs)
@@ -3031,6 +3098,11 @@ class _QEFFAutoModelForImageTextToTextSingleQPC(QEFFTransformersBase, Multimodal
                 f"full_batch_size={full_batch_size}, kv_cache_batch_size={kv_cache_batch_size}, num_speculative_tokens={num_speculative_tokens}, "
             )
 
+        # Sync compile-time qaic_config onto the model so get_specializations / get_dummy_inputs
+        # can read DP/GP params (e.g. msa_indexer_dp) that arrive only at compile time.
+        if qaic_config is not None:
+            self.model.qaic_config = qaic_config
+
         # Infer kv_cache_batch_size if not provided
         kv_cache_batch_size = kv_cache_batch_size or full_batch_size or batch_size
         kv_cache_prefix = validate_kv_cache_prefix(kv_cache_prefix)
@@ -3067,7 +3139,12 @@ class _QEFFAutoModelForImageTextToTextSingleQPC(QEFFTransformersBase, Multimodal
             **compiler_options,
         )
 
-        if hasattr(self.model, "get_npi_file") and "node_precision_info" not in compiler_options:
+        if hasattr(self.model, "generate_npi_file") and "node_precision_info" in compiler_options:
+            if isinstance(compiler_options["node_precision_info"], bool) and compiler_options["node_precision_info"]:
+                compiler_options["node_precision_info"] = self.model.generate_npi_file(onnx_path)
+            elif isinstance(compiler_options["node_precision_info"], bool) and not compiler_options["node_precision_info"]:
+                compiler_options.pop("node_precision_info", None)
+        elif hasattr(self.model, "get_npi_file") and "node_precision_info" not in compiler_options:
             compiler_options["node_precision_info"] = self.model.get_npi_file(self.model.name_or_path)
 
         custom_io = {}
@@ -3537,6 +3614,8 @@ class QEFFAutoModelForImageTextToText:
         )
 
         _resolve_torch_dtype(kwargs)
+        if enable_proxy:
+            prepare_proxy_config(pretrained_model_name_or_path, kwargs)
         if layerwise:
             # Layer-wise mode: build the outer model on the meta device so the
             # caller's ``from_pretrained`` does not pull the full checkpoint
@@ -3856,6 +3935,8 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
         )
 
         _resolve_torch_dtype(kwargs)
+        if enable_proxy:
+            prepare_proxy_config(pretrained_model_name_or_path, kwargs)
         if layerwise:
             warnings.warn(
                 "layerwise export is deprecated and will be removed in a future release. "
