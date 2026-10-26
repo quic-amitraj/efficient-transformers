@@ -58,7 +58,14 @@ def parse_args():
     parser.add_argument("--generation-len", type=int, default=100)
     parser.add_argument("--num-cores", type=int, default=4)
     parser.add_argument("--num-devices", type=int, default=4)
+    parser.add_argument(
+        "--mdp-num-partitions",
+        type=int,
+        default=1,
+        help="Pipeline-parallel MDP partitions. QEff generates the MDP from ONNX when greater than one.",
+    )
     parser.add_argument("--device-ids", type=int, nargs="*", default=None)
+    parser.add_argument("--mxfp6-matmul", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--aic-hw-version", default="ai200")
     parser.add_argument("--prompt", default="Hello")
     parser.add_argument("--random-seed", type=int, default=RANDOM_SEED)
@@ -226,6 +233,8 @@ def main():
     else:
         qeff_model, tokenizer = load_model_and_tokenizer(args)
         qeff_model.model.eval()
+        if args.mdp_num_partitions <= 0 or args.num_devices % args.mdp_num_partitions:
+            raise ValueError("--num-devices must be divisible by a positive --mdp-num-partitions value.")
 
         qaic_config = None
         if args.enable_blocking or args.replicate_kv_heads:
@@ -249,6 +258,8 @@ def main():
             ctx_len=args.ctx_len,
             num_cores=args.num_cores,
             num_devices=args.num_devices,
+            mdp_num_partitions=args.mdp_num_partitions,
+            mxfp6_matmul=args.mxfp6_matmul,
             aic_hw_version=args.aic_hw_version,
             dynamo=True,
             use_onnx_subfunctions=args.use_onnx_subfunctions,
