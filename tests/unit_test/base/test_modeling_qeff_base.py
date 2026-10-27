@@ -364,21 +364,68 @@ class TestQEFFBaseModelTransformBlocking:
 
         assert captured_kwargs["num_devices"] == expected_moe_num_devices
 
-    def test_transform_rejects_invalid_mdp_num_partitions_for_moe_transform(self):
+    @pytest.mark.parametrize(
+        ("compiler_options", "expected_kv_replication_devices"),
+        [
+            pytest.param({}, 8, id="no_mdp_partitions"),
+            pytest.param({"mdp_num_partitions": 1}, 8, id="single_partition"),
+            pytest.param({"mdp_num_partitions": 4}, 2, id="pp4_ts2"),
+        ],
+    )
+    def test_transform_passes_partition_ts_devices_to_kv_replication(
+        self, monkeypatch, compiler_options, expected_kv_replication_devices
+    ):
+        from QEfficient.base import modeling_qeff
+
+        model, _ = make_tiny_gpt2()
+        qeff = QEFFAutoModelForCausalLM(model)
+        captured_kwargs = {}
+
+        def fake_replicate_kv(self, model_config, num_devices, qaic_config):
+            captured_kwargs["num_devices"] = num_devices
+            return 1
+
+        monkeypatch.setattr(modeling_qeff.QEFFBaseModel, "maybe_apply_replicate_kv_transform", fake_replicate_kv)
+        monkeypatch.setattr(
+            modeling_qeff.OptimizedMoETransform,
+            "apply",
+            staticmethod(lambda model, **kwargs: (model, False)),
+        )
+
+        qeff.transform(
+            ctx_len=32,
+            seq_len=8,
+            bs=1,
+            num_devices=8,
+            qaic_config={"replicate_kv_heads": True},
+            aic_num_cores=16,
+            **compiler_options,
+        )
+
+        assert captured_kwargs["num_devices"] == expected_kv_replication_devices
+
+    @pytest.mark.parametrize(
+        ("num_devices", "mdp_num_partitions", "match"),
+        [
+            pytest.param(8, 0, "mdp_num_partitions must be greater than zero", id="zero_partitions"),
+            pytest.param(7, 2, "num_devices must be divisible by mdp_num_partitions", id="uneven_partitions"),
+        ],
+    )
+    def test_transform_rejects_invalid_mdp_topology_for_moe_transform(self, num_devices, mdp_num_partitions, match):
         model, _ = make_tiny_gpt2()
         qeff = QEFFAutoModelForCausalLM(model)
 
-        with pytest.raises(ValueError, match="mdp_num_partitions must be greater than zero"):
+        with pytest.raises(ValueError, match=match):
             qeff.transform(
                 ctx_len=32,
                 seq_len=8,
                 bs=1,
-                num_devices=8,
+                num_devices=num_devices,
                 qaic_config={"moe_config": {"flavour": "expert_parallel"}},
                 aic_num_cores=16,
                 prefill_only=True,
                 prefill_seq_len=8,
-                mdp_num_partitions=0,
+                mdp_num_partitions=mdp_num_partitions,
             )
 
     @pytest.mark.parametrize("blocking_mode", ["h_paged", "hq_paged", "q_paged"])

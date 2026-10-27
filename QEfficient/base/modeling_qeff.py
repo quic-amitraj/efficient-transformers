@@ -1191,12 +1191,24 @@ class QEFFBaseModel(ABC):
     ):
         # Apply the transformations that are dependent on compilation parameters
         moe_batch_size = compiler_options.pop("moe_batch_size", bs)
+        mdp_num_partitions = compiler_options.get("mdp_num_partitions", 1)
+        if mdp_num_partitions is None:
+            mdp_num_partitions = 1
+        mdp_num_partitions = int(mdp_num_partitions)
+        if mdp_num_partitions <= 0:
+            raise ValueError("mdp_num_partitions must be greater than zero")
+        total_num_devices = int(num_devices)
+        if total_num_devices <= 0:
+            raise ValueError("num_devices must be greater than zero")
+        if total_num_devices % mdp_num_partitions:
+            raise ValueError("num_devices must be divisible by mdp_num_partitions")
+        ts_num_devices = total_num_devices // mdp_num_partitions
         model_config = getattr(self.model, "config", None) or getattr(
             getattr(self.model, "model", None), "config", None
         )
         effective_num_replicate_kv_heads = self.maybe_apply_replicate_kv_transform(
             model_config,
-            num_devices,
+            ts_num_devices,
             qaic_config,
         )
         if model_config:
@@ -1236,21 +1248,12 @@ class QEFFBaseModel(ABC):
         if num_cores is None:
             num_cores = constants.DEFAULT_AIC_NUM_CORES
         prefill_seq_len = compiler_options.get("prefill_seq_len", seq_len)
-        mdp_num_partitions = compiler_options.get("mdp_num_partitions", 1)
-        if mdp_num_partitions is None:
-            mdp_num_partitions = 1
-        mdp_num_partitions = int(mdp_num_partitions)
-        if mdp_num_partitions <= 0:
-            raise ValueError("mdp_num_partitions must be greater than zero")
-        moe_num_devices = int(num_devices)
-        if mdp_num_partitions > 1:
-            moe_num_devices = moe_num_devices // mdp_num_partitions
         reject_legacy_moe_prefill_packed_chunk_size(compiler_options)
         self.model, _ = OptimizedMoETransform.apply(
             self.model,
             prefill_only=bool(compiler_options.get("prefill_only", False)),
             batch_size=moe_batch_size,
-            num_devices=moe_num_devices,
+            num_devices=ts_num_devices,
             num_cores=num_cores,
             qaic_config=qaic_config,
             prefill_seq_len=prefill_seq_len,
