@@ -302,6 +302,7 @@ class PreserveNestedCacheRetainedStateTransform(BaseOnnxTransform):
             "CtxScatter3D",
             "CtxScatter3DInt",
             "CtxScatterCB3D",
+            "CtxPagedScatterDP",
         }
     )
 

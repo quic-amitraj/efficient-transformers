@@ -13,6 +13,7 @@ from QEfficient.customop.ctx_scatter_gather import (
     CtxGather3D,
     CtxGatherBlockedKV,
     CtxGatherBlockedKVBatch,
+    CtxPagedScatterDP,
     CtxScatter,
     CtxScatter3D,
     CtxScatter3DInt,
@@ -73,6 +74,24 @@ def ctx_scatter_3d_op(data: torch.Tensor, position_ids: torch.Tensor, updates: t
 @ctx_scatter_3d_op.register_fake
 def _(data: torch.Tensor, position_ids: torch.Tensor, updates: torch.Tensor) -> torch.Tensor:
     """Fake implementation for torch.export - just returns data tensor with same shape/dtype"""
+    return torch.empty_like(data)
+
+
+@torch.library.custom_op("qefficient::ctx_paged_scatter_dp", mutates_args=())
+def ctx_paged_scatter_dp_op(
+    data: torch.Tensor, block_id: torch.Tensor, addr: torch.Tensor, updates: torch.Tensor
+) -> torch.Tensor:
+    """Scatter updates into a DP/CP-layout physical-block cache."""
+    result = data.clone()
+    batch, rows, seq_len, _ = updates.shape
+    row_idx = torch.arange(rows, device=data.device).view(1, rows, 1).expand(batch, rows, seq_len)
+    valid = block_id != torch.iinfo(torch.int32).max
+    result[block_id[valid].long(), row_idx[valid], addr[valid].long()] = updates[valid]
+    return result
+
+
+@ctx_paged_scatter_dp_op.register_fake
+def _(data: torch.Tensor, block_id: torch.Tensor, addr: torch.Tensor, updates: torch.Tensor) -> torch.Tensor:
     return torch.empty_like(data)
 
 
@@ -420,6 +439,7 @@ DYNAMO_CUSTOM_OP_TABLE = {
     torch.ops.qefficient.rms_norm.default: get_dynamo_onnxscript_func(CustomRMSNorm),
     torch.ops.qefficient.ctx_scatter.default: get_dynamo_onnxscript_func(CtxScatter),
     torch.ops.qefficient.ctx_scatter_3d.default: get_dynamo_onnxscript_func(CtxScatter3D),
+    torch.ops.qefficient.ctx_paged_scatter_dp.default: get_dynamo_onnxscript_func(CtxPagedScatterDP),
     torch.ops.qefficient.ctx_scatter_cb.default: get_dynamo_onnxscript_func(CtxScatterCB),
     torch.ops.qefficient.ctx_scatter_cb_3d.default: get_dynamo_onnxscript_func(CtxScatterCB3D),
     torch.ops.qefficient.ctx_scatter_3d_int.default: get_dynamo_onnxscript_func(CtxScatter3DInt),

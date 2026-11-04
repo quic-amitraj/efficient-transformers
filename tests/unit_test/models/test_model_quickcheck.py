@@ -2881,19 +2881,77 @@ def test_qwen3_5_moe_get_submodules_for_export_keeps_decoder_layer_for_mixed_lay
     """Mixed full/linear attention configs must still expose decoder layer subfunctions."""
     from types import SimpleNamespace
 
+    from QEfficient.blocking.attention_blocking import BlockingMode
     from QEfficient.transformers.models.qwen3_5_moe.modeling_qwen3_5_moe import (
         QEffQwen3_5MoeDecoderLayer,
         QEffQwen3_5MoeDecoderWrapper,
         QEffQwen3_5MoeForCausalLM,
+        QEffQwen3_5MoeFullAttentionDecoderLayer,
+        QEffQwen3_5MoeLinearAttentionDecoderLayer,
     )
 
     causal_lm = QEffQwen3_5MoeForCausalLM.__new__(QEffQwen3_5MoeForCausalLM)
     causal_lm.config = SimpleNamespace(layer_types=["full_attention", "linear_attention"])
     assert causal_lm.get_submodules_for_export() == {QEffQwen3_5MoeDecoderLayer}
 
+    causal_lm.model = SimpleNamespace(
+        layers=[
+            QEffQwen3_5MoeLinearAttentionDecoderLayer.__new__(QEffQwen3_5MoeLinearAttentionDecoderLayer),
+            QEffQwen3_5MoeFullAttentionDecoderLayer.__new__(QEffQwen3_5MoeFullAttentionDecoderLayer),
+        ]
+    )
+    assert causal_lm.get_submodules_for_export() == {
+        QEffQwen3_5MoeLinearAttentionDecoderLayer,
+        QEffQwen3_5MoeFullAttentionDecoderLayer,
+    }
+
+    causal_lm.config = SimpleNamespace(layer_types=["linear_attention", "full_attention"])
+    causal_lm.model.layers[1].self_attn = SimpleNamespace(
+        attn_blocking_config=SimpleNamespace(mode=BlockingMode.KV_HEADPAR, attn_dp=1, attn_cp=2)
+    )
+    assert causal_lm.get_submodules_for_export() == {
+        QEffQwen3_5MoeLinearAttentionDecoderLayer,
+        QEffQwen3_5MoeFullAttentionDecoderLayer,
+    }
+
     wrapper = QEffQwen3_5MoeDecoderWrapper.__new__(QEffQwen3_5MoeDecoderWrapper)
     wrapper.config = SimpleNamespace(text_config=SimpleNamespace(layer_types=["full_attention", "linear_attention"]))
     assert wrapper.get_submodules_for_export() == {QEffQwen3_5MoeDecoderLayer}
+
+
+def test_qwen3_5_moe_cpdp_headpar_uses_compact_full_attention_retained_states():
+    """CP/DP headpar changes only full-attention KV retained-state topology."""
+    from QEfficient.blocking.attention_blocking import BlockingMode
+    from QEfficient.transformers.models.qwen3_5_moe.modeling_qwen3_5_moe import QEffQwen3_5MoeForCausalLM
+
+    blocking_config = SimpleNamespace(mode=BlockingMode.KV_HEADPAR, attn_dp=2, attn_cp=4)
+    model = QEffQwen3_5MoeForCausalLM.__new__(QEffQwen3_5MoeForCausalLM)
+    model.config = SimpleNamespace(layer_types=["linear_attention", "full_attention"], torch_dtype=torch.float32)
+    model.model = SimpleNamespace(
+        layers=[
+            SimpleNamespace(
+                linear_attn=SimpleNamespace(
+                    conv_dim=8, num_k_heads=2, conv_kernel_size=4, num_v_heads=2, head_k_dim=4, head_v_dim=6
+                )
+            ),
+            SimpleNamespace(self_attn=SimpleNamespace(attn_blocking_config=blocking_config)),
+        ]
+    )
+
+    specs = model.get_onnx_retained_state_specs(
+        batch_size=4,
+        seq_len=1,
+        kv_cache_shape=[4, 2, 16, 8],
+    )
+
+    conv_state, recurrent_state = specs["past_key_values"][0]
+    past_key, past_value = specs["past_key_values"][1]
+    assert conv_state.shape == (4, 2, 4, 4)
+    assert recurrent_state.shape == (4, 2, 4, 6)
+    assert past_key.shape == (2, 16, 4, 8)
+    assert past_value.shape == (2, 16, 4, 8)
+    assert specs["dynamic_axes"]["past_key.1"] == {0: "local_batch_size", 2: "local_ctx_len"}
+    assert specs["dynamic_axes"]["conv_state.0"] == {0: "batch_size"}
 
 
 def test_qwen3_5_moe_get_specializations_supports_multi_resolution():

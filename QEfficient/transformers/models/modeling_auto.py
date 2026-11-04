@@ -4292,14 +4292,21 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
                 blocking_kwargs.num_batch_blocks,
             ]
             max_blocks = max([b for b in block_counts if b is not None], default=1)
-            block_size = -(-seq_len // max_blocks)
-            seq_len = block_size * max_blocks
+            uses_compact_headpar_cache = blocking_kwargs.mode == BlockingMode.KV_HEADPAR and (
+                int(blocking_kwargs.attn_dp or 1) > 1 or int(blocking_kwargs.attn_cp or 1) > 1
+            )
+            if uses_compact_headpar_cache:
+                # CP/DP headpar implements decode only. Do not inherit the
+                # generic prefill-sized Dynamo example or block-count padding.
+                seq_len = 1
+            else:
+                block_size = -(-seq_len // max_blocks)
+                seq_len = block_size * max_blocks
             num_kv_blocks = self.hash_params["blocking_kwargs"].num_kv_blocks
             supports_paged_attention = self.hash_params["blocking_kwargs"].paged_attention
 
-            seq_len = kv_block_size = (
-                -(-blocking_kwargs.ctx_len // num_kv_blocks) if supports_paged_attention else seq_len
-            )
+            if supports_paged_attention:
+                seq_len = kv_block_size = -(-blocking_kwargs.ctx_len // num_kv_blocks)
 
         #### HANDLE KV CACHE SHAPE ################
         kv_cache_shape = get_padding_shape_from_config(
@@ -4339,10 +4346,16 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
 
         expert_parallel_is_triggered = self.hash_params.get("moe_prefill_flavour") == MoEFlavour.EXPERT_PARALLEL
         blocking_enabled = self.hash_params.get("blocking_kwargs", None) is not None
+        blocking_kwargs = self.hash_params.get("blocking_kwargs")
+        uses_compact_headpar_cache = bool(
+            blocking_kwargs is not None
+            and blocking_kwargs.mode == BlockingMode.KV_HEADPAR
+            and (int(blocking_kwargs.attn_dp or 1) > 1 or int(blocking_kwargs.attn_cp or 1) > 1)
+        )
         for_loop_number_forced_by_expert_parallel = self.hash_params.get("moe_prefill_num_packed_chunks", None)
-        if blocking_enabled:
+        if blocking_enabled and not uses_compact_headpar_cache:
             max_blocks = -1
-            for key, num_blocks in self.hash_params.get("blocking_kwargs").__dict__.items():
+            for key, num_blocks in blocking_kwargs.__dict__.items():
                 if isinstance(num_blocks, int) and key in ["num_kv_blocks", "num_q_blocks"]:
                     max_blocks = max(max_blocks, num_blocks)
             block_size = -(-seq_len // max_blocks)
@@ -4352,7 +4365,7 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
             seq_len = (for_loop_number_forced_by_expert_parallel * seq_len) // math.gcd(
                 for_loop_number_forced_by_expert_parallel, seq_len
             )
-        if blocking_enabled:
+        if blocking_enabled and not uses_compact_headpar_cache:
             seq_len = (for_loop_number_forced_by_blocking * seq_len) // math.gcd(
                 for_loop_number_forced_by_blocking, seq_len
             )
@@ -4367,7 +4380,6 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
             "input_ids": {0: "batch_size", 1: "seq_len"},
             "position_ids": {0: "batch_size", 1: "seq_len"},
         }
-
         if getattr(self, "dflash_dlm", None):
             example_inputs["target_hidden"] = torch.ones((bs, seq_len, self.hidden_size), dtype=torch.float)
             example_inputs["position_ids"] = (
@@ -4676,6 +4688,19 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
             }
         if comp_ctx_lengths is not None:
             spec["comp_ctx_lengths"] = comp_ctx_lengths
+        blocking_kwargs = self.hash_params.get("blocking_kwargs")
+        qaic_config = getattr(self.model, "qaic_config", None) or {}
+        blocking_mode = blocking_kwargs.mode if blocking_kwargs is not None else qaic_config.get("blocking_mode")
+        attn_dp = int(getattr(blocking_kwargs, "attn_dp", qaic_config.get("attn_dp", 1)) or 1)
+        attn_cp = int(getattr(blocking_kwargs, "attn_cp", qaic_config.get("attn_cp", 1)) or 1)
+        if (
+            blocking_mode is not None
+            and BlockingMode.resolve(blocking_mode) == BlockingMode.KV_HEADPAR
+            and (attn_dp > 1 or attn_cp > 1)
+        ):
+            spec["local_ctx_len"] = ctx_len // attn_cp
+            if attn_dp > 1:
+                spec["local_batch_size"] = exec_batch_size // attn_dp
         spec["num_logits_to_keep"] = 1 if self.is_tlm else None
         if self.continuous_batching:
             spec["full_batch_size"] = kv_cache_batch_size
@@ -4752,6 +4777,20 @@ class QEFFAutoModelForCausalLM(QEFFBaseModel):
             }
         if comp_ctx_lengths is not None:
             spec["comp_ctx_lengths"] = comp_ctx_lengths
+
+        blocking_kwargs = self.hash_params.get("blocking_kwargs")
+        qaic_config = getattr(self.model, "qaic_config", None) or {}
+        blocking_mode = blocking_kwargs.mode if blocking_kwargs is not None else qaic_config.get("blocking_mode")
+        attn_dp = int(getattr(blocking_kwargs, "attn_dp", qaic_config.get("attn_dp", 1)) or 1)
+        attn_cp = int(getattr(blocking_kwargs, "attn_cp", qaic_config.get("attn_cp", 1)) or 1)
+        if (
+            blocking_mode is not None
+            and BlockingMode.resolve(blocking_mode) == BlockingMode.KV_HEADPAR
+            and (attn_dp > 1 or attn_cp > 1)
+        ):
+            spec["local_ctx_len"] = ctx_len // attn_cp
+            if attn_dp > 1:
+                spec["local_batch_size"] = batch_size // attn_dp
 
         spec["num_logits_to_keep"] = (num_speculative_tokens + 1) if self.is_tlm else None
 

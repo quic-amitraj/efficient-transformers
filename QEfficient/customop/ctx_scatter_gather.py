@@ -217,6 +217,54 @@ class CtxScatterFunc3DInt(torch.autograd.Function):
 
 
 @qeff_custom_op("com.qualcomm.cloud", 1)
+def CtxPagedScatterDP(
+    data: onnxscript.FLOAT,
+    block_id: onnxscript.INT32,
+    addr: onnxscript.INT32,
+    updates: onnxscript.FLOAT,
+) -> onnxscript.FLOAT:
+    """Scatter updates addressed by physical block, row, and local context position."""
+    update_shape = ops.Shape(updates)
+    batch_size = ops.Gather(update_shape, [0])
+    num_rows = ops.Gather(update_shape, [1])
+    seq_len = ops.Gather(update_shape, [2])
+    zero = ops.Constant(value_ints=[0])
+    one = ops.Constant(value_ints=[1])
+    exp_shape = ops.Concat(batch_size, num_rows, seq_len, one, axis=0)
+    row_idx = ops.Expand(ops.Unsqueeze(ops.Range(zero, num_rows, one), [0, 2, 3]), exp_shape)
+    indices = ops.Concat(
+        ops.Unsqueeze(ops.Cast(block_id, to=7), [-1]),
+        ops.Cast(row_idx, to=7),
+        ops.Unsqueeze(ops.Cast(addr, to=7), [-1]),
+        axis=3,
+    )
+    return ops.ScatterND(data, indices, updates)
+
+
+class CtxPagedScatterFuncDP(torch.autograd.Function):
+    """Scatter a DP/CP-layout KV cache while leaving invalid rows unchanged."""
+
+    @staticmethod
+    def forward(data: torch.Tensor, block_id: torch.Tensor, addr: torch.Tensor, updates: torch.Tensor) -> torch.Tensor:
+        batch, rows, seq_len, _ = updates.shape
+        row_idx = torch.arange(rows, device=data.device).view(1, rows, 1).expand(batch, rows, seq_len)
+        output = data.clone()
+        valid = block_id != torch.iinfo(torch.int32).max
+        output[block_id[valid].long(), row_idx[valid], addr[valid].long()] = updates[valid]
+        return output
+
+    @staticmethod
+    def setup_context(ctx, inputs, outputs):
+        pass
+
+    @staticmethod
+    def symbolic(
+        g: torch.Graph, data: torch.Value, block_id: torch.Value, addr: torch.Value, updates: torch.Value
+    ) -> torch.Value:
+        return g.onnxscript_op(CtxPagedScatterDP, data, block_id, addr, updates).setTypeAs(data)
+
+
+@qeff_custom_op("com.qualcomm.cloud", 1)
 def CtxGather3D(data: onnxscript.FLOAT, ctx_indices: onnxscript.INT32) -> onnxscript.FLOAT:
     batch_size = ops.Slice(ops.Shape(data), starts=[0], ends=[1], axes=[0])
     idx_seq_len = ops.Slice(ops.Shape(ctx_indices), starts=[1], ends=[2], axes=[0])

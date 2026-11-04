@@ -25,6 +25,7 @@ from QEfficient.base.onnx_transforms import (
 )
 from QEfficient.transformers.models.llama.modeling_llama import QEffLlamaDecoderLayer
 from QEfficient.transformers.models.modeling_auto import QEFFAutoModelForCausalLM
+from QEfficient.utils.export_utils import _ordered_decoder_layer_classes
 from QEfficient.utils.torch_patches import preserve_subfunction_source_lines, temporarily_enable_nested_compile_regions
 
 
@@ -66,6 +67,25 @@ def _make_exported_region_program(second_operation=torch.ops.aten.add.Tensor):
             if node.op == "placeholder":
                 node.meta["example_value"] = fake_value
     return SimpleNamespace(graph_module=root, validate=lambda: root.graph.lint()), first_call, second_call
+
+
+def test_ordered_decoder_classes_follow_module_execution_order():
+    class LinearDecoder(torch.nn.Module):
+        pass
+
+    class FullAttentionDecoder(torch.nn.Module):
+        pass
+
+    class MixedDecoderModel(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.layers = torch.nn.ModuleList(
+                [LinearDecoder(), LinearDecoder(), LinearDecoder(), FullAttentionDecoder()]
+            )
+
+    ordered = _ordered_decoder_layer_classes(MixedDecoderModel(), {FullAttentionDecoder, LinearDecoder})
+
+    assert ordered == [LinearDecoder, FullAttentionDecoder]
 
 
 # ---------------------------------------------------------------------------

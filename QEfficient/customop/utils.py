@@ -36,6 +36,17 @@ def ctx_scatter_3d(data: torch.Tensor, position_ids: torch.Tensor, updates: torc
     return select_interface(CtxScatterFunc3D.apply, torch.ops.qefficient.ctx_scatter_3d)(data, position_ids, updates)
 
 
+def ctx_paged_scatter_dp(
+    data: torch.Tensor, block_id: torch.Tensor, addr: torch.Tensor, updates: torch.Tensor
+) -> torch.Tensor:
+    """Scatter into a DP/CP physical-block KV cache, skipping invalid rows."""
+    from QEfficient.customop.ctx_scatter_gather import CtxPagedScatterFuncDP
+
+    return select_interface(CtxPagedScatterFuncDP.apply, torch.ops.qefficient.ctx_paged_scatter_dp)(
+        data, block_id, addr, updates
+    )
+
+
 def ctx_scatter_3d_generalized(data: torch.Tensor, position_ids: torch.Tensor, updates: torch.Tensor) -> torch.Tensor:
     from QEfficient.customop.ctx_scatter_gather import CtxScatterFunc3DGeneralized
 
